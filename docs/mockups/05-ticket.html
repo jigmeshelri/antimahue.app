@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=390,initial-scale=1"><title>Ticket - Antimahue</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:390px;height:844px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#E8E0F0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.success-banner{text-align:center;margin-bottom:16px}
+.success-icon{font-size:48px;margin-bottom:8px}
+.success-text{font-size:18px;font-weight:700;color:#27AE60}
+.ticket{width:280px;background:#fff;border-radius:12px;padding:24px 20px;box-shadow:0 4px 20px rgba(92,61,110,.15);font-family:'Courier New',monospace;position:relative}
+.ticket::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;border-top:1px dashed #E0D0E8}
+.ticket::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;border-bottom:1px dashed #E0D0E8}
+.ticket-header{text-align:center;margin-bottom:16px}
+.ticket-logo{font-size:28px;margin-bottom:4px}
+.ticket-shop{font-size:16px;font-weight:700;color:#5C3D6E}
+.ticket-meta{font-size:11px;color:#888;margin-top:4px}
+.ticket-divider{border:none;border-top:1px dashed #D0B8E0;margin:12px 0}
+.ticket-table{width:100%;font-size:11px}
+.ticket-table th{text-align:left;padding:3px 0;color:#888;font-weight:400;font-size:10px}
+.ticket-table td{padding:4px 0;vertical-align:top}
+.ticket-item-name{font-weight:500;color:#333}
+.ticket-item-detail{font-size:10px;color:#888}
+.ticket-qty{text-align:center;color:#888}
+.ticket-price{text-align:right;font-weight:500}
+.ticket-total-row{font-size:14px;font-weight:700;color:#5C3D6E}
+.ticket-total-row td{padding-top:8px}
+.ticket-payment{margin-top:12px;padding-top:8px;border-top:1px solid #F0E8F5;text-align:center;font-size:11px;color:#888}
+.ticket-payment span{font-weight:600;color:#333}
+.ticket-footer{text-align:center;margin-top:14px;font-size:10px;color:#B0A0BA}
+.actions{display:flex;gap:10px;margin-top:20px}
+.action-btn{padding:10px 20px;border-radius:10px;border:1px solid #D0B8E0;background:#fff;color:#5C3D6E;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px}
+.action-btn.primary{background:#5C3D6E;color:#fff;border-color:#5C3D6E}
+</style>
+</head>
+<body>
+<div class="success-banner">
+  <div class="success-icon">✅</div>
+  <div class="success-text">¡Venta registrada!</div>
+</div>
+<div class="ticket">
+  <div class="ticket-header">
+    <div class="ticket-logo">🧶</div>
+    <div class="ticket-shop">Antimahue</div>
+    <div class="ticket-meta">30/05/2026 — 15:42</div>
+    <div class="ticket-meta">Venta #0042</div>
+  </div>
+  <hr class="ticket-divider">
+  <table class="ticket-table">
+    <tr><th>Producto</th><th>Cant</th><th>Total</th></tr>
+    <tr>
+      <td>
+        <div class="ticket-item-name">Lana Merino Baby Celeste</div>
+        <div class="ticket-item-detail">$4.500 c/u</div>
+      </td>
+      <td class="ticket-qty">2</td>
+      <td class="ticket-price">$9.000</td>
+    </tr>
+    <tr>
+      <td>
+        <div class="ticket-item-name">Lana Gruesa Natural</div>
+        <div class="ticket-item-detail">$5.800 c/u</div>
+      </td>
+      <td class="ticket-qty">1</td>
+      <td class="ticket-price">$5.800</td>
+    </tr>
+    <tr>
+      <td>
+        <div class="ticket-item-name">Algodón Orgánico Verde</div>
+        <div class="ticket-item-detail">$3.500 c/u</div>
+      </td>
+      <td class="ticket-qty">3</td>
+      <td class="ticket-price">$10.500</td>
+    </tr>
+    <tr>
+      <td>
+        <div class="ticket-item-name">Hilo Algodón Lila</div>
+        <div class="ticket-item-detail">$2.900 c/u</div>
+      </td>
+      <td class="ticket-qty">1</td>
+      <td class="ticket-price">$2.900</td>
+    </tr>
+    <tr><td colspan="3"><hr class="ticket-divider"></td></tr>
+    <tr class="ticket-total-row">
+      <td colspan="2">TOTAL</td>
+      <td class="ticket-price">$28.200</td>
+    </tr>
+  </table>
+  <div class="ticket-payment">
+    Pagado con <span>💵 Efectivo</span>
+  </div>
+  <div class="ticket-footer">
+    Atendido por Angélica<br>
+    ¡Gracias por tu compra!
+  </div>
+</div>
+<div class="actions">
+  <div class="action-btn">📱 WhatsApp</div>
+  <div class="action-btn">🖨️ Imprimir</div>
+  <div class="action-btn primary">✓ Nueva venta</div>
+</div>
+</body>
+</html>

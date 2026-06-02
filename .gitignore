@@ -1,0 +1,9 @@
+.envrc
+.env
+.env.local
+.env.*.local
+node_modules/
+dist/
+.next/
+.cache/
+*.log

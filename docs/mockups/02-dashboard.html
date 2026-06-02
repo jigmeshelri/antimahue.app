@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=390,initial-scale=1"><title>Dashboard - Antimahue</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:390px;height:844px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F5F0F8;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,#5C3D6E,#8B5E9E);padding:16px 20px 20px;color:#fff}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.greeting{font-size:20px;font-weight:600}
+.greeting span{font-size:13px;font-weight:400;opacity:.8;display:block}
+.avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric-card{background:rgba(255,255,255,.15);border-radius:12px;padding:12px;backdrop-filter:blur(4px)}
+.metric-label{font-size:11px;opacity:.8;text-transform:uppercase;margin-bottom:4px}
+.metric-value{font-size:18px;font-weight:700}
+.alerts-section{padding:16px 20px}
+.alerts-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.alerts-header h3{font-size:15px;color:#5C3D6E}
+.alerts-badge{background:#E74C3C;color:#fff;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600}
+.alert-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-radius:10px;margin-bottom:8px;border-left:3px solid #E74C3C}
+.alert-icon{font-size:18px}
+.alert-info{flex:1}
+.alert-name{font-size:14px;font-weight:500;color:#333}
+.alert-stock{font-size:12px;color:#E74C3C}
+.alert-qty{font-size:14px;font-weight:700;color:#E74C3C}
+.quick-search{padding:0 20px 12px}
+.search-bar{width:100%;padding:12px 16px 12px 40px;border:1px solid #E0D0E8;border-radius:12px;font-size:14px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%238B5E9E'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z'/%3E%3C/svg%3E") 12px center no-repeat;outline:none}
+.bottom-nav{display:flex;border-top:1px solid #E8D8F2;background:#fff;padding:8px 0 20px;margin-top:auto}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#B0A0BA;font-size:10px;cursor:pointer}
+.nav-item.active{color:#8B5E9E}
+.nav-icon{font-size:20px}
+.product-list{flex:1;overflow:hidden;padding:0 20px}
+.product-list-header{font-size:13px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:10px}
+.product-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F0E8F5}
+.product-color{width:32px;height:32px;border-radius:8px;flex-shrink:0}
+.product-info{flex:1;min-width:0}
+.product-name{font-size:14px;font-weight:500;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-price{font-size:12px;color:#888}
+.product-stock{font-size:13px;font-weight:600;color:#27AE60}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div class="greeting">Hola Angélica <span>Viernes 30 de mayo</span></div>
+    <div class="avatar">A</div>
+  </div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">Inventario</div>
+      <div class="metric-value">$1.845.000</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Ventas hoy</div>
+      <div class="metric-value">$48.500</div>
+    </div>
+  </div>
+</div>
+<div class="alerts-section">
+  <div class="alerts-header">
+    <h3>⚠️ Stock bajo</h3>
+    <div class="alerts-badge">3</div>
+  </div>
+  <div class="alert-item">
+    <div class="alert-icon">🔴</div>
+    <div class="alert-info">
+      <div class="alert-name">Lana Merino Baby Celeste</div>
+      <div class="alert-stock">Quedan 2 unidades</div>
+    </div>
+    <div class="alert-qty">2</div>
+  </div>
+  <div class="alert-item">
+    <div class="alert-icon">🟠</div>
+    <div class="alert-info">
+      <div class="alert-name">Palillo Circular 4.5mm</div>
+      <div class="alert-stock">Quedan 3 unidades</div>
+    </div>
+    <div class="alert-qty">3</div>
+  </div>
+</div>
+<div class="quick-search">
+  <input class="search-bar" placeholder="Buscar producto o escanear...">
+</div>
+<div class="product-list-header" style="padding-left:20px">Últimos productos</div>
+<div class="product-list">
+  <div class="product-item">
+    <div class="product-color" style="background:#A8D8EA"></div>
+    <div class="product-info">
+      <div class="product-name">Lana Merino Baby Celeste</div>
+      <div class="product-price">$4.500</div>
+    </div>
+    <div class="product-stock">12</div>
+  </div>
+  <div class="product-item">
+    <div class="product-color" style="background:#F8B4C8"></div>
+    <div class="product-info">
+      <div class="product-name">Algodón Pima Rosado</div>
+      <div class="product-price">$3.200</div>
+    </div>
+    <div class="product-stock">28</div>
+  </div>
+  <div class="product-item">
+    <div class="product-color" style="background:#C4A882"></div>
+    <div class="product-info">
+      <div class="product-name">Lana Gruesa Natural</div>
+      <div class="product-price">$5.800</div>
+    </div>
+    <div class="product-stock">19</div>
+  </div>
+  <div class="product-item">
+    <div class="product-color" style="background:#9B7CB8"></div>
+    <div class="product-info">
+      <div class="product-name">Hilo Algodón Lila</div>
+      <div class="product-price">$2.900</div>
+    </div>
+    <div class="product-stock">34</div>
+  </div>
+</div>
+<div class="bottom-nav">
+  <div class="nav-item active"><div class="nav-icon">🏠</div>Inicio</div>
+  <div class="nav-item"><div class="nav-icon">📷</div>Vender</div>
+  <div class="nav-item"><div class="nav-icon">📦</div>Productos</div>
+  <div class="nav-item"><div class="nav-icon">📊</div>Reportes</div>
+</div>
+</body>
+</html>
