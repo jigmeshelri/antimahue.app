@@ -67,6 +67,7 @@ MVP: los 3 roles existen con autenticación simple (PIN de 4 dígitos).
 - Nombre, contacto, teléfono
 - Lista de productos que provee
 - Historial de compras (fecha, productos, costo)
+- **Importación de compras desde DTE (XML):** Carga automática de productos, cantidades y costos unitarios mediante la subida del archivo XML de la Factura Electrónica (DTE Tipo 33/46) o Boleta Electrónica (DTE Tipo 39) del proveedor.
 
 ### 5. Dashboard / pantalla principal
 
@@ -118,3 +119,12 @@ Esto se define en detalle durante la fase de diseño técnico (SDD).
 2. Refinamos atributos de producto (los que ella realmente usa para buscar/filtrar)
 3. Definimos stack técnico final
 4. Iniciamos SDD: propuesta → diseño → specs → tareas → implementación
+
+---
+
+## Opciones analizadas pero descartadas para importación de compras (futura referencia)
+
+Para el MVP se evaluaron tres opciones de importación de documentos tributarios chilenos, decidiendo implementar únicamente la carga de XML de DTE por robustez. Se dejan las alternativas registradas para futuras iteraciones:
+
+- **Lectura de PDF y OCR de facturas/boletas:** Descartada por la falta de un formato visual estándar entre los distintos proveedores. El parsing de texto o OCR introduce un riesgo altísimo de inconsistencia de datos en cantidades o costos unitarios.
+- **Escaneo del Timbre Electrónico DTE (TED / código PDF417):** Descartado para la carga de inventario. El timbre PDF417 sólo contiene datos consolidados de la factura (RUT emisor, folio, total, neto, etc.) pero no tiene el detalle de los ítems ni cantidades. Puede servir en el futuro para registro contable rápido, pero no para control de stock.
