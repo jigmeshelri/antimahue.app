@@ -1,0 +1,22 @@
+project:
+  name: antimahue.app
+  stack:
+    frontend:
+      framework: Astro 6
+      library: React 19
+      styling: Tailwind CSS 4
+      language: TypeScript
+    backend:
+      framework: FastAPI (Python 3.12)
+      ai_integrations: Claude, GPT-4o
+    database:
+      provider: Supabase (PostgreSQL 16)
+      extension: TimescaleDB
+      deployment: Docker
+  persistence:
+    mode: openspec
+    path: openspec/
+  state:
+    initialized: true
+    active_changes:
+      - setup-stack
