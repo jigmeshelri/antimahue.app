@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; background: #F0EBE3; }
+  </style>
+</helmet>
+
+<div style="min-width:100%; width:max-content; min-height:100vh; background:#F0EBE3; padding:72px 64px; display:flex; flex-direction:column; gap:80px;">
+
+  <!-- HEADER -->
+  <div>
+    <p style="margin:0 0 6px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">Identidad de marca</p>
+    <h1 style="margin:0; font-size:34px; font-weight:700; color:#2D1F14; letter-spacing:-.03em;">Antimahue</h1>
+    <p style="margin:8px 0 0; font-size:15px; color:#8B6255; line-height:1.5; max-width:480px;">Ícono de aplicación y sistema de marca, inspirado en la hoja de otoño del sello artesanal de Angélica.</p>
+  </div>
+
+  <!-- SECCIÓN 1: ÍCONO MARK -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div>
+      <p style="margin:0 0 4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">Ícono de app</p>
+      <p style="margin:0; font-size:13px; color:#8B6255;">Hoja de maple estilizada — la misma del sello artesanal, digitalizada y limpia.</p>
+    </div>
+
+    <!-- Íconos en distintos tamaños -->
+    <div style="display:flex; gap:40px; align-items:flex-end; flex-wrap:wrap;">
+
+      <!-- 160px -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:160px; height:160px; border-radius:36px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 20px 50px rgba(140,32,16,.35);">
+          <svg width="108" height="108" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="3.5" stroke-linecap="round"/>
+            <!-- Venas -->
+            <path d="M50 90 L50 32" stroke="rgba(140,80,40,.25)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M44 60 L22 52" stroke="rgba(140,80,40,.2)" stroke-width="1" stroke-linecap="round"/>
+            <path d="M56 60 L78 52" stroke="rgba(140,80,40,.2)" stroke-width="1" stroke-linecap="round"/>
+            <path d="M47 72 L30 68" stroke="rgba(140,80,40,.18)" stroke-width="1" stroke-linecap="round"/>
+            <path d="M53 72 L70 68" stroke="rgba(140,80,40,.18)" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500;">512 × 512</span>
+      </div>
+
+      <!-- 96px -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:96px; height:96px; border-radius:22px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 28px rgba(140,32,16,.3);">
+          <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500;">192 × 192</span>
+      </div>
+
+      <!-- 64px -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:64px; height:64px; border-radius:14px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(140,32,16,.28);">
+          <svg width="42" height="42" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500;">128 × 128</span>
+      </div>
+
+      <!-- 48px -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:48px; height:48px; border-radius:11px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(140,32,16,.25);">
+          <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500;">72 × 72</span>
+      </div>
+
+      <!-- 32px -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:32px; height:32px; border-radius:7px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(140,32,16,.22);">
+          <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500;">48 × 48</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: WORDMARK -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div>
+      <p style="margin:0 0 4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">Wordmark</p>
+      <p style="margin:0; font-size:13px; color:#8B6255;">Ícono + nombre. Uso principal en cabecera de app.</p>
+    </div>
+
+    <!-- Sobre fondo claro -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <span style="font-size:11px; color:#B09070; font-weight:500; text-transform:uppercase; letter-spacing:.1em;">Sobre fondo claro</span>
+      <div style="background:#FDFAF4; border:1px solid #E8D8C0; border-radius:16px; padding:32px 40px; display:inline-flex; align-items:center; gap:14px; width:fit-content;">
+        <div style="width:44px; height:44px; border-radius:10px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(140,32,16,.25);">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:26px; font-weight:700; color:#2D1F14; letter-spacing:-.02em;">Antimahue</span>
+      </div>
+    </div>
+
+    <!-- Sobre fondo terracota -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <span style="font-size:11px; color:#B09070; font-weight:500; text-transform:uppercase; letter-spacing:.1em;">Sobre terracota</span>
+      <div style="background:#C17B4A; border-radius:16px; padding:32px 40px; display:inline-flex; align-items:center; gap:14px; width:fit-content;">
+        <div style="width:44px; height:44px; border-radius:10px; background:rgba(0,0,0,.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:26px; font-weight:700; color:#FAF0E0; letter-spacing:-.02em;">Antimahue</span>
+      </div>
+    </div>
+
+    <!-- Sobre fondo oscuro -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <span style="font-size:11px; color:#B09070; font-weight:500; text-transform:uppercase; letter-spacing:.1em;">Sobre oscuro</span>
+      <div style="background:#1A1410; border-radius:16px; padding:32px 40px; display:inline-flex; align-items:center; gap:14px; width:fit-content;">
+        <div style="width:44px; height:44px; border-radius:10px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(140,32,16,.4);">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:26px; font-weight:700; color:#F5ECD8; letter-spacing:-.02em;">Antimahue</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 3: COLORES -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div>
+      <p style="margin:0 0 4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">Paleta de marca</p>
+      <p style="margin:0; font-size:13px; color:#8B6255;">Extraída del otoño y la artesanía. Cinco tonos que cubren todo el sistema.</p>
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:16px; background:#C84030; box-shadow:0 6px 20px rgba(200,64,48,.3);"></div>
+        <div style="text-align:center;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">Hoja</p><p style="margin:0; font-size:11px; color:#B09070;">#C84030</p></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:16px; background:#C17B4A; box-shadow:0 6px 20px rgba(193,123,74,.25);"></div>
+        <div style="text-align:center;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">Terracota</p><p style="margin:0; font-size:11px; color:#B09070;">#C17B4A</p></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:16px; background:#8B5E3C; box-shadow:0 6px 16px rgba(139,94,60,.2);"></div>
+        <div style="text-align:center;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">Madera</p><p style="margin:0; font-size:11px; color:#B09070;">#8B5E3C</p></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:16px; background:#2D1F14; box-shadow:0 6px 16px rgba(45,31,20,.2);"></div>
+        <div style="text-align:center;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">Corteza</p><p style="margin:0; font-size:11px; color:#B09070;">#2D1F14</p></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:16px; background:#F5EED8; border:1px solid #E8D5B7;"></div>
+        <div style="text-align:center;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">Pergamino</p><p style="margin:0; font-size:11px; color:#B09070;">#F5EED8</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 4: VARIANTES DEL ÍCONO -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div>
+      <p style="margin:0 0 4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">Variantes del ícono</p>
+      <p style="margin:0; font-size:13px; color:#8B6255;">Para notificaciones, badges y uso sobre color.</p>
+    </div>
+    <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
+
+      <!-- Variante: solo hoja roja sobre blanco (sin fondo de app) -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:80px; height:80px; border-radius:18px; background:#FDFAF4; border:1px solid #E8D8C0; display:flex; align-items:center; justify-content:center;">
+          <svg width="54" height="54" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#C84030"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#8A2010" stroke-width="4" stroke-linecap="round"/>
+            <path d="M50 88 L50 32" stroke="rgba(255,255,255,.35)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500; text-align:center;">Sobre blanco</span>
+      </div>
+
+      <!-- Variante: hoja crema sobre terracota -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:80px; height:80px; border-radius:18px; background:#C17B4A; display:flex; align-items:center; justify-content:center;">
+          <svg width="54" height="54" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500; text-align:center;">Sobre terracota</span>
+      </div>
+
+      <!-- Variante: hoja dorada sobre oscuro -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:80px; height:80px; border-radius:18px; background:#1A1410; display:flex; align-items:center; justify-content:center;">
+          <svg width="54" height="54" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#D4A054"/>
+            <line x1="50" y1="90" x2="50" y2="97" stroke="#D4A054" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500; text-align:center;">Ámbar / noche</span>
+      </div>
+
+      <!-- Variante: monochrome outline -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="width:80px; height:80px; border-radius:18px; background:#F0EBE3; border:1px solid #E0D8CC; display:flex; align-items:center; justify-content:center;">
+          <svg width="54" height="54" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="none" stroke="#8B5E3C" stroke-width="4" stroke-linejoin="round"/>
+            <line x1="50" y1="90" x2="50" y2="98" stroke="#8B5E3C" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-size:11px; color:#B09070; font-weight:500; text-align:center;">Contorno</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN 5: CONTEXTO EN APP (mini preview) -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div>
+      <p style="margin:0 0 4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:#B09070;">En contexto</p>
+      <p style="margin:0; font-size:13px; color:#8B6255;">Cómo se ve el ícono en las tres variaciones de la app.</p>
+    </div>
+    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+
+      <!-- Esencial -->
+      <div style="background:#FFFFFF; border:1px solid rgba(0,0,0,.08); border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:11px; min-width:200px;">
+        <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(140,32,16,.3);">
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+          </svg>
+        </div>
+        <div>
+          <p style="margin:0; font-size:15px; font-weight:700; color:#1A1A1A; letter-spacing:-.01em;">Antimahue</p>
+          <p style="margin:0; font-size:11px; color:#B8B8B8;">Variación Esencial</p>
+        </div>
+      </div>
+
+      <!-- Terraza -->
+      <div style="background:#C17B4A; border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:11px; min-width:200px;">
+        <div style="width:34px; height:34px; border-radius:8px; background:rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+          </svg>
+        </div>
+        <div>
+          <p style="margin:0; font-size:15px; font-weight:700; color:#FAF0E0; letter-spacing:-.01em;">Antimahue</p>
+          <p style="margin:0; font-size:11px; color:rgba(250,240,224,.55);">Variación Terraza</p>
+        </div>
+      </div>
+
+      <!-- Noche -->
+      <div style="background:#252018; border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:11px; min-width:200px; border:1px solid #3A3028;">
+        <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(160deg, #C84030 0%, #8A2010 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(140,32,16,.4);">
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
+            <path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/>
+          </svg>
+        </div>
+        <div>
+          <p style="margin:0; font-size:15px; font-weight:700; color:#F5ECD8; letter-spacing:-.01em;">Antimahue</p>
+          <p style="margin:0; font-size:11px; color:#5A4A3A;">Variación Noche</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

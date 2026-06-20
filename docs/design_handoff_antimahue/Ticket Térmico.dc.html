@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Mono', monospace; background: #F0EBE3; }
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .ticket-wrap { box-shadow: none !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+      .ticket { box-shadow: none !important; border: none !important; }
+      @page { size: 80mm auto; margin: 4mm 4mm; }
+    }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:#F0EBE3; display:flex; flex-direction:column; align-items:center; padding:48px 20px; gap:28px;">
+
+  <!-- Header canvas -->
+  <div style="text-align:center; font-family:'DM Sans',sans-serif;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:6px;">
+      <div style="width:26px; height:26px; border-radius:6px; background:linear-gradient(160deg,#C84030,#8A2010); display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/></svg>
+      </div>
+      <span style="font-size:15px; font-weight:600; color:#2D1F14; letter-spacing:-.01em;">Ticket Térmico · 80mm</span>
+    </div>
+    <p style="margin:0; font-size:13px; color:#B09070;">Listo para imprimir o compartir por WhatsApp</p>
+  </div>
+
+  <!-- TICKET -->
+  <div class="ticket-wrap" style="background:white; border-radius:4px; box-shadow:0 4px 40px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04); padding:0 0 4px; width:302px; position:relative;">
+
+    <!-- Torn-edge top -->
+    <div style="display:flex; justify-content:space-around; margin-bottom:0; position:relative; height:12px; overflow:hidden;">
+      <div style="position:absolute; top:-6px; left:-6px; right:-6px; height:24px; border-radius:0 0 50% 50%/0 0 12px 12px; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:10px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:30px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:50px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:70px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:90px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:110px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:130px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:150px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:170px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:190px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:210px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:230px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:250px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; top:-3px; left:270px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+    </div>
+
+    <div class="ticket" style="padding:8px 16px 16px;">
+      <!-- Store header -->
+      <div style="text-align:center; padding:8px 0 14px; border-bottom:1px dashed #CCC;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
+          <svg width="14" height="14" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#1A1A1A"/></svg>
+          <span style="font-size:18px; font-weight:500; letter-spacing:.08em;">ANTIMAHUE</span>
+        </div>
+        <div style="font-size:10px; color:#666; line-height:1.6;">lanas y tejidos artesanales</div>
+        <div style="font-size:10px; color:#666;">antimahue.artesanal@gmail.com</div>
+        <div style="font-size:10px; color:#666;">+56 9 7812 5640</div>
+      </div>
+
+      <!-- Fecha y folio -->
+      <div style="padding:10px 0; border-bottom:1px dashed #CCC; font-size:11px;">
+        <div style="display:flex; justify-content:space-between;"><span style="color:#888;">Fecha</span><span>Sáb 20 junio 2025  9:52</span></div>
+        <div style="display:flex; justify-content:space-between; margin-top:3px;"><span style="color:#888;">Ticket N°</span><span>0047</span></div>
+        <div style="display:flex; justify-content:space-between; margin-top:3px;"><span style="color:#888;">Vendedora</span><span>Angélica</span></div>
+      </div>
+
+      <!-- Items -->
+      <div style="padding:10px 0; border-bottom:1px dashed #CCC; display:flex; flex-direction:column; gap:8px;">
+        <div>
+          <div style="font-size:12px; font-weight:500;">Lana Orquídea Socks</div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-top:1px;">
+            <span>&nbsp;&nbsp;Azul marino  2 × $4.800</span>
+            <span style="color:#000; font-weight:500;">$9.600</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; font-weight:500;">Palillo Bambú N°4</div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-top:1px;">
+            <span>&nbsp;&nbsp;30cm         1 × $2.300</span>
+            <span style="color:#000; font-weight:500;">$2.300</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; font-weight:500;">Hilo Algodón Natural</div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-top:1px;">
+            <span>&nbsp;&nbsp;Blanco 50g   3 × $1.700</span>
+            <span style="color:#000; font-weight:500;">$5.100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div style="padding:10px 0; border-bottom:1px dashed #CCC;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-bottom:6px;"><span>Subtotal</span><span style="color:#000;">$17.000</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:500; letter-spacing:.04em;"><span>TOTAL</span><span>$17.000</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:4px;"><span>Medio de pago</span><span style="color:#000;">Efectivo</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:2px;"><span>Vuelto</span><span style="color:#000;">$0</span></div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:12px 0 4px; text-align:center; font-size:10px; color:#888; line-height:1.8;">
+        <div>- - - - - - - - - - - - - -</div>
+        <div style="margin-top:4px;">¡Gracias por tu compra!</div>
+        <div>Producto 100% artesanal</div>
+        <div style="margin-top:4px; font-size:14px;">🍂  🧶  🍂</div>
+        <div style="margin-top:6px; font-size:9px; color:#BBB;">www.antimahue.artesanal.cl</div>
+      </div>
+    </div>
+
+    <!-- Torn-edge bottom -->
+    <div style="height:12px; position:relative; overflow:hidden;">
+      <div style="position:absolute; bottom:-6px; left:-6px; right:-6px; height:24px; border-radius:50% 50% 0 0/12px 12px 0 0; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:10px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:30px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:50px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:70px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:90px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:110px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:130px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:150px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:170px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:190px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:210px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:230px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:250px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+      <div style="position:absolute; bottom:-3px; left:270px; width:12px; height:12px; border-radius:50%; background:#F0EBE3;"></div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="no-print" style="display:flex; gap:12px; font-family:'DM Sans',sans-serif;">
+    <button onclick="window.print()" style="padding:12px 24px; background:#2D1F14; border:none; border-radius:10px; color:#F5EED8; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; font-family:'DM Sans',sans-serif;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="7" rx="1" stroke="#F5EED8" stroke-width="1.3"/><path d="M3 6h10v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" stroke="#F5EED8" stroke-width="1.3"/><path d="M5 12h6M5 10h4" stroke="#F5EED8" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="8.5" r="1" fill="#F5EED8"/></svg>
+      Imprimir ticket
+    </button>
+    <button style="padding:12px 24px; background:#25D366; border:none; border-radius:10px; color:white; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; font-family:'DM Sans',sans-serif;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M8 0a8 8 0 0 0-6.93 12l-1 3.7 3.8-1A8 8 0 1 0 8 0zm0 14.5a6.5 6.5 0 0 1-3.3-.9l-.24-.14-2.25.59.6-2.2-.16-.25A6.5 6.5 0 1 1 8 14.5z"/><path d="M5.8 4.6c-.17-.38-.35-.39-.51-.4H4.9c-.16 0-.41.06-.63.3C4.05 4.76 3.5 5.28 3.5 6.33s.73 2 .83 2.14c.1.13 1.42 2.24 3.49 3.05 1.73.68 2.08.55 2.45.51.38-.04 1.22-.5 1.4-1 .17-.49.17-.91.12-.99-.05-.08-.19-.13-.4-.22-.2-.1-1.22-.6-1.41-.67-.19-.07-.33-.1-.47.1-.14.2-.54.67-.66.8-.12.14-.24.15-.44.05-.2-.1-.86-.32-1.64-1.01-.6-.54-.1-1.02-.14-1.15-.03-.13-.4-.17-.6-.16l-.01.01z"/></svg>
+      Compartir WhatsApp
+    </button>
+  </div>
+
+  <!-- Info impresión -->
+  <div class="no-print" style="font-family:'DM Sans',sans-serif; text-align:center; max-width:320px;">
+    <p style="margin:0 0 4px; font-size:12px; color:#B09070;">Optimizado para impresoras térmicas 80mm.</p>
+    <p style="margin:0; font-size:12px; color:#B09070;">En el diálogo de impresión: <strong style="color:#8B5E3C;">Sin márgenes · Papel: 80mm</strong></p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

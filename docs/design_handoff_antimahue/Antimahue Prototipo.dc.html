@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; }
+    button { font-family: 'DM Sans', sans-serif; }
+    .ps { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+    .ps.on { display: flex; }
+    @keyframes scanbeam {
+      0%,100% { top: 6px; opacity:.7; }
+      50% { top: 152px; opacity:1; }
+    }
+    @keyframes checkpop {
+      0% { transform:scale(0); opacity:0; }
+      65% { transform:scale(1.25); opacity:1; }
+      100% { transform:scale(1); opacity:1; }
+    }
+    @keyframes cornerpulse {
+      0%,100% { opacity:1; }
+      50% { opacity:.35; }
+    }
+    .scan-beam { position:absolute; left:6px; right:6px; height:2px; background:linear-gradient(to right,transparent 0%,#C84030 30%,#C84030 70%,transparent 100%); border-radius:1px; animation:scanbeam 2.2s ease-in-out infinite; }
+    .check-icon { animation:checkpop .5s cubic-bezier(.34,1.56,.64,1) .15s both; }
+    .cpulse { animation:cornerpulse 1.6s ease-in-out infinite; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:#0F0E0C; display:flex; flex-direction:column; align-items:center; padding:44px 20px 36px; gap:24px;">
+
+  <!-- INTRO -->
+  <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="width:26px; height:26px; border-radius:6px; background:linear-gradient(160deg,#C84030,#8A2010); display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/></svg>
+      </div>
+      <span style="color:#F5ECD8; font-size:15px; font-weight:600; letter-spacing:-.01em;">Antimahue · Prototipo</span>
+    </div>
+    <p style="margin:0; color:rgba(245,236,216,.28); font-size:12px;">Toca los botones para navegar entre pantallas</p>
+  </div>
+
+  <!-- PHONE -->
+  <div id="proto-phone" style="background:linear-gradient(155deg,#2A2828,#0F0F0F); border-radius:50px; padding:10px; box-shadow:0 40px 100px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.07); flex-shrink:0;">
+    <div style="width:390px; height:780px; border-radius:42px; overflow:hidden; position:relative; background:#F5EED8;">
+
+      <!-- Dynamic Island -->
+      <div style="position:absolute; top:12px; left:50%; transform:translateX(-50%); width:118px; height:34px; background:#000; border-radius:17px; z-index:999; pointer-events:none;"></div>
+
+      <!-- ═══ SCREEN: PIN ═══ -->
+      <div id="s-pin" class="ps on" style="background:#F5EED8;">
+        <div style="height:54px; background:#F5EED8; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#2D1F14;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#2D1F14" stroke-opacity=".3"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#2D1F14"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#2D1F14" opacity=".4"/></svg>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 32px 0;">
+          <div style="width:70px; height:70px; border-radius:17px; background:linear-gradient(160deg,#C84030,#8A2010); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(140,32,16,.3); margin-bottom:14px;">
+            <svg width="44" height="44" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/><line x1="50" y1="90" x2="50" y2="97" stroke="#FAF0E0" stroke-width="4.5" stroke-linecap="round"/></svg>
+          </div>
+          <h1 style="margin:0 0 4px; font-size:26px; font-weight:700; color:#2D1F14; letter-spacing:-.025em;">Antimahue</h1>
+          <p style="margin:0 0 38px; font-size:13px; color:#B09070;">Angélica · Administradora</p>
+          <p style="margin:0 0 16px; font-size:12px; color:#8B6255; font-weight:500; text-transform:uppercase; letter-spacing:.06em;">Ingresa tu PIN</p>
+          <div style="display:flex; gap:18px; margin-bottom:40px;">
+            <div id="pd0" style="width:13px; height:13px; border-radius:50%; background:transparent; border:2px solid #D9C3A0; transition:all .15s;"></div>
+            <div id="pd1" style="width:13px; height:13px; border-radius:50%; background:transparent; border:2px solid #D9C3A0; transition:all .15s;"></div>
+            <div id="pd2" style="width:13px; height:13px; border-radius:50%; background:transparent; border:2px solid #D9C3A0; transition:all .15s;"></div>
+            <div id="pd3" style="width:13px; height:13px; border-radius:50%; background:transparent; border:2px solid #D9C3A0; transition:all .15s;"></div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,66px); gap:12px;">
+            <button data-pin="1" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">1</button>
+            <button data-pin="2" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">2</button>
+            <button data-pin="3" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">3</button>
+            <button data-pin="4" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">4</button>
+            <button data-pin="5" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">5</button>
+            <button data-pin="6" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">6</button>
+            <button data-pin="7" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">7</button>
+            <button data-pin="8" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">8</button>
+            <button data-pin="9" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">9</button>
+            <div></div>
+            <button data-pin="0" style="width:66px; height:66px; border-radius:50%; background:#FDFAF4; border:1px solid #D9C3A0; font-size:22px; font-weight:500; color:#2D1F14; cursor:pointer;">0</button>
+            <button data-pin="del" style="width:66px; height:66px; border-radius:50%; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              <ph-backspace weight="fill" style="font-size:22px; color:#B09070;"></ph-backspace>
+            </button>
+          </div>
+        </div>
+        <div style="height:32px; background:#F5EED8; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:134px; height:5px; border-radius:3px; background:rgba(45,31,20,.15);"></div>
+        </div>
+      </div>
+
+      <!-- ═══ SCREEN: DASHBOARD ═══ -->
+      <div id="s-dashboard" class="ps" style="background:#F5EED8;">
+        <!-- Status bar -->
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#FAF0E0"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+          </div>
+        </div>
+        <!-- Header terracota -->
+        <div style="background:#C17B4A; padding:6px 22px 18px; display:flex; justify-content:space-between; align-items:flex-end; flex-shrink:0;">
+          <div style="display:flex; align-items:flex-end; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:9px; background:rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+              <svg width="22" height="22" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/></svg>
+            </div>
+            <div>
+              <p style="margin:0 0 1px; font-size:12px; color:rgba(250,240,224,.6);">Buenos días</p>
+              <h1 style="margin:0; font-size:24px; font-weight:700; color:#FAF0E0; letter-spacing:-.025em;">Angélica</h1>
+            </div>
+          </div>
+          <div style="position:relative;">
+            <div style="width:38px; height:38px; background:rgba(0,0,0,.14); border-radius:11px; display:flex; align-items:center; justify-content:center;">
+              <ph-bell weight="fill" style="font-size:19px; color:#FAF0E0;"></ph-bell>
+            </div>
+            <div style="position:absolute; top:7px; right:7px; width:8px; height:8px; background:#F5D780; border-radius:50%; border:2px solid #C17B4A;"></div>
+          </div>
+        </div>
+        <!-- Transición -->
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <!-- Cuerpo -->
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:13px 15px 0; display:flex; flex-direction:column; gap:9px;">
+          <div style="background:rgba(200,74,58,.08); border:1px solid rgba(200,74,58,.18); border-radius:10px; padding:10px 13px; display:flex; align-items:center; gap:9px; flex-shrink:0;">
+            <ph-warning-circle weight="fill" style="font-size:17px; color:#C84A3A; flex-shrink:0;"></ph-warning-circle>
+            <span style="font-size:13px; color:#A33A2A; font-weight:500; flex:1;">3 alertas de stock mínimo</span>
+            <span style="font-size:12px; color:#8B5E3C; font-weight:600;">Ver →</span>
+          </div>
+          <div style="display:flex; gap:9px; flex-shrink:0;">
+            <div style="flex:1; background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:13px 14px;">
+              <div style="display:flex; align-items:center; gap:5px; margin-bottom:7px;"><ph-trend-up weight="fill" style="font-size:14px; color:#8B5E3C;"></ph-trend-up><span style="font-size:10px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Ventas hoy</span></div>
+              <p style="margin:0 0 3px; font-size:22px; font-weight:700; color:#2D1F14; letter-spacing:-.03em;">$89.400</p>
+              <p style="margin:0; font-size:11px; color:#B09070;">12 transacciones</p>
+            </div>
+            <div style="flex:1; background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:13px 14px;">
+              <div style="display:flex; align-items:center; gap:5px; margin-bottom:7px;"><ph-archive-box weight="fill" style="font-size:14px; color:#8B5E3C;"></ph-archive-box><span style="font-size:10px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Inventario</span></div>
+              <p style="margin:0 0 3px; font-size:22px; font-weight:700; color:#2D1F14; letter-spacing:-.03em;">$1.847.500</p>
+              <p style="margin:0; font-size:11px; color:#B09070;">a precio costo</p>
+            </div>
+          </div>
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:11px 14px; display:flex; flex-shrink:0;">
+            <div style="flex:1; padding-right:10px;"><span style="font-size:10px; color:#B09070;">Efectivo</span><p style="margin:2px 0 0; font-size:16px; font-weight:600; color:#2D1F14;">$34.200</p></div>
+            <div style="width:1px; background:#D9C3A0;"></div>
+            <div style="flex:1; padding:0 10px;"><span style="font-size:10px; color:#B09070;">Transfer.</span><p style="margin:2px 0 0; font-size:16px; font-weight:600; color:#2D1F14;">$55.200</p></div>
+            <div style="width:1px; background:#D9C3A0;"></div>
+            <div style="flex:1; padding-left:10px;"><span style="font-size:10px; color:#B09070;">Débito</span><p style="margin:2px 0 0; font-size:16px; font-weight:600; color:#2D1F14;">$0</p></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <span style="font-size:13px; font-weight:600; color:#2D1F14;">Alertas de stock</span>
+            <span style="font-size:12px; color:#8B5E3C; font-weight:600;">Ver todo</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:7px; flex-shrink:0;">
+            <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:10px 13px; display:flex; align-items:center; gap:10px;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#C9860A; flex-shrink:0;"></div>
+              <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Lana Merino Rojo</p><p style="margin:0; font-size:11px; color:#B09070;">2 ud · mín 5</p></div>
+              <span style="font-size:11px; color:#8B5E3C; font-weight:600; background:#E8D5B7; padding:3px 8px; border-radius:20px;">Bajo</span>
+            </div>
+            <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:10px 13px; display:flex; align-items:center; gap:10px;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#C9860A; flex-shrink:0;"></div>
+              <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Aguja Crochet N°3</p><p style="margin:0; font-size:11px; color:#B09070;">1 ud · mín 3</p></div>
+              <span style="font-size:11px; color:#8B5E3C; font-weight:600; background:#E8D5B7; padding:3px 8px; border-radius:20px;">Bajo</span>
+            </div>
+            <div style="background:#FEF5F2; border:1px solid rgba(200,74,58,.2); border-radius:10px; padding:10px 13px; display:flex; align-items:center; gap:10px;">
+              <div style="width:8px; height:8px; border-radius:50%; background:#C84A3A; flex-shrink:0;"></div>
+              <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Hilo Dorado 100m</p><p style="margin:0; font-size:11px; color:#C84A3A; font-weight:500;">Sin stock</p></div>
+              <span style="font-size:11px; color:#C84A3A; font-weight:600; background:rgba(200,74,58,.1); padding:3px 8px; border-radius:20px;">Agotado</span>
+            </div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <!-- Nav -->
+        <div style="background:#2D1F14; height:58px; display:flex; align-items:center; padding:0 6px; flex-shrink:0;">
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;"><ph-house weight="fill" style="font-size:21px; color:#E8C090;"></ph-house><span style="font-size:10px; color:#E8C090; font-weight:600;">Inicio</span></div>
+          <button data-go="venta" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; padding:6px 0;"><ph-shopping-cart-simple weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-shopping-cart-simple><span style="font-size:10px; color:rgba(250,240,224,.3);">Venta</span></button>
+          <button data-go="catalogo" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; padding:6px 0;"><ph-books weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-books><span style="font-size:10px; color:rgba(250,240,224,.3);">Catálogo</span></button>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;"><ph-dots-three-circle weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-dots-three-circle><span style="font-size:10px; color:rgba(250,240,224,.3);">Más</span></div>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: VENTA ═══ -->
+      <div id="s-venta" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <button data-go="dashboard" data-dir="back" style="width:36px; height:36px; background:rgba(0,0,0,.14); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-arrow-left weight="bold" style="font-size:18px; color:#FAF0E0;"></ph-arrow-left></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#FAF0E0;">Nueva venta</h2>
+          <div style="width:36px;"></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <div style="background:#F5EED8; padding:11px 15px 11px; flex-shrink:0;">
+          <div style="display:flex; gap:9px; align-items:center;">
+            <div style="flex:1; background:#FDFAF4; border-radius:10px; padding:11px 13px; display:flex; align-items:center; gap:9px; border:1px solid #D9C3A0;"><ph-magnifying-glass weight="fill" style="font-size:16px; color:#B09070;"></ph-magnifying-glass><span style="font-size:14px; color:#B09070;">Buscar producto...</span></div>
+            <button data-go="scanner" style="width:46px; height:46px; background:#8B5E3C; border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"><ph-barcode weight="fill" style="font-size:24px; color:#FAF0E0;"></ph-barcode></button>
+          </div>
+        </div>
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:4px 15px 0; display:flex; flex-direction:column; gap:8px;">
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 13px;">
+            <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:9px;"><div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:600; color:#2D1F14;">Lana Orquídea Socks</p><p style="margin:0; font-size:12px; color:#B09070;">Superwash · Azul marino</p></div><span style="font-size:15px; font-weight:700; color:#2D1F14; white-space:nowrap;">$9.600</span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:#B09070;">2 × $4.800</span>
+              <div style="display:flex; align-items:center; border:1px solid #D9C3A0; border-radius:8px; overflow:hidden;"><button style="width:30px; height:28px; border:none; background:#F5EED8; font-size:15px; color:#8B6255; cursor:pointer;">−</button><div style="width:32px; height:28px; border-left:1px solid #D9C3A0; border-right:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; background:#FDFAF4;"><span style="font-size:14px; font-weight:600; color:#2D1F14;">2</span></div><button style="width:30px; height:28px; border:none; background:#8B5E3C; font-size:15px; color:#FAF0E0; cursor:pointer; font-weight:500;">+</button></div>
+            </div>
+          </div>
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 13px;">
+            <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:9px;"><div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:600; color:#2D1F14;">Palillo Bambú N°4</p><p style="margin:0; font-size:12px; color:#B09070;">Bambú · 30cm</p></div><span style="font-size:15px; font-weight:700; color:#2D1F14; white-space:nowrap;">$2.300</span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:#B09070;">1 × $2.300</span>
+              <div style="display:flex; align-items:center; border:1px solid #D9C3A0; border-radius:8px; overflow:hidden;"><button style="width:30px; height:28px; border:none; background:#F5EED8; font-size:15px; color:#8B6255; cursor:pointer;">−</button><div style="width:32px; height:28px; border-left:1px solid #D9C3A0; border-right:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; background:#FDFAF4;"><span style="font-size:14px; font-weight:600; color:#2D1F14;">1</span></div><button style="width:30px; height:28px; border:none; background:#8B5E3C; font-size:15px; color:#FAF0E0; cursor:pointer; font-weight:500;">+</button></div>
+            </div>
+          </div>
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 13px;">
+            <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:9px;"><div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:600; color:#2D1F14;">Hilo Algodón Natural</p><p style="margin:0; font-size:12px; color:#B09070;">Blanco · 50g</p></div><span style="font-size:15px; font-weight:700; color:#2D1F14; white-space:nowrap;">$5.100</span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:#B09070;">3 × $1.700</span>
+              <div style="display:flex; align-items:center; border:1px solid #D9C3A0; border-radius:8px; overflow:hidden;"><button style="width:30px; height:28px; border:none; background:#F5EED8; font-size:15px; color:#8B6255; cursor:pointer;">−</button><div style="width:32px; height:28px; border-left:1px solid #D9C3A0; border-right:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; background:#FDFAF4;"><span style="font-size:14px; font-weight:600; color:#2D1F14;">3</span></div><button style="width:30px; height:28px; border:none; background:#8B5E3C; font-size:15px; color:#FAF0E0; cursor:pointer; font-weight:500;">+</button></div>
+            </div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <div style="background:#FDFAF4; border-top:1px solid #D9C3A0; padding:13px 15px 10px; flex-shrink:0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:13px;"><span style="font-size:14px; color:#B09070;">Total</span><span style="font-size:26px; font-weight:700; color:#2D1F14; letter-spacing:-.03em;">$17.000</span></div>
+          <div style="display:flex; gap:7px; margin-bottom:11px;">
+            <div style="flex:1; padding:9px 3px; border-radius:8px; background:#8B5E3C; text-align:center;"><span style="font-size:12px; font-weight:600; color:#FAF0E0;">Efectivo</span></div>
+            <div style="flex:1; padding:9px 3px; border-radius:8px; border:1px solid #D9C3A0; text-align:center;"><span style="font-size:12px; color:#B09070;">Transfer</span></div>
+            <div style="flex:1; padding:9px 3px; border-radius:8px; border:1px solid #D9C3A0; text-align:center;"><span style="font-size:12px; color:#B09070;">Débito</span></div>
+            <div style="flex:1; padding:9px 3px; border-radius:8px; border:1px solid #D9C3A0; text-align:center;"><span style="font-size:12px; color:#B09070;">Crédito</span></div>
+          </div>
+          <button data-go="ticket" style="width:100%; padding:15px; background:#2D1F14; border:none; border-radius:12px; color:#F5EED8; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:-.01em;">Confirmar venta · $17.000</button>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: SCANNER ═══ -->
+      <div id="s-scanner" class="ps" style="background:#0C0B09;">
+        <div style="height:54px; background:#0C0B09; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#F5ECD8;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#F5ECD8" stroke-opacity=".4"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#F5ECD8"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#F5ECD8" opacity=".4"/></svg>
+        </div>
+        <div style="background:#0C0B09; padding:6px 22px 14px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.05);">
+          <button data-go="venta" data-dir="back" style="width:36px; height:36px; background:rgba(255,255,255,.08); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-x weight="bold" style="font-size:18px; color:#F5ECD8;"></ph-x></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#F5ECD8;">Escanear producto</h2>
+          <div style="width:36px;"></div>
+        </div>
+        <!-- Camera view -->
+        <div style="flex:1; position:relative; background:radial-gradient(ellipse at 40% 40%, #1A1614, #070604); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; overflow:hidden;">
+          <!-- Viewfinder -->
+          <div class="cpulse" style="position:relative; width:260px; height:170px;">
+            <!-- Box shadow vignette -->
+            <div style="position:absolute; inset:0; box-shadow:0 0 0 600px rgba(0,0,0,.55); pointer-events:none;"></div>
+            <!-- Corners -->
+            <div style="position:absolute; top:0; left:0; width:22px; height:22px; border-top:3px solid #FAF0E0; border-left:3px solid #FAF0E0; border-radius:2px 0 0 0;"></div>
+            <div style="position:absolute; top:0; right:0; width:22px; height:22px; border-top:3px solid #FAF0E0; border-right:3px solid #FAF0E0; border-radius:0 2px 0 0;"></div>
+            <div style="position:absolute; bottom:0; left:0; width:22px; height:22px; border-bottom:3px solid #FAF0E0; border-left:3px solid #FAF0E0; border-radius:0 0 0 2px;"></div>
+            <div style="position:absolute; bottom:0; right:0; width:22px; height:22px; border-bottom:3px solid #FAF0E0; border-right:3px solid #FAF0E0; border-radius:0 0 2px 0;"></div>
+            <!-- Scan beam -->
+            <div class="scan-beam"></div>
+          </div>
+          <p style="margin:0; font-size:14px; color:rgba(250,240,224,.55); font-weight:400; position:relative; z-index:2;">Apunta al código de barras</p>
+          <!-- Product found bottom sheet -->
+          <div id="scan-found" style="position:absolute; bottom:0; left:0; right:0; background:#FDFAF4; border-radius:16px 16px 0 0; border-top:1px solid #D9C3A0; padding:14px 15px 10px; transform:translateY(100%);">
+            <div style="width:36px; height:4px; border-radius:2px; background:#D9C3A0; margin:0 auto 14px;"></div>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+              <div style="width:54px; height:54px; border-radius:10px; overflow:hidden; border:1px solid #D9C3A0; flex-shrink:0;"><img src="uploads/92014241808.jpg" style="width:100%; height:100%; object-fit:cover;"/></div>
+              <div style="flex:1;"><p style="margin:0 0 3px; font-size:15px; font-weight:600; color:#2D1F14;">Lana Orquídea Socks</p><p style="margin:0 0 2px; font-size:12px; color:#B09070;">Superwash · Azul marino</p><p style="margin:0; font-size:14px; font-weight:700; color:#8B5E3C;">$4.800</p></div>
+              <div style="display:flex; align-items:center; border:1px solid #D9C3A0; border-radius:8px; overflow:hidden; flex-shrink:0;">
+                <div style="width:28px; height:28px; background:#F5EED8; display:flex; align-items:center; justify-content:center; font-size:14px; color:#8B6255; cursor:pointer;">−</div>
+                <div style="width:30px; height:28px; border-left:1px solid #D9C3A0; border-right:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; background:#FDFAF4;"><span style="font-size:13px; font-weight:600; color:#2D1F14;">1</span></div>
+                <div style="width:28px; height:28px; background:#8B5E3C; display:flex; align-items:center; justify-content:center; font-size:14px; color:#FAF0E0; cursor:pointer;">+</div>
+              </div>
+            </div>
+            <button data-go="venta" data-dir="back" style="width:100%; padding:13px; background:#2D1F14; border:none; border-radius:10px; color:#F5EED8; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:-.01em;">+ Agregar a la venta</button>
+          </div>
+        </div>
+        <div style="height:26px; background:#0C0B09; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(255,255,255,.1);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: TICKET ═══ -->
+      <div id="s-ticket" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:52</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <button data-go="dashboard" data-dir="back" style="width:36px; height:36px; background:rgba(0,0,0,.14); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-x weight="bold" style="font-size:18px; color:#FAF0E0;"></ph-x></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#FAF0E0;">Ticket de venta</h2>
+          <div style="width:36px;"></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <!-- Cuerpo -->
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:16px 15px 0; display:flex; flex-direction:column; gap:12px;">
+          <!-- Banner éxito -->
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding-bottom:4px; flex-shrink:0;">
+            <div class="check-icon" style="width:52px; height:52px; border-radius:50%; background:#D4EBD4; border:2px solid #8ECA8E; display:flex; align-items:center; justify-content:center;">
+              <ph-check weight="bold" style="font-size:26px; color:#3A8A3A;"></ph-check>
+            </div>
+            <div style="text-align:center;"><p style="margin:0 0 2px; font-size:17px; font-weight:700; color:#2D1F14;">¡Venta registrada!</p><p style="margin:0; font-size:12px; color:#B09070;">Sábado 20 de junio · 9:52</p></div>
+          </div>
+          <!-- Ticket receipt -->
+          <div style="background:#FFFFFF; border:1px solid #D9C3A0; border-radius:12px; overflow:hidden; flex-shrink:0;">
+            <!-- Store header -->
+            <div style="padding:14px 16px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; border-bottom:1px dashed #D9C3A0;">
+              <div style="display:flex; align-items:center; gap:7px;">
+                <div style="width:22px; height:22px; border-radius:5px; background:linear-gradient(160deg,#C84030,#8A2010); display:flex; align-items:center; justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 100 100" fill="none"><path d="M50 90 L46 76 L26 75 L32 62 L11 59 L26 47 L15 30 L35 36 L50 7 L65 36 L85 30 L74 47 L89 59 L68 62 L74 75 L54 76 Z" fill="#FAF0E0"/></svg>
+                </div>
+                <span style="font-size:16px; font-weight:700; color:#2D1F14; letter-spacing:-.01em;">Antimahue</span>
+              </div>
+              <span style="font-size:11px; color:#B09070;">antimahue.artesanal@gmail.com</span>
+            </div>
+            <!-- Items -->
+            <div style="padding:12px 16px; display:flex; flex-direction:column; gap:7px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div><p style="margin:0 0 1px; font-size:13px; color:#2D1F14; font-weight:500;">Lana Orquídea Socks</p><p style="margin:0; font-size:11px; color:#B09070;">× 2</p></div><span style="font-size:14px; font-weight:600; color:#2D1F14;">$9.600</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div><p style="margin:0 0 1px; font-size:13px; color:#2D1F14; font-weight:500;">Palillo Bambú N°4</p><p style="margin:0; font-size:11px; color:#B09070;">× 1</p></div><span style="font-size:14px; font-weight:600; color:#2D1F14;">$2.300</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div><p style="margin:0 0 1px; font-size:13px; color:#2D1F14; font-weight:500;">Hilo Algodón Natural</p><p style="margin:0; font-size:11px; color:#B09070;">× 3</p></div><span style="font-size:14px; font-weight:600; color:#2D1F14;">$5.100</span></div>
+            </div>
+            <!-- Total -->
+            <div style="border-top:1px dashed #D9C3A0; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+              <div><p style="margin:0 0 2px; font-size:12px; color:#B09070; text-transform:uppercase; letter-spacing:.06em; font-weight:600;">Total</p><p style="margin:0; font-size:11px; color:#B09070;">Efectivo</p></div>
+              <span style="font-size:24px; font-weight:700; color:#2D1F14; letter-spacing:-.03em;">$17.000</span>
+            </div>
+            <div style="padding:8px 16px 14px; text-align:center;"><span style="font-size:11px; color:#B09070;">¡Gracias por tu compra!</span></div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <!-- Acciones -->
+        <div style="padding:0 15px 10px; display:flex; flex-direction:column; gap:9px; flex-shrink:0;">
+          <button style="width:100%; padding:14px; background:#25D366; border:none; border-radius:12px; color:#FFF; font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; letter-spacing:-.01em;"><ph-whatsapp-logo weight="fill" style="font-size:18px; color:#FFF;"></ph-whatsapp-logo>Compartir por WhatsApp</button>
+          <button data-go="venta" style="width:100%; padding:14px; background:#2D1F14; border:none; border-radius:12px; color:#F5EED8; font-size:15px; font-weight:600; cursor:pointer; letter-spacing:-.01em;">+ Nueva venta</button>
+        </div>
+        <div style="height:26px; background:#F5EED8; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(45,31,20,.15);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: CATÁLOGO ═══ -->
+      <div id="s-catalogo" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <h2 style="margin:0; font-size:22px; font-weight:700; color:#FAF0E0; letter-spacing:-.02em;">Catálogo</h2>
+          <div style="width:36px; height:36px; background:rgba(0,0,0,.14); border-radius:10px; display:flex; align-items:center; justify-content:center;"><ph-plus weight="bold" style="font-size:20px; color:#FAF0E0;"></ph-plus></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <div style="background:#F5EED8; padding:11px 15px 10px; flex-shrink:0; display:flex; flex-direction:column; gap:9px;">
+          <div style="background:#FDFAF4; border-radius:10px; padding:11px 13px; display:flex; align-items:center; gap:9px; border:1px solid #D9C3A0;"><ph-magnifying-glass weight="fill" style="font-size:16px; color:#B09070;"></ph-magnifying-glass><span style="font-size:14px; color:#B09070;">Buscar o escanear...</span></div>
+          <div style="display:flex; gap:7px; overflow:hidden;">
+            <div style="padding:6px 14px; border-radius:20px; background:#8B5E3C; flex-shrink:0;"><span style="font-size:12px; font-weight:600; color:#FAF0E0;">Todos</span></div>
+            <div style="padding:6px 14px; border-radius:20px; background:#FDFAF4; border:1px solid #D9C3A0; flex-shrink:0;"><span style="font-size:12px; color:#8B6255;">Lana</span></div>
+            <div style="padding:6px 14px; border-radius:20px; background:#FDFAF4; border:1px solid #D9C3A0; flex-shrink:0;"><span style="font-size:12px; color:#8B6255;">Algodón</span></div>
+            <div style="padding:6px 14px; border-radius:20px; background:#FDFAF4; border:1px solid #D9C3A0; flex-shrink:0;"><span style="font-size:12px; color:#8B6255;">Palillos</span></div>
+            <div style="padding:6px 14px; border-radius:20px; background:#FDFAF4; border:1px solid #D9C3A0; flex-shrink:0;"><span style="font-size:12px; color:#8B6255;">Crochet</span></div>
+          </div>
+        </div>
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:0 15px; display:flex; flex-direction:column;">
+          <button data-go="detalle" style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #E8D5B7; width:100%; background:none; border-left:none; border-right:none; border-top:none; cursor:pointer; text-align:left;">
+            <div style="width:40px; height:40px; border-radius:8px; overflow:hidden; border:1px solid #D9C3A0; flex-shrink:0;"><img src="uploads/92014241808.jpg" style="width:100%; height:100%; object-fit:cover;"/></div>
+            <div style="flex:1; min-width:0;"><p style="margin:0 0 2px; font-size:14px; font-weight:500; color:#2D1F14; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Lana Orquídea Socks</p><p style="margin:0; font-size:11px; color:#B09070;">Superwash · Azul marino</p></div>
+            <div style="text-align:right; flex-shrink:0;"><p style="margin:0 0 2px; font-size:13px; font-weight:600; color:#2D1F14;">$4.800</p><span style="font-size:11px; color:#6B9E6B; font-weight:500;">8 ud</span></div>
+          </button>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #E8D5B7;">
+            <div style="width:40px; height:40px; border-radius:8px; background:#FDFAF4; border:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#C9860A;"></div></div>
+            <div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:500; color:#2D1F14;">Lana Alpaca Natural</p><p style="margin:0; font-size:11px; color:#B09070;">Importada · 50g</p></div>
+            <div style="text-align:right;"><p style="margin:0 0 2px; font-size:13px; font-weight:600; color:#2D1F14;">$6.200</p><span style="font-size:11px; color:#C9860A; font-weight:600;">3 ud ⚠</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #E8D5B7;">
+            <div style="width:40px; height:40px; border-radius:8px; background:#FDFAF4; border:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#6B9E6B;"></div></div>
+            <div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:500; color:#2D1F14;">Hilo Algodón Blanco</p><p style="margin:0; font-size:11px; color:#B09070;">Nacional · 50g</p></div>
+            <div style="text-align:right;"><p style="margin:0 0 2px; font-size:13px; font-weight:600; color:#2D1F14;">$1.700</p><span style="font-size:11px; color:#6B9E6B; font-weight:500;">12 ud</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #E8D5B7;">
+            <div style="width:40px; height:40px; border-radius:8px; background:#FDFAF4; border:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#6B9E6B;"></div></div>
+            <div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:500; color:#2D1F14;">Palillo Bambú N°4</p><p style="margin:0; font-size:11px; color:#B09070;">Bambú · 30cm</p></div>
+            <div style="text-align:right;"><p style="margin:0 0 2px; font-size:13px; font-weight:600; color:#2D1F14;">$2.300</p><span style="font-size:11px; color:#6B9E6B; font-weight:500;">5 ud</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0;">
+            <div style="width:40px; height:40px; border-radius:8px; background:#FEF5F2; border:1px solid rgba(200,74,58,.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#C84A3A;"></div></div>
+            <div style="flex:1;"><p style="margin:0 0 2px; font-size:14px; font-weight:500; color:#2D1F14;">Hilo Dorado 100m</p><p style="margin:0; font-size:11px; color:#B09070;">Metálico · 100m</p></div>
+            <div style="text-align:right;"><p style="margin:0 0 2px; font-size:13px; font-weight:600; color:#2D1F14;">$3.100</p><span style="font-size:11px; color:#C84A3A; font-weight:600;">Sin stock</span></div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <div style="background:#2D1F14; height:58px; display:flex; align-items:center; padding:0 6px; flex-shrink:0;">
+          <button data-go="dashboard" data-dir="back" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; padding:6px 0;"><ph-house weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-house><span style="font-size:10px; color:rgba(250,240,224,.3);">Inicio</span></button>
+          <button data-go="venta" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; padding:6px 0;"><ph-shopping-cart-simple weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-shopping-cart-simple><span style="font-size:10px; color:rgba(250,240,224,.3);">Venta</span></button>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;"><ph-books weight="fill" style="font-size:21px; color:#E8C090;"></ph-books><span style="font-size:10px; color:#E8C090; font-weight:600;">Catálogo</span></div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;"><ph-dots-three-circle weight="fill" style="font-size:21px; color:rgba(250,240,224,.3);"></ph-dots-three-circle><span style="font-size:10px; color:rgba(250,240,224,.3);">Más</span></div>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: DETALLE ═══ -->
+      <div id="s-detalle" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <button data-go="catalogo" data-dir="back" style="width:36px; height:36px; background:rgba(0,0,0,.14); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-arrow-left weight="bold" style="font-size:18px; color:#FAF0E0;"></ph-arrow-left></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#FAF0E0; text-align:center; flex:1;">Lana Orquídea Socks</h2>
+          <div style="width:36px; height:36px; background:rgba(0,0,0,.14); border-radius:10px; display:flex; align-items:center; justify-content:center;"><ph-pencil weight="fill" style="font-size:17px; color:#FAF0E0;"></ph-pencil></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <div style="margin:13px 15px 0; border-radius:12px; overflow:hidden; height:148px; border:1px solid #D9C3A0; background:#F0EBE0; flex-shrink:0;">
+          <img src="uploads/92014241808.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Lana Orquídea Socks"/>
+        </div>
+        <div style="padding:13px 15px 0; flex-shrink:0;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div><h3 style="margin:0 0 3px; font-size:20px; font-weight:700; color:#2D1F14; letter-spacing:-.02em;">Lana Orquídea Socks</h3><p style="margin:0; font-size:13px; color:#B09070;">Superwash · Azul marino · 100g</p></div>
+            <div style="background:#E8F2E8; border-radius:20px; padding:4px 10px; border:1px solid #B0D4B0; flex-shrink:0;"><span style="font-size:12px; color:#4A8A4A; font-weight:600;">8 en stock</span></div>
+          </div>
+        </div>
+        <div style="flex:1; overflow:hidden; padding:12px 15px 0; display:flex; flex-direction:column; gap:9px;">
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;"><ph-lock-simple weight="fill" style="font-size:13px; color:#B09070;"></ph-lock-simple><span style="font-size:10px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Solo administradora</span></div>
+            <div style="display:flex;">
+              <div style="flex:1; padding-right:12px;"><span style="font-size:10px; color:#B09070;">Costo</span><p style="margin:2px 0 0; font-size:18px; font-weight:700; color:#2D1F14;">$2.100</p></div>
+              <div style="width:1px; background:#D9C3A0;"></div>
+              <div style="flex:1; padding:0 12px;"><span style="font-size:10px; color:#B09070;">Venta</span><p style="margin:2px 0 0; font-size:18px; font-weight:700; color:#2D1F14;">$4.800</p></div>
+              <div style="width:1px; background:#D9C3A0;"></div>
+              <div style="flex:1; padding-left:12px;"><span style="font-size:10px; color:#B09070;">Margen</span><p style="margin:2px 0 0; font-size:18px; font-weight:700; color:#5A8A5A;">+128%</p></div>
+            </div>
+          </div>
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:9px;">
+            <div style="display:flex; justify-content:space-between;"><span style="font-size:13px; color:#B09070;">Stock mínimo</span><span style="font-size:13px; font-weight:600; color:#2D1F14;">5 unidades</span></div>
+            <div style="height:1px; background:#E8D5B7;"></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-size:13px; color:#B09070;">Proveedor</span><button data-go="proveedor" style="font-size:13px; font-weight:500; color:#8B5E3C; background:none; border:none; cursor:pointer; padding:0; font-family:'DM Sans',sans-serif;">Lanas del Sur →</button></div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <div style="padding:0 15px 10px; flex-shrink:0;">
+          <button data-go="venta" style="width:100%; padding:15px; background:#2D1F14; border:none; border-radius:12px; color:#F5EED8; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; letter-spacing:-.01em;"><ph-shopping-cart-simple weight="fill" style="font-size:18px; color:#E8C090;"></ph-shopping-cart-simple>Agregar a venta</button>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: PROVEEDOR ═══ -->
+      <div id="s-proveedor" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <button data-go="detalle" data-dir="back" style="width:36px; height:36px; background:rgba(0,0,0,.14); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-arrow-left weight="bold" style="font-size:18px; color:#FAF0E0;"></ph-arrow-left></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#FAF0E0; flex:1; text-align:center;">Lanas del Sur</h2>
+          <div style="width:36px; height:36px; background:rgba(0,0,0,.14); border-radius:10px; display:flex; align-items:center; justify-content:center;"><ph-phone weight="fill" style="font-size:17px; color:#FAF0E0;"></ph-phone></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:13px 15px 0; display:flex; flex-direction:column; gap:10px;">
+          <!-- Contacto -->
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:13px; flex-shrink:0; display:flex; flex-direction:column; gap:9px;">
+            <div style="display:flex; align-items:center; gap:10px;"><ph-phone weight="fill" style="font-size:15px; color:#8B5E3C; flex-shrink:0;"></ph-phone><div><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">+56 9 8234 5678</p><p style="margin:0; font-size:11px; color:#B09070;">Carlos Muñoz · Vendedor</p></div></div>
+            <div style="height:1px; background:#E8D5B7;"></div>
+            <div style="display:flex; align-items:center; gap:10px;"><ph-envelope-simple weight="fill" style="font-size:15px; color:#8B5E3C; flex-shrink:0;"></ph-envelope-simple><p style="margin:0; font-size:13px; color:#2D1F14;">lanasdelsur@gmail.com</p></div>
+            <div style="height:1px; background:#E8D5B7;"></div>
+            <div style="display:flex; align-items:center; gap:10px;"><ph-map-pin weight="fill" style="font-size:15px; color:#8B5E3C; flex-shrink:0;"></ph-map-pin><p style="margin:0; font-size:13px; color:#2D1F14;">Valparaíso, Chile</p></div>
+          </div>
+          <!-- Productos -->
+          <div style="flex-shrink:0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="font-size:13px; font-weight:600; color:#2D1F14;">Productos que provee</span><span style="font-size:12px; color:#B09070;">3 ítems</span></div>
+            <div style="display:flex; flex-direction:column; gap:7px;">
+              <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+                <div style="width:32px; height:32px; border-radius:7px; overflow:hidden; flex-shrink:0;"><img src="uploads/92014241808.jpg" style="width:100%; height:100%; object-fit:cover;"/></div>
+                <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Lana Orquídea Socks</p><p style="margin:0; font-size:11px; color:#B09070;">Costo $2.100 · Stock 8 ud</p></div>
+              </div>
+              <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+                <div style="width:32px; height:32px; border-radius:7px; background:#FEF3C7; border:1px solid #D9C3A0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#C9860A;"></div></div>
+                <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Lana Alpaca Natural</p><p style="margin:0; font-size:11px; color:#C9860A;">Costo $3.100 · Stock bajo (3 ud)</p></div>
+              </div>
+              <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+                <div style="width:32px; height:32px; border-radius:7px; background:#E8F2E8; border:1px solid #B0D4B0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:10px; height:10px; border-radius:50%; background:#6B9E6B;"></div></div>
+                <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Hilo Algodón Blanco</p><p style="margin:0; font-size:11px; color:#B09070;">Costo $800 · Stock 12 ud</p></div>
+              </div>
+            </div>
+          </div>
+          <!-- Historial -->
+          <div style="flex-shrink:0;">
+            <p style="margin:0 0 8px; font-size:13px; font-weight:600; color:#2D1F14;">Historial de compras</p>
+            <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; overflow:hidden;">
+              <div style="padding:11px 13px; border-bottom:1px solid #E8D5B7; display:flex; justify-content:space-between; align-items:center;"><div><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">15 mayo 2025</p><p style="margin:0; font-size:11px; color:#B09070;">42 unidades · DTE Tipo 33</p></div><span style="font-size:14px; font-weight:600; color:#2D1F14;">$63.000</span></div>
+              <div style="padding:11px 13px; display:flex; justify-content:space-between; align-items:center;"><div><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">3 marzo 2025</p><p style="margin:0; font-size:11px; color:#B09070;">28 unidades · DTE Tipo 33</p></div><span style="font-size:14px; font-weight:600; color:#2D1F14;">$42.800</span></div>
+            </div>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+        <div style="padding:0 15px 10px; flex-shrink:0;">
+          <button data-go="dte" style="width:100%; padding:15px; background:#2D1F14; border:none; border-radius:12px; color:#F5EED8; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; letter-spacing:-.01em;"><ph-file-text weight="fill" style="font-size:20px; color:#E8C090;"></ph-file-text>Importar factura DTE</button>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+      <!-- ═══ SCREEN: DTE ═══ -->
+      <div id="s-dte" class="ps" style="background:#F5EED8;">
+        <div style="height:54px; background:#C17B4A; display:flex; align-items:flex-end; padding:0 24px 10px; justify-content:space-between; flex-shrink:0;">
+          <span style="font-size:15px; font-weight:700; color:#FAF0E0;">9:41</span>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#FAF0E0" stroke-opacity=".5"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="#FAF0E0"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="#FAF0E0" opacity=".5"/></svg>
+        </div>
+        <div style="background:#C17B4A; padding:6px 22px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <button data-go="proveedor" data-dir="back" style="width:36px; height:36px; background:rgba(0,0,0,.14); border:none; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><ph-arrow-left weight="bold" style="font-size:18px; color:#FAF0E0;"></ph-arrow-left></button>
+          <h2 style="margin:0; font-size:17px; font-weight:600; color:#FAF0E0; flex:1; text-align:center;">Importar DTE</h2>
+          <div style="width:36px;"></div>
+        </div>
+        <div style="background:#C17B4A; height:12px; position:relative; flex-shrink:0;"><div style="position:absolute; bottom:0; left:0; right:0; height:12px; background:#F5EED8; border-radius:12px 12px 0 0;"></div></div>
+        <div style="flex:1; overflow:hidden; background:#F5EED8; padding:13px 15px 0; display:flex; flex-direction:column; gap:10px;">
+          <!-- Badge de éxito -->
+          <div style="background:#E8F2E8; border:1px solid #B0D4B0; border-radius:12px; padding:10px 13px; display:flex; align-items:center; gap:9px; flex-shrink:0;">
+            <ph-check-circle weight="fill" style="font-size:18px; color:#3A8A3A; flex-shrink:0;"></ph-check-circle>
+            <div style="flex:1;"><p style="margin:0 0 1px; font-size:13px; font-weight:600; color:#2A6A2A;">Factura electrónica leída</p><p style="margin:0; font-size:11px; color:#4A8A4A;">Lanas del Sur · Tipo 33 · Folio N°5842</p></div>
+          </div>
+          <!-- Header DTE -->
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; padding:12px 14px; flex-shrink:0; display:flex; flex-direction:column; gap:7px;">
+            <div style="display:flex; justify-content:space-between;"><span style="font-size:11px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Emisor</span><span style="font-size:12px; color:#2D1F14; font-weight:500;">Lanas del Sur Ltda.</span></div>
+            <div style="height:1px; background:#E8D5B7;"></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-size:11px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">RUT</span><span style="font-size:12px; color:#2D1F14;">76.234.567-8</span></div>
+            <div style="height:1px; background:#E8D5B7;"></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-size:11px; color:#B09070; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Fecha</span><span style="font-size:12px; color:#2D1F14;">15 mayo 2025</span></div>
+          </div>
+          <!-- Items DTE -->
+          <div style="flex-shrink:0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="font-size:13px; font-weight:600; color:#2D1F14;">Ítems detectados</span><span style="font-size:12px; color:#B09070;">42 unidades</span></div>
+            <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:12px; overflow:hidden;">
+              <div style="padding:10px 13px; border-bottom:1px solid #E8D5B7; display:flex; justify-content:space-between; align-items:center; gap:8px;"><div style="flex:1; min-width:0;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Lana Orquídea Socks Azul</p><p style="margin:0; font-size:11px; color:#B09070;">× 12 unidades</p></div><div style="text-align:right; flex-shrink:0;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">$25.200</p><p style="margin:0; font-size:10px; color:#B09070;">$2.100 c/u</p></div></div>
+              <div style="padding:10px 13px; border-bottom:1px solid #E8D5B7; display:flex; justify-content:space-between; align-items:center; gap:8px;"><div style="flex:1; min-width:0;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Lana Alpaca Natural</p><p style="margin:0; font-size:11px; color:#B09070;">× 6 unidades</p></div><div style="text-align:right; flex-shrink:0;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">$18.600</p><p style="margin:0; font-size:10px; color:#B09070;">$3.100 c/u</p></div></div>
+              <div style="padding:10px 13px; display:flex; justify-content:space-between; align-items:center; gap:8px;"><div style="flex:1; min-width:0;"><p style="margin:0 0 1px; font-size:13px; font-weight:500; color:#2D1F14;">Hilo Algodón Blanco</p><p style="margin:0; font-size:11px; color:#B09070;">× 24 unidades</p></div><div style="text-align:right; flex-shrink:0;"><p style="margin:0; font-size:12px; font-weight:600; color:#2D1F14;">$19.200</p><p style="margin:0; font-size:10px; color:#B09070;">$800 c/u</p></div></div>
+            </div>
+          </div>
+          <!-- Total factura -->
+          <div style="background:#FDFAF4; border:1px solid #D9C3A0; border-radius:10px; padding:11px 13px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;"><span style="font-size:13px; color:#B09070;">Total factura</span><span style="font-size:20px; font-weight:700; color:#2D1F14; letter-spacing:-.02em;">$63.000</span></div>
+          <div style="flex:1;"></div>
+        </div>
+        <div style="padding:0 15px 10px; flex-shrink:0;">
+          <p style="margin:0 0 8px; text-align:center; font-size:12px; color:#B09070;">Se agregarán 42 unidades al inventario</p>
+          <button data-go="proveedor" data-dir="back" style="width:100%; padding:15px; background:#2D1F14; border:none; border-radius:12px; color:#F5EED8; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; letter-spacing:-.01em;"><ph-check-circle weight="fill" style="font-size:20px; color:#E8C090;"></ph-check-circle>Importar al inventario</button>
+        </div>
+        <div style="height:26px; background:#2D1F14; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div style="width:134px; height:5px; border-radius:3px; background:rgba(250,240,224,.2);"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Label pantalla actual -->
+  <div style="display:flex; align-items:center; gap:6px;">
+    <span style="color:rgba(255,255,255,.13); font-size:11px;">Pantalla:</span>
+    <span id="proto-label" style="color:rgba(245,236,216,.35); font-size:12px; font-weight:500;">Inicio de sesión</span>
+  </div>
+
+  <!-- Hint de navegación -->
+  <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:420px;">
+    <span style="background:rgba(255,255,255,.06); border-radius:20px; padding:4px 10px; font-size:11px; color:rgba(245,236,216,.3);">PIN → Dashboard</span>
+    <span style="background:rgba(255,255,255,.06); border-radius:20px; padding:4px 10px; font-size:11px; color:rgba(245,236,216,.3);">Venta → Escáner</span>
+    <span style="background:rgba(255,255,255,.06); border-radius:20px; padding:4px 10px; font-size:11px; color:rgba(245,236,216,.3);">Venta → Ticket</span>
+    <span style="background:rgba(255,255,255,.06); border-radius:20px; padding:4px 10px; font-size:11px; color:rgba(245,236,216,.3);">Catálogo → Detalle</span>
+    <span style="background:rgba(255,255,255,.06); border-radius:20px; padding:4px 10px; font-size:11px; color:rgba(245,236,216,.3);">Detalle → Proveedor → DTE</span>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  _pc = 0;
+  _st = null;
+
+  componentDidMount() {
+    const ph = document.getElementById('proto-phone');
+    if (!ph) return;
+    ph.addEventListener('click', e => {
+      const g = e.target.closest('[data-go]');
+      if (g) { e.stopPropagation(); this.nav(g.dataset.go, g.dataset.dir || 'forward'); return; }
+      const p = e.target.closest('[data-pin]');
+      if (p) { e.stopPropagation(); this.pin(p.dataset.pin); }
+    });
+  }
+
+  nav(to, dir = 'forward') {
+    const ph = document.getElementById('proto-phone');
+    if (!ph) return;
+    const cur = ph.querySelector('.ps.on');
+    const nxt = document.getElementById('s-' + to);
+    if (!nxt || nxt === cur) return;
+    if (this._st) { clearTimeout(this._st); this._st = null; }
+    const d = 300, ease = 'cubic-bezier(.4,0,.2,1)';
+    nxt.style.transition = 'none';
+    nxt.style.transform = dir === 'forward' ? 'translateX(100%)' : 'translateX(-12%)';
+    nxt.classList.add('on');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      nxt.style.transition = `transform ${d}ms ${ease}`;
+      nxt.style.transform = 'translateX(0)';
+      if (cur) { cur.style.transition = `transform ${d}ms ${ease}`; cur.style.transform = dir === 'forward' ? 'translateX(-12%)' : 'translateX(100%)'; }
+      setTimeout(() => {
+        if (cur) { cur.classList.remove('on'); cur.style.transform = ''; cur.style.transition = ''; }
+        nxt.style.transition = ''; nxt.style.transform = '';
+        if (to === 'scanner') this.startScan();
+        const lb = document.getElementById('proto-label');
+        const names = { pin:'Inicio de sesión', dashboard:'Dashboard', venta:'Venta', scanner:'Escáner', ticket:'Ticket de venta', catalogo:'Catálogo', detalle:'Detalle de producto', proveedor:'Proveedor', dte:'Importar DTE' };
+        if (lb) lb.textContent = names[to] || to;
+      }, d);
+    }));
+  }
+
+  startScan() {
+    const ov = document.getElementById('scan-found');
+    if (ov) { ov.style.transition = 'none'; ov.style.transform = 'translateY(100%)'; }
+    this._st = setTimeout(() => {
+      const ov2 = document.getElementById('scan-found');
+      if (ov2) { ov2.style.transition = 'transform .4s cubic-bezier(.4,0,.2,1)'; ov2.style.transform = 'translateY(0)'; }
+    }, 1800);
+  }
+
+  pin(d) {
+    if (d === 'del') this._pc = Math.max(0, this._pc - 1);
+    else { if (this._pc >= 4) return; this._pc++; }
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('pd' + i);
+      if (!dot) continue;
+      const f = i < this._pc;
+      dot.style.background = f ? '#8B5E3C' : 'transparent';
+      dot.style.border = f ? 'none' : '2px solid #D9C3A0';
+      dot.style.transform = f ? 'scale(1.2)' : 'scale(1)';
+    }
+    if (this._pc === 4) {
+      setTimeout(() => {
+        this.nav('dashboard');
+        this._pc = 0;
+        for (let i = 0; i < 4; i++) {
+          const dot = document.getElementById('pd' + i);
+          if (dot) { dot.style.background = 'transparent'; dot.style.border = '2px solid #D9C3A0'; dot.style.transform = 'scale(1)'; }
+        }
+      }, 350);
+    }
+  }
+
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
