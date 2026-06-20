@@ -90,6 +90,17 @@ MVP: los 3 roles existen con autenticación simple (PIN de 4 dígitos).
 - Angélica: acceso completo
 - Empleados: solo ventas (sin ver costos, proveedores, valor de inventario)
 
+### 8. Asistente de Combinación de Colores (Uso Interno)
+
+- **Asistente de Armonía Cromática:** Estructura el proceso en tres pasos:
+  1. **Selección Base:** Elección de una lana inicial (color semilla).
+  2. **Regla de Diseño:** Selección de la relación deseada: colores "parecidos" (análogos), complementarios (contraste directo), o tríadas (opuestos).
+  3. **Recomendación de Inventario:** El sistema calcula los colores óptimos según la regla y sugiere automáticamente hilados del catálogo que estén en stock y que más se acerquen a la armonía deseada.
+- **Diseñador de Paletas Interactivo:** Una pantalla visual donde se arrastran y ordenan los hilados seleccionados para ver cómo se ven las hebras juntas antes de cortar o vender.
+- **Verificación de Stock en Tiempo Real:** Alertas visuales sobre si los colores sugeridos para la paleta están disponibles, bajo stock mínimo, o agotados.
+- **Registro de Pedidos Pendientes:** Permite asociar colores agotados elegidos en la paleta a una nota de encargo del cliente, facilitando la lista de compras del próximo pedido a proveedores.
+
+
 ## Fuera del MVP (v2+)
 
 - Tienda online / e-commerce
@@ -98,7 +109,13 @@ MVP: los 3 roles existen con autenticación simple (PIN de 4 dígitos).
 - Control de caja (apertura/cierre, arqueo)
 - Órdenes de compra a proveedores
 - Impresión de etiquetas con código de barras propio
-- Fidelización de clientes
+- Fidelización de clientes, Portal Público y Asistente para Clientes (Web/PWA):
+  - Acceso público (sin necesidad de iniciar sesión) al catálogo de lanas disponibles y stock actual (ocultando precios de costo y datos de administración).
+  - Diseñador de paletas web para clientes con la opción de exportar el proyecto y enviarlo a Angélica por WhatsApp para reservar stock.
+- Comunidad Antimahue:
+  - Registro opcional para clientes de la tienda.
+  - Guardar paletas y proyectos personales en perfiles.
+  - "Muro de Proyectos": un espacio donde los clientes pueden subir fotos de sus tejidos terminados, indicando el patrón que usaron y enlazando directamente los productos y colores de lanas del catálogo de Antimahue que emplearon.
 - Facturación electrónica / integración SII
 
 ## Stack candidato (a confirmar en diseño técnico)
