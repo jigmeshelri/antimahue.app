@@ -7,3 +7,8 @@ dist/
 .next/
 .cache/
 *.log
+
+# Opencode y configuraciones locales de agentes
+.home/
+.opencode-*/
+
