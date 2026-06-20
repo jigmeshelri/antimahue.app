@@ -20,3 +20,5 @@ project:
     initialized: true
     active_changes:
       - setup-stack
+      - color-palette-assistant
+
