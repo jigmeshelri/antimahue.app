@@ -1,0 +1,79 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+> Idioma: este archivo es mixto Claude+humano con instrucciones del user → español rioplatense (convención global del user). El header de arriba es boilerplate fijo de `/init`.
+
+## Qué es Antimahue
+
+PWA de **inventario y punto de venta** para la tienda de lanas, algodón, hilos, palillos y crochet de Angélica (Chile). **No es un e-commerce ni un CRM** — es una herramienta teléfono-first para vender, consultar stock y gestionar proveedores. La definición de producto vive en `docs/product-definition.md` (documento vivo, fuente de verdad del alcance).
+
+Principios de diseño que condicionan toda decisión técnica (de `docs/product-definition.md`): cero fricción (≤2 toques por tarea frecuente), lenguaje familiar ("ovillo", "madeja", "palillo" — no jerga de sistemas), teléfono-first, tolerante a errores (deshacer en vez de diálogos de confirmación).
+
+## Estado del repo: `setup-stack` en `apply` — el scaffold de la SPA YA EXISTE
+
+El bootstrapping arrancó (2026-06-21, apply batch 1). Existe `package.json` (pnpm@11), Vite 6 + React 19 + Tailwind 4 + TS + `vite-plugin-pwa`, el árbol `src/` (atomic design: `components/{atoms,molecules,organisms}` + `features/` + `lib/` + `stores/`), `vite.config.ts`, `tsconfig*.json`, `index.html`, `public/_headers` (CSP). **El build da verde** (PWA generada).
+
+Comandos reales (de `package.json`):
+- `pnpm dev` — dev server Vite (`http://localhost:5173`).
+- `pnpm build` — `tsc -p tsconfig.app.json && vite build` (build-gate: typecheck + bundle).
+- `pnpm typecheck` — typecheck sin emitir.
+- `pnpm preview` — sirve el `dist/` buildeado.
+
+**Todavía NO hay tests** (no inventes `pnpm test` — falla). Pendiente del `apply` (ver `diario/2026-06-21.md` + `setup-stack/tasks.md`, 23/48 done): el SQL del scaffold de seguridad (`supabase/migrations/` está VACÍO — `profiles` + trigger de signup + RLS deny-by-default + `audit_log`), el **commit inicial** (todo sin commitear aún), `wrangler`/CF Pages config, y la Fase 7 de aceptación.
+
+## Metodología: Spec-Driven Development (SDD) vía openspec
+
+Todo cambio de producto pasa por `openspec/` antes de tocar código. No se implementa nada sin un change que recorra sus fases.
+
+- `openspec/project.yaml` — config del proyecto: stack declarado y lista de `active_changes`.
+- `openspec/changes/<nombre>/` — un directorio por feature/cambio:
+  - `proposal.md` — intención, alternativas con tradeoffs, decisión.
+  - `state.yaml` — `status` global + `phase_states` (explore → proposal → specs → design → tasks → apply → verify → archive). **Leé esto primero** para saber en qué fase está un change antes de actuar sobre él.
+  - (Luego se suman `spec.md`, `design.md`, `tasks.md` a medida que avanza.)
+
+Changes activos al momento de escribir esto (verificá `state.yaml` actual, esto envejece):
+
+| Change | Fase actual | Qué es |
+| --- | --- | --- |
+| `setup-stack` | `apply` / in_progress (23/48 tasks) | Bootstrapping de la SPA + scaffold de seguridad. Stack **CERRADO** (ver abajo). |
+| `color-palette-assistant` | proposal completo, `specs` pending | Asistente de armonía cromática que mapea teoría de color contra stock real. |
+
+La orquestación SDD del user (skills `sdd-*`, `/sdd-*`) genera artefactos en **doble formato** cuando aplica: `.html` rico para revisión humana + `.md` agent-optimized para el LLM. Ver el global CLAUDE.md del user para la convención completa.
+
+## Stack: CERRADO y bootstrapped (resuelto 2026-06-21 en la fase `design`)
+
+La vieja tensión Astro+FastAPI vs React+Vite **se resolvió** a favor del stack liviano: sin Astro, sin backend propio.
+
+- **Frontend:** SPA con **Vite 6 + React 19 + Tailwind 4 + TypeScript**, PWA vía `vite-plugin-pwa`. Routing con **React Router v7** (NO TanStack — descartado por el incidente supply-chain del 2026-05-11). Estado con **nanostores**. Atomic design en `src/components/`.
+- **Backend:** **Supabase directo** (PostgreSQL + Auth + Storage + RLS + PostgREST + Edge Functions), región `sa-east-1` (São Paulo), ref `aruteznqhdaaxxvllvzm`. **Sin FastAPI, sin Railway, sin Docker en prod, sin TimescaleDB** — Antimahue no tiene visión-IA ni series temporales que los justifiquen.
+- **Host:** Cloudflare Pages (bundle estático en el edge; reversible).
+- **Package manager:** **pnpm 11** secure-by-default: `minimumReleaseAge=1440` en `.npmrc`; `allowBuilds` (solo `esbuild`, security-reviewed) + `strictDepBuilds: true` en `pnpm-workspace.yaml` (NO en `.npmrc` — esa key no existe ahí en v11).
+- **Seguridad = principio rector:** maneja dinero + datos de terceros → RLS deny-by-default, cliente no confiable (autorización en Postgres, no en el JS), separación de claves anon/service_role, PIN endurecido con PBKDF2. Presente en cada fase, no al final.
+
+> Si `product-definition.md` o el handoff de diseño todavía marcan el stack como "candidato" o proponen Astro/FastAPI, está viejo: la fuente de verdad es `openspec/project.yaml` + `setup-stack/design.md`.
+
+## Sistema de diseño: el handoff es la fuente de verdad para UI
+
+Al construir cualquier pantalla, **replicá visualmente los prototipos** — son hi-fi y pixel-perfect, no aproximaciones:
+
+- `docs/design_handoff_antimahue/README.md` — **spec de diseño completa**: paleta "Terraza" (tokens CSS de marca, fondos, estados de stock), tipografía (DM Sans), espaciado, radios, transiciones, ícono de app (SVG path), y la spec pantalla por pantalla (9 pantallas: PIN, Dashboard, Venta, Escáner, Ticket, Catálogo, Detalle, Proveedor, Import DTE).
+- `docs/design_handoff_antimahue/*.dc.html` — prototipos interactivos navegables (`Antimahue Prototipo`, `Ticket Térmico`, `Antimahue Logo`). Son **referencia, no código de producción** — recrealos en el stack elegido.
+- `docs/mockups/*.html` + `*.png` — set anterior de 5 pantallas (login, dashboard, venta, producto nuevo, ticket). El handoff es más nuevo y detallado; ante conflicto, gana el handoff.
+- Íconos: **Phosphor Icons** variante `fill`. Fuente: **DM Sans** (DM Mono para el ticket térmico).
+
+Skills de diseño fijadas en el repo (`.agents/skills/`, lockeadas en `skills-lock.json`): `frontend-design` (anthropics/skills) y `web-design-guidelines` (vercel-labs). Aplicalas al trabajar UI.
+
+## Dominio específico (Chile / tienda de lanas)
+
+- **DTE (Documento Tributario Electrónico):** la importación de compras parsea **XML de factura/boleta electrónica chilena** — DTE Tipo 33/46 (factura) y Tipo 39 (boleta). Se descartó OCR de PDF y el timbre PDF417 (no traen detalle de ítems) — el XML es la única vía soportada (razones en `docs/product-definition.md`).
+- **Roles + auth:** PIN de 4 dígitos. Admin (Angélica) ve costos/proveedores/valor de inventario; empleados **solo venden** (sin acceso a costos). La UI oculta datos sensibles por rol.
+- **Asistente de color:** calcula armonías (análogos / complementarios / tríadas) y mapea contra stock real usando distancia en espacio HSL/RGB (o CIELAB ΔE). Detalle en `openspec/changes/color-palette-assistant/proposal.md`.
+
+## Convenciones y gotchas del repo
+
+- **Secretos:** `.envrc` y `.env*` contienen API keys/tokens y están gitignoreados. Nunca commitearlos. (Ver `AGENTS.md`.)
+- **`AGENTS.md`** es el archivo de instrucciones de agentes del repo (mínimo hoy, pensado para crecer cuando haya código). Mantenelo y este CLAUDE.md sincronizados.
+- **Idioma de docs:** español (la audiencia primaria son humanos chilenos y Angélica). Aplica a `product-definition.md`, READMEs, diario, artefactos de revisión.
+- **Diario:** `diario/<fecha>.md` registra avances/pendientes por sesión.
+- **Remote / proyecto Engram:** repo en `git@github.com:jigmeshelri/antimahue.app.git`; memoria Engram bajo namespace `inaction:antimahue.app`.

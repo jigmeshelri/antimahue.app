@@ -1,14 +1,27 @@
-.envrc
+# Secrets — NEVER commit (REQ-SETUP-10, T8)
 .env
-.env.local
-.env.*.local
-node_modules/
+.env.*
+.envrc
+!.env.example
+
+# Build output
 dist/
 .next/
 .cache/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+
+# Logs
 *.log
 
 # Opencode y configuraciones locales de agentes
 .home/
 .opencode-*/
+
+# Seed WIP: destilación de PDFs del proveedor Ukryl — reservado para el change data-model, no versionar
+docs/Ukryl/
 
