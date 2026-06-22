@@ -566,6 +566,49 @@ DESBLOQUEO DIARIO (ingreso del PIN — Pantalla 1):
   </section>
 
   <section>
+    <h2>Advisors de seguridad — falsos positivos aceptados</h2>
+
+    <p>Al ejecutar <code>get_advisors(security)</code> sobre el proyecto Supabase, el linter reporta dos entradas WARN que son <strong>falsos positivos no accionables</strong>:</p>
+
+    <table>
+      <thead>
+        <tr><th>Lint ID</th><th>Regla</th><th>Función</th><th>Veredicto</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>0028</code></td>
+          <td><code>anon_security_definer_function_executable</code></td>
+          <td><code>public.rls_auto_enable()</code></td>
+          <td><span class="badge badge-resolved">Falso positivo</span></td>
+        </tr>
+        <tr>
+          <td><code>0029</code></td>
+          <td><code>authenticated_security_definer_function_executable</code></td>
+          <td><code>public.rls_auto_enable()</code></td>
+          <td><span class="badge badge-resolved">Falso positivo</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Por qué son inertes</div>
+      <p><code>rls_auto_enable()</code> es un EVENT TRIGGER de la plataforma Supabase: su tipo de retorno es <code>event_trigger</code>, se activa en <code>ddl_command_end</code> y su propietario es <code>postgres</code> (gestionado por la plataforma). Las funciones con tipo de retorno <code>event_trigger</code> son inalcanzables como vector de ataque por tres razones:</p>
+      <ul>
+        <li>PostgREST no las expone como RPC: el tipo <code>event_trigger</code> no es serializable a JSON, por lo que nunca aparece en <code>/rest/v1/rpc/rls_auto_enable</code>.</li>
+        <li>Postgres prohíbe su invocación directa: <code>SELECT rls_auto_enable()</code> genera el error <em>«event trigger functions cannot be called directly»</em>.</li>
+        <li>El <code>GRANT EXECUTE TO PUBLIC</code> que marca el linter es inerte por las razones anteriores.</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-security">
+      <div class="callout-title">No corregir — instrucción para futuros desarrolladores</div>
+      <p>No revocar EXECUTE ni modificar <code>public.rls_auto_enable()</code> de ninguna forma. Es un objeto gestionado por la plataforma que implementa el auto-RLS de Supabase. Modificarlo puede romper la aplicación automática de RLS a nivel de plataforma.</p>
+      <p>Al ejecutar <code>get_advisors</code>, ignorar específicamente los lint IDs <code>0028</code> y <code>0029</code> sobre <code>rls_auto_enable</code>. Cualquier otro WARN debe investigarse con normalidad.</p>
+      <p>Las 3 entradas INFO (<code>rls_enabled_no_policy</code> en <code>profiles</code>, <code>auth_attempts</code>, <code>audit_log</code>) son <strong>intencionales</strong>: confirman la postura deny-by-default (T2). Se resuelven cuando se agreguen políticas en el cambio <code>data-model</code>.</p>
+    </div>
+  </section>
+
+  <section>
     <h2>Arquitectura de componentes — 9 pantallas del handoff</h2>
 
     <p>Feature-sliced <code>src/features/*</code> (slices verticales) + componentes atómicos compartidos <code>src/components/</code> (primitivos de UI horizontales), con el patrón container/presentacional dentro de cada feature.</p>

@@ -191,6 +191,29 @@ src/
 
 No data migration (greenfield). Single forward migration creates scaffold tables with RLS deny-by-default. Host is reversible (D6): swap deploy target without code change.
 
+## Advisors — Accepted False Positives (W2)
+
+Running `get_advisors(security)` on the Supabase project WILL report 2 WARN entries that are **FALSE POSITIVES — NOT actionable**:
+
+| Lint ID | Rule | Function | Verdict |
+|---------|------|----------|---------|
+| 0028 | `anon_security_definer_function_executable` | `public.rls_auto_enable()` | FALSE POSITIVE — see below |
+| 0029 | `authenticated_security_definer_function_executable` | `public.rls_auto_enable()` | FALSE POSITIVE — see below |
+
+**Why these are inert (evidence):**
+
+`rls_auto_enable()` is a Supabase platform EVENT TRIGGER — its return type is `event_trigger`, it fires on `ddl_command_end`, and its owner is `postgres` (platform-managed). Functions that return `event_trigger` are unreachable as an attack surface:
+
+1. PostgREST DOES NOT expose event trigger functions as RPC — the `event_trigger` return type is not JSON-serializable, so it never appears at `/rest/v1/rpc/rls_auto_enable`.
+2. Postgres itself prevents direct invocation: `SELECT rls_auto_enable()` raises `ERROR: event trigger functions cannot be called directly`.
+3. The `GRANT EXECUTE TO PUBLIC` the linter flags is inert for the same reason.
+
+**MUST NOT fix**: Do not revoke EXECUTE on this function or otherwise modify `public.rls_auto_enable()`. It is a platform-owned object that implements Supabase's automatic-RLS feature. Touching it may break RLS auto-enforcement at the platform level.
+
+**When running `get_advisors`**: ignore specifically lint IDs `0028` and `0029` on `rls_auto_enable`. All other WARNs should be investigated normally.
+
+The 3 INFO entries (`rls_enabled_no_policy` on `profiles`, `auth_attempts`, `audit_log`) are INTENTIONAL — they confirm deny-by-default posture (T2). They resolve as policies are added in the `data-model` change.
+
 ## Open Questions
 
 - [x] **OQ-1 RESOLVED (2026-06-21):** Host = **Cloudflare Pages** (user confirmed). See D6 above.
