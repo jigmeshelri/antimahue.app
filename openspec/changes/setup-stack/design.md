@@ -13,7 +13,7 @@ produces_proposal: ["§8.threat-model"]
 
 ## Technical Approach
 
-Static SPA (Vite + React 19 + TS + Tailwind v4 + `vite-plugin-pwa`) talks directly to Supabase (`sa-east-1`) via `@supabase/supabase-js` with the **anon key only**. The browser bundle is UNTRUSTED (spec Governing Principle): real authorization is RLS/Postgres, never JS. This design resolves the four deferred decisions of proposal §7, produces the STRIDE-lite threat model of §8, and maps the 9 handoff screens to a feature-sliced + atomic component tree. Scope is infra + minimal security scaffold only — business tables are the future `data-model` change. Every decision below states its security posture, per proposal §2.
+Static SPA (Vite + React 19 + TS + Tailwind v4 + `vite-plugin-pwa`) talks directly to Supabase (`sa-east-1`) via `@supabase/supabase-js` with the **publishable key only**. The browser bundle is UNTRUSTED (spec Governing Principle): real authorization is RLS/Postgres, never JS. This design resolves the four deferred decisions of proposal §7, produces the STRIDE-lite threat model of §8, and maps the 9 handoff screens to a feature-sliced + atomic component tree. Scope is infra + minimal security scaffold only — business tables are the future `data-model` change. Every decision below states its security posture, per proposal §2.
 
 ## Architecture Decisions
 
@@ -37,14 +37,14 @@ Static SPA (Vite + React 19 + TS + Tailwind v4 + `vite-plugin-pwa`) talks direct
 
 ### D3 — Supabase client pattern (REQ-SETUP-9)
 
-Single shared browser client created from `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`, instantiated once in `src/lib/supabase.ts`. `service_role` NEVER imported client-side (REQ-SETUP-9, V-4). Server-side logic (DTE parse, future) lives in Supabase Edge Functions using `service_role` from the function's own secret store — never shipped to the bundle.
+Single shared browser client created from `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`, instantiated once in `src/lib/supabase.ts`. `service_role` NEVER imported client-side (REQ-SETUP-9, V-4). Server-side logic (DTE parse, future) lives in Supabase Edge Functions using `service_role` from the function's own secret store — never shipped to the bundle.
 
 ```ts
 // src/lib/supabase.ts — the ONLY place a client is created
 import { createClient } from '@supabase/supabase-js'
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   { auth: { persistSession: true, storage: secureSessionStorage, autoRefreshToken: true } }
 )
 ```
@@ -168,9 +168,9 @@ src/
 | `vite.config.ts` | Create | Vite + react + tailwind v4 + VitePWA (REQ-SETUP-2) |
 | `.npmrc` | Create | `minimumReleaseAge=1440`, `allowBuilds=` (REQ-SETUP-3) |
 | `.gitignore` | Create/Modify | ignore `.env*`, `.envrc` (REQ-SETUP-10) |
-| `.env.example` | Create | placeholder `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` only |
+| `.env.example` | Create | placeholder `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` only |
 | `public/_headers` | Create | CSP + HSTS + HTTP→HTTPS (CF Pages, D6, T3) |
-| `src/lib/supabase.ts` | Create | single client, anon key, secure session (D3/D4) |
+| `src/lib/supabase.ts` | Create | single client, publishable key, secure session (D3/D4) |
 | `src/lib/crypto.ts` | Create | WebCrypto PBKDF2/AES-GCM for PIN unlock (D5) |
 | `src/lib/router.tsx` | Create | React Router v7 `createBrowserRouter` (D1) |
 | `src/stores/*.ts` | Create | nanostores: auth, lock, saleDraft, ui (D2) |

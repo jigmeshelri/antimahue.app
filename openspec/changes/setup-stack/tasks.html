@@ -441,7 +441,7 @@
         <div class="task-check"></div>
         <span class="task-id">2.2</span>
         <div class="task-content">
-          <p>Crear <code>.env.local</code> (en .gitignore) con los valores reales de <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code>; añadir <code>SUPABASE_SERVICE_ROLE_KEY</code> <strong>sin</strong> el prefijo <code>VITE_</code> (REQ-SETUP-9).</p>
+          <p>Crear <code>.env.local</code> (en .gitignore) con los valores reales de <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code>; añadir <code>SUPABASE_SERVICE_ROLE_KEY</code> <strong>sin</strong> el prefijo <code>VITE_</code> (REQ-SETUP-9).</p>
           <span class="task-flag-security">SEGURIDAD — crítico</span>
         </div>
       </li>
@@ -449,7 +449,7 @@
         <div class="task-check"></div>
         <span class="task-id">2.3</span>
         <div class="task-content">
-          <p>Crear <code>.env.example</code> con valores de marcador únicamente (<code>VITE_SUPABASE_URL=</code>, <code>VITE_SUPABASE_ANON_KEY=</code>) — es el único archivo de entorno que se compromete en git (REQ-SETUP-10).</p>
+          <p>Crear <code>.env.example</code> con valores de marcador únicamente (<code>VITE_SUPABASE_URL=</code>, <code>VITE_SUPABASE_PUBLISHABLE_KEY=</code>) — es el único archivo de entorno que se compromete en git (REQ-SETUP-10).</p>
           <span class="task-flag-security">SEGURIDAD — crítico</span>
         </div>
       </li>
@@ -586,7 +586,7 @@ ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;</code></pre>
         <div class="task-check"></div>
         <span class="task-id">4.4</span>
         <div class="task-content">
-          <p>Crear el cliente Supabase compartido en <code>src/lib/supabase.ts</code> (D3): <code>createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } })</code>. Ningún import de <code>service_role</code> en <code>src/</code>.</p>
+          <p>Crear el cliente Supabase compartido en <code>src/lib/supabase.ts</code> (D3): <code>createClient(VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true } })</code>. Ningún import de <code>service_role</code> en <code>src/</code>.</p>
           <span class="path-note">src/lib/supabase.ts</span>
           <span class="task-flag-security">SEGURIDAD — crítico</span>
         </div>
@@ -683,7 +683,7 @@ ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;</code></pre>
         <div class="task-check"></div>
         <span class="task-id">5.3</span>
         <div class="task-content">
-          <p>Configurar el proyecto CF Pages en el dashboard de Cloudflare: conectar el repositorio, establecer las variables de entorno <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> en la configuración de CF Pages (REQ-SETUP-9 — sin <code>service_role</code> en variables de entorno del cliente).</p>
+          <p>Configurar el proyecto CF Pages en el dashboard de Cloudflare: conectar el repositorio, establecer las variables de entorno <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> en la configuración de CF Pages (REQ-SETUP-9 — sin <code>service_role</code> en variables de entorno del cliente).</p>
           <span class="task-flag-security">SEGURIDAD — crítico</span>
         </div>
       </li>
@@ -844,7 +844,7 @@ ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;</code></pre>
       <tbody>
         <tr><td>V-1</td><td><code>pnpm build</code> sale con código 0, sin errores de TS</td><td>No</td></tr>
         <tr><td>V-2</td><td><code>pnpm dev</code> sirve en puerto 5173</td><td>No</td></tr>
-        <tr><td>V-3</td><td>La app conecta con Supabase (clave anon)</td><td>No</td></tr>
+        <tr><td>V-3</td><td>La app conecta con Supabase (clave publicable)</td><td>No</td></tr>
         <tr><td><strong>V-4</strong></td><td><code>grep -r "service_role" dist/</code> vacío</td><td><strong>Sí — crítico</strong></td></tr>
         <tr><td><strong>V-5</strong></td><td><code>.env*</code> aparece como ignorado</td><td><strong>Sí — crítico</strong></td></tr>
         <tr><td><strong>V-6</strong></td><td>RLS habilitado en las 3 tablas</td><td><strong>Sí — crítico</strong></td></tr>

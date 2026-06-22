@@ -25,8 +25,8 @@ updated_at: "2026-06-21T23:44:27Z"
 ## Phase 2: Supabase Project Setup (REQ-SETUP-5/6)
 
 - [x] 2.1 Create Supabase project in region `sa-east-1` (São Paulo). Enable Auth + Storage + PostgREST (REQ-SETUP-5). Confirm region in project settings dashboard.
-- [ ] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; add `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix — REQ-SETUP-9).
-- [x] 2.3 Create `.env.example` with placeholder values only (`VITE_SUPABASE_URL=`, `VITE_SUPABASE_ANON_KEY=`) — this is the ONLY env file committed to git (REQ-SETUP-10).
+- [ ] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; add `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix — REQ-SETUP-9).
+- [x] 2.3 Create `.env.example` with placeholder values only (`VITE_SUPABASE_URL=`, `VITE_SUPABASE_PUBLISHABLE_KEY=`) — this is the ONLY env file committed to git (REQ-SETUP-10).
 - [x] 2.4 Create `supabase/migrations/` directory; write `20260621000000_initial_scaffold.sql` (populated in Phase 3).
 
 ## Phase 3: Security Scaffold — SQL Migration (REQ-SETUP-6/7/8, D4/D5, T2/T5/T7)
@@ -43,7 +43,7 @@ updated_at: "2026-06-21T23:44:27Z"
 - [x] 4.1 Install React Router v7: `pnpm add react-router` (pin to a release published after 2026-05-12 — guard enforces; verify with `pnpm why react-router`). D1.
 - [x] 4.2 Install nanostores: `pnpm add nanostores @nanostores/react`. D2.
 - [x] 4.3 Install `@supabase/supabase-js`: `pnpm add @supabase/supabase-js`.
-- [x] 4.4 Create `src/lib/supabase.ts` — single shared client (D3): `createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } })`. No `service_role` import anywhere in `src/`.
+- [x] 4.4 Create `src/lib/supabase.ts` — single shared client (D3): `createClient(VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true } })`. No `service_role` import anywhere in `src/`.
 - [x] 4.5 Create `src/lib/crypto.ts` — WebCrypto helpers per D5: `deriveKey(pin, salt)` using PBKDF2 600k iterations SHA-256; `encryptToken(token, key)` AES-GCM; `decryptToken(enc, key)` AES-GCM. **Flag**: WebCrypto + IndexedDB must be validated inside the installed PWA (not just browser — SW context may differ; add a smoke test in 5.6).
 - [x] 4.6 Create `src/lib/router.tsx` — `createBrowserRouter` with 9 routes, each lazy-importing its feature screen (D1, REQ-SETUP-11 pure static SPA).
 - [x] 4.7 Create `src/stores/`: `auth.ts` (session atom), `lock.ts` (PIN lockout state), `saleDraft.ts` (current sale), `ui.ts` (global UI flags). nanostores atoms only (D2).
@@ -55,7 +55,7 @@ updated_at: "2026-06-21T23:44:27Z"
 
 - [x] 5.1 Create `public/_headers` file with strict CSP per T3 mitigation: `default-src 'self'`, `connect-src 'self' https://*.supabase.co`, `script-src 'self'` (no `unsafe-inline`, no `unsafe-eval`), `style-src 'self' 'unsafe-inline'` (Tailwind runtime needs this — document the exception), `img-src 'self' data: blob:`, `frame-ancestors 'none'`. Also include `Strict-Transport-Security: max-age=31536000; includeSubDomains`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
 - [x] 5.2 Create `wrangler.jsonc` (CF Pages config) with `pages_build_output_dir = "dist"` and `compatibility_date` (JSON format per wrangler skill — `wrangler.toml` is legacy; JSONC is current). Instructions for CF dashboard are documented inline.
-- [ ] 5.3 Configure CF Pages project in Cloudflare dashboard: connect repo, set env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in CF Pages settings (REQ-SETUP-9 — no `service_role` in CF Pages env vars client-side). REQUIRES HUMAN — needs CF dashboard credentials.
+- [ ] 5.3 Configure CF Pages project in Cloudflare dashboard: connect repo, set env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in CF Pages settings (REQ-SETUP-9 — no `service_role` in CF Pages env vars client-side). REQUIRES HUMAN — needs CF dashboard credentials.
 
 ## Phase 6: Supply-chain Guards & Env Validation (REQ-SETUP-3/4/9/10)
 
@@ -118,7 +118,7 @@ console.log('Round-trip result:', dec === token ? 'PASS' : 'FAIL')
 
 ### 7.2 / 7.3 — Dev server + browser check (REQUIRES HUMAN)
 
-Prerequisites: `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set.
+Prerequisites: `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` set.
 
 1. Run `pnpm dev`.
 2. Confirm server starts at `http://localhost:5173` with no console errors.
@@ -131,6 +131,6 @@ Prerequisites: `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY
 3. Set: Build command = `pnpm build`; Build output directory = `dist`.
 4. In Settings → Environment variables, add:
    - `VITE_SUPABASE_URL` = (value from Supabase dashboard)
-   - `VITE_SUPABASE_ANON_KEY` = (anon key from Supabase dashboard)
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` = (publishable key from Supabase dashboard)
    - DO NOT add `SUPABASE_SERVICE_ROLE_KEY` here (REQ-SETUP-9, T4).
 5. Trigger first deploy. Verify site loads and CSP headers are applied (check via curl -I).

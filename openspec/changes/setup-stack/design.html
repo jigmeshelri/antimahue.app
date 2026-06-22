@@ -274,7 +274,7 @@
 
   <section>
     <h2>Enfoque técnico</h2>
-    <p>Una SPA estática (Vite + React 19 + TypeScript + Tailwind v4 + <code>vite-plugin-pwa</code>) se comunica directamente con Supabase (<code>sa-east-1</code>) mediante <code>@supabase/supabase-js</code> usando <strong>solo la clave anon</strong>. El bundle del navegador es no confiable: la autorización real reside en RLS/Postgres, nunca en JavaScript.</p>
+    <p>Una SPA estática (Vite + React 19 + TypeScript + Tailwind v4 + <code>vite-plugin-pwa</code>) se comunica directamente con Supabase (<code>sa-east-1</code>) mediante <code>@supabase/supabase-js</code> usando <strong>solo la clave publicable</strong>. El bundle del navegador es no confiable: la autorización real reside en RLS/Postgres, nunca en JavaScript.</p>
     <p>Este documento resuelve las cuatro decisiones diferidas de la propuesta §7, produce el modelo de amenazas STRIDE-lite de §8, y mapea las 9 pantallas del handoff a un árbol de componentes feature-sliced + atómico. El alcance es infraestructura + scaffold de seguridad mínimo; las tablas de negocio corresponden al cambio futuro <code>data-model</code>. Cada decisión explicita su postura de seguridad.</p>
   </section>
 
@@ -340,12 +340,12 @@
         <span class="badge badge-resolved">Resuelto</span>
       </div>
       <div class="decision-body">
-        <p>Un único cliente compartido en el navegador, creado a partir de <code>VITE_SUPABASE_URL</code> + <code>VITE_SUPABASE_ANON_KEY</code>, instanciado una sola vez en el módulo del cliente de Supabase en <code>src/lib/</code>. La clave <code>service_role</code> nunca se importa en el cliente (REQ-SETUP-9, V-4). La lógica server-side vive en Edge Functions de Supabase, que usan <code>service_role</code> desde el almacén de secretos de la función, nunca en el bundle.</p>
+        <p>Un único cliente compartido en el navegador, creado a partir de <code>VITE_SUPABASE_URL</code> + <code>VITE_SUPABASE_PUBLISHABLE_KEY</code>, instanciado una sola vez en el módulo del cliente de Supabase en <code>src/lib/</code>. La clave <code>service_role</code> nunca se importa en el cliente (REQ-SETUP-9, V-4). La lógica server-side vive en Edge Functions de Supabase, que usan <code>service_role</code> desde el almacén de secretos de la función, nunca en el bundle.</p>
         <pre><code>// src/lib/supabase.ts — único lugar donde se crea el cliente
 import { createClient } from '@supabase/supabase-js'
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   { auth: { persistSession: true, storage: secureSessionStorage, autoRefreshToken: true } }
 )</code></pre>
         <span class="path-note">src/lib/supabase.ts</span>
@@ -725,7 +725,7 @@ DESBLOQUEO DIARIO (ingreso del PIN — Pantalla 1):
         <tr class="fc-create">
           <td>Crear</td>
           <td><code>.env.example</code></td>
-          <td>Placeholders: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code> únicamente</td>
+          <td>Placeholders: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> únicamente</td>
         </tr>
         <tr class="fc-create">
           <td>Crear</td>
@@ -735,7 +735,7 @@ DESBLOQUEO DIARIO (ingreso del PIN — Pantalla 1):
         <tr class="fc-create">
           <td>Crear</td>
           <td>Cliente Supabase en <code>src/lib/</code></td>
-          <td>Cliente único, clave anon, sesión segura (D3/D4)</td>
+          <td>Cliente único, clave publicable, sesión segura (D3/D4)</td>
         </tr>
         <tr class="fc-create">
           <td>Crear</td>

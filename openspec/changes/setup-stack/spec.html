@@ -589,9 +589,9 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code></pre>
             <td>URL del proyecto Supabase</td>
           </tr>
           <tr>
-            <td><code>VITE_SUPABASE_ANON_KEY</code></td>
+            <td><code>VITE_SUPABASE_PUBLISHABLE_KEY</code></td>
             <td>Bundle del cliente</td>
-            <td>Clave anon pública (segura solo con RLS)</td>
+            <td>Clave pública publicable (segura solo con RLS)</td>
           </tr>
           <tr>
             <td><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
@@ -681,7 +681,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code></pre>
         </tr>
         <tr>
           <td>V-3</td>
-          <td>La app conecta con Supabase (la clave anon resuelve la URL)</td>
+          <td>La app conecta con Supabase (la clave publicable resuelve la URL)</td>
           <td>pestaña de red del navegador o e2e</td>
         </tr>
         <tr class="v-critical">

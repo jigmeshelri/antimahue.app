@@ -214,7 +214,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 | Key | Exposed to | Usage |
 |-----|-----------|-------|
 | `VITE_SUPABASE_URL` | Client bundle | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Client bundle | Public anon key (safe only with RLS) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Client bundle | Publishable key (safe only with RLS) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server/Edge only | MUST NOT be prefixed `VITE_` |
 
 The `SUPABASE_SERVICE_ROLE_KEY` MUST NOT appear in any file prefixed `VITE_` or in any client-side import.
@@ -259,7 +259,7 @@ The static bundle MAY be deployed to Vercel or Cloudflare Pages. The decision is
 |----|-------|--------|
 | V-1 | `pnpm build` exits 0, no TS errors | `pnpm build` |
 | V-2 | `pnpm dev` serves at port 5173 | manual or `curl localhost:5173` |
-| V-3 | App connects to Supabase (anon key resolves URL) | browser network tab or e2e |
+| V-3 | App connects to Supabase (publishable key resolves URL) | browser network tab or e2e |
 | V-4 | `grep -r "service_role" dist/` returns empty | shell |
 | V-5 | `git status` shows `.env*` files as ignored | shell |
 | V-6 | RLS enabled on `profiles` (`pg_tables.rowsecurity = true`) | `supabase db` query |

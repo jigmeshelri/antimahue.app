@@ -1,7 +1,7 @@
 /**
  * Supabase shared browser client — D3.
  *
- * Single instance. Only the anon key is used here.
+ * Single instance. Only the publishable key is used here.
  * service_role MUST NEVER appear in this file or anywhere under src/.
  * See design.md D3/D4 and REQ-SETUP-9.
  *
@@ -16,18 +16,18 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabasePublishableKey) {
   // During development, missing env vars surface as a clear error rather than a
   // cryptic network failure at runtime.
   console.warn(
-    '[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is not set. ' +
+    '[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY is not set. ' +
       'Copy .env.example to .env.local and fill in the values.'
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
