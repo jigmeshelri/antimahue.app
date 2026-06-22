@@ -512,10 +512,15 @@ ALTER TABLE public.{tabla} ENABLE ROW LEVEL SECURITY;
 -- Sin política permisiva = deny by default (semántica de RLS en Postgres)</code></pre>
 
       <div class="scenario">
-        <div class="scenario-title">Escenario: anon no puede leer profiles sin política</div>
-        <div class="scenario-step"><span class="keyword">Dado</span> que RLS está habilitado en <code>profiles</code> y no existe política SELECT</div>
+        <div class="scenario-title">Escenario: anon denegado en dos capas — sin grant DML ni política RLS</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que RLS está habilitado en <code>profiles</code> y <code>anon</code> no tiene grant DML (expose-new-tables desactivado)</div>
         <div class="scenario-step"><span class="keyword">Cuando</span> una solicitud anónima consulta <code>profiles</code> vía PostgREST</div>
-        <div class="scenario-step"><span class="keyword">Entonces</span> la respuesta devuelve 0 filas (no un error — semántica deny-by-default)</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la respuesta es <strong>401 Unauthorized</strong> (permiso denegado antes de que RLS evalúe)</div>
+        <div class="scenario-step"><span class="keyword">Y</span> este es el estado correcto para <code>setup-stack</code>: denegación en dos capas (sin grant DML + RLS sin política)</div>
+      </div>
+      <div class="callout callout-info">
+        <div class="callout-title">Deferido a <code>data-model</code></div>
+        El estado <code>[]</code> (0 filas) requiere un <code>GRANT SELECT … TO anon</code> más una política RLS (<code>auth.uid() = id</code>). Ambos se difieren al change <code>data-model</code>, cuando la tabla se exponga realmente al cliente. Otorgar permisos DML antes de que sean necesarios viola el principio de mínimo privilegio.
       </div>
 
       <div class="scenario">
@@ -696,7 +701,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code></pre>
         </tr>
         <tr class="v-critical">
           <td>V-7</td>
-          <td>Consulta anon a <code>profiles</code> devuelve 0 filas (sin política = deny)</td>
+          <td><code>GET /profiles</code> anon devuelve <strong>401</strong> (sin grant DML + RLS = deny en dos capas; <code>[]</code> diferido a <code>data-model</code>)</td>
           <td>solicitud PostgREST</td>
         </tr>
         <tr>
@@ -714,7 +719,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code></pre>
 
     <div class="callout callout-security">
       <div class="callout-title">Criterios bloqueantes</div>
-      V-4 (clave service_role fuera del bundle), V-5 (secretos fuera del repo), V-6 y V-7 (RLS activo y deny-by-default) son prerrequisitos para cualquier deploy que escriba datos de negocio.
+      V-4 (clave service_role fuera del bundle), V-5 (secretos fuera del repo), V-6 (RLS activo en todas las tablas) y V-7 (deny-by-default a dos capas: 401 anon confirmado) son prerrequisitos para cualquier deploy que escriba datos de negocio.
     </div>
   </section>
 

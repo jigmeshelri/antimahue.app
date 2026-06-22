@@ -166,11 +166,14 @@ ALTER TABLE public.{table} ENABLE ROW LEVEL SECURITY;
 -- No permissive policy = deny by default (Postgres RLS semantics)
 ```
 
-#### Scenario: anon cannot read profiles without policy
+#### Scenario: anon cannot read profiles — deny at two layers
 
-- GIVEN RLS is enabled on `profiles` and no SELECT policy exists
+- GIVEN RLS is enabled on `profiles` AND no DML grant exists for `anon` (expose-new-tables OFF)
 - WHEN an anon request queries `profiles` via PostgREST
-- THEN the response returns 0 rows (not an error — deny-by-default)
+- THEN the response is **401 Unauthorized** (permission denied before RLS evaluates)
+- AND this is the CORRECT state for `setup-stack`: deny-by-default at two layers (no DML grant + RLS without policy)
+
+> **NOTE:** The state `[]` (0 rows) requires a `GRANT SELECT … TO anon` plus at least one RLS policy (`auth.uid() = id`). Both are deferred to the `data-model` change, when the table is actually exposed to the client. Granting DML before it is needed violates the principle of least privilege.
 
 #### Scenario: service_role bypasses RLS correctly
 
@@ -260,6 +263,6 @@ The static bundle MAY be deployed to Vercel or Cloudflare Pages. The decision is
 | V-4 | `grep -r "service_role" dist/` returns empty | shell |
 | V-5 | `git status` shows `.env*` files as ignored | shell |
 | V-6 | RLS enabled on `profiles` (`pg_tables.rowsecurity = true`) | `supabase db` query |
-| V-7 | Anon query on `profiles` returns 0 rows (no policy = deny) | PostgREST request |
+| V-7 | Anon `GET /profiles` returns **401** (no DML grant + RLS = deny at two layers; `[]` deferred to `data-model`) | PostgREST request |
 | V-8 | `pnpm-lock.yaml` exists and is committed | `git ls-files pnpm-lock.yaml` |
 | V-9 | `pnpm audit` reports no critical/high CVEs | `pnpm audit` |
