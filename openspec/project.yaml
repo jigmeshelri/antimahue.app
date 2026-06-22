@@ -2,17 +2,27 @@ project:
   name: antimahue.app
   stack:
     frontend:
-      framework: Astro 6
+      type: SPA
+      bundler: Vite
       library: React 19
       styling: Tailwind CSS 4
       language: TypeScript
+      pwa: vite-plugin-pwa
     backend:
-      framework: FastAPI (Python 3.12)
-      ai_integrations: Claude, GPT-4o
-    database:
-      provider: Supabase (PostgreSQL 16)
-      extension: TimescaleDB
-      deployment: Docker
+      provider: Supabase
+      services:
+        - PostgreSQL
+        - Auth
+        - Storage
+        - RLS
+        - PostgREST
+        - Edge Functions
+      region: sa-east-1 (São Paulo)
+    host:
+      target: TBD  # Vercel | Cloudflare Pages — reversible (static bundle, edge)
+    package_manager: pnpm@11
+    principles:
+      - security-first
   persistence:
     mode: openspec
     path: openspec/
@@ -21,4 +31,3 @@ project:
     active_changes:
       - setup-stack
       - color-palette-assistant
-

@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Especificación: Setup Stack — Antimahue</title>
+<style>
+  /* ─── Paleta Antimahue ─────────────────────────────────────────────────── */
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle { color: #d4b89a; font-size: .9rem; margin-top: .4rem; }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-must      { background: var(--color-danger-lt);  color: var(--color-danger); border: 1px solid var(--color-danger); }
+  .badge-should    { background: var(--color-info-lt);    color: var(--color-info); border: 1px solid var(--color-info); }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.4rem 0 .5rem;
+  }
+  h4 {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 1rem 0 .3rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  p { margin-bottom: .8rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security {
+    border-color: var(--color-danger);
+    background: var(--color-danger-lt);
+  }
+  .callout-security .callout-title {
+    font-weight: 700;
+    color: var(--color-danger);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-info {
+    border-color: var(--color-info);
+    background: var(--color-info-lt);
+  }
+  .callout-info .callout-title {
+    font-weight: 700;
+    color: var(--color-info);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-note {
+    border-color: var(--color-terracotta);
+    background: var(--color-terracota-lt);
+  }
+  .callout-note .callout-title {
+    font-weight: 700;
+    color: var(--color-terracotta);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: .8rem 0;
+    background: var(--color-surface);
+  }
+  summary {
+    padding: .7rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-wood);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::after { content: '▸'; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  details > *:not(summary) { padding: 0 1rem 1rem; }
+
+  /* ─── Requirement block ──────────────────────────────────────────────────── */
+  .req {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: 1.4rem 0;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+  .req-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .req-id {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    background: var(--color-wood-lt);
+    padding: .15em .5em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .req-title { font-weight: 600; font-size: .95rem; }
+  .req-body { padding: .85rem 1rem; }
+  .req-body > *:last-child { margin-bottom: 0; }
+
+  /* ─── Scenario ───────────────────────────────────────────────────────────── */
+  .scenario {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    margin-top: .8rem;
+    font-size: .87rem;
+  }
+  .scenario-title {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .5rem;
+  }
+  .scenario-step { margin-bottom: .25rem; }
+  .scenario-step .keyword { font-weight: 600; color: var(--color-terracotta); min-width: 3.5rem; display: inline-block; }
+
+  /* ─── Domain heading ─────────────────────────────────────────────────────── */
+  .domain-banner {
+    background: linear-gradient(135deg, var(--color-wood) 0%, var(--color-terracotta) 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: .6rem 1rem;
+    font-weight: 700;
+    font-size: .82rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 2rem 0 1rem;
+  }
+
+  /* ─── Acceptance table row colors ────────────────────────────────────────── */
+  .v-row-shell  td:first-child { font-weight: 600; }
+  .v-critical td { background: #fff5f5; }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · setup-stack</div>
+  <h1>Especificación: Setup Stack</h1>
+  <div class="subtitle">Infraestructura base + scaffold de seguridad — requisitos verificables</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Especificación</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Depende de:</strong> Propuesta</span>
+  <span><strong>Fuera de alcance:</strong> tablas de negocio, RLS multi-rol, transacción de venta</span>
+</div>
+
+<main class="main-content">
+
+  <div class="callout callout-security">
+    <div class="callout-title">Principio rector de seguridad</div>
+    El bundle del cliente es <strong>no confiable</strong>. La autorización <span class="badge badge-must">MUST</span> vivir en RLS/Postgres, nunca solo en JavaScript. Toda tabla en el esquema <code>public</code> <span class="badge badge-must">MUST</span> tener RLS activo en modo deny-by-default antes de que se escriba cualquier dato de negocio. La clave <code>service_role</code> <span class="badge badge-must">MUST NEVER</span> aparecer en el bundle del cliente.
+  </div>
+
+  <!-- ─── Domain: project-structure ──────────────────────────────────────── -->
+  <div class="domain-banner">Dominio: estructura del repositorio</div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-1</span>
+      <span class="req-title">Layout del repositorio</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El repositorio debe seguir la estructura indicada. No puede existir directorio <code>backend/</code>, <code>docker/</code> ni <code>docker-compose.yml</code> en la raíz.</p>
+      <pre><code>/
+├── src/
+│   ├── components/
+│   ├── features/        # auth, venta, catalogo, paletas, dte
+│   ├── lib/             # supabase client, helpers
+│   └── main.tsx
+├── supabase/
+│   └── migrations/      # SQL versionado (RLS incluido)
+├── public/              # íconos PWA, manifest
+├── openspec/
+├── index.html
+├── vite.config.ts
+└── package.json</code></pre>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: scaffold verificado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que el repositorio ha sido inicializado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se lista el contenido de la raíz</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> existen <code>src/</code>, <code>supabase/migrations/</code>, <code>public/</code>, <code>vite.config.ts</code>, <code>index.html</code></div>
+        <div class="scenario-step"><span class="keyword">Y</span> no existen <code>backend/</code> ni <code>docker-compose.yml</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-2</span>
+      <span class="req-title">Toolchain de build del frontend</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El proyecto debe usar Vite + React 19 + TypeScript + Tailwind CSS v4 + <code>vite-plugin-pwa</code>. El build debe producir un bundle estático desplegable en cualquier CDN edge.</p>
+      <pre><code>// vite.config.ts — plugins requeridos
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss(), VitePWA({ registerType: 'autoUpdate' })],
+})</code></pre>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: build de producción</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que las dependencias están instaladas</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>pnpm build</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el código de salida es 0 y <code>dist/</code> contiene <code>index.html</code> + assets JS/CSS con hash</div>
+        <div class="scenario-step"><span class="keyword">Y</span> no se reportan errores de TypeScript</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: servidor de desarrollo</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que las variables de entorno están definidas</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>pnpm dev</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el servidor inicia en <code>http://localhost:5173</code> sin errores</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Domain: dependency-strategy ──────────────────────────────────────── -->
+  <div class="domain-banner">Dominio: estrategia de dependencias</div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-3</span>
+      <span class="req-title">pnpm v11 como gestor exclusivo de paquetes</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El proyecto debe usar pnpm v11. npm y yarn no deben usarse. <code>pnpm-lock.yaml</code> debe estar comprometido en el repositorio. La siguiente configuración es obligatoria:</p>
+      <pre><code># .npmrc (configuración pnpm)
+minimumReleaseAge=1440
+allowBuilds=</code></pre>
+
+      <div class="callout callout-security">
+        <div class="callout-title">Restricción crítica</div>
+        <code>allowBuilds</code> vacío bloquea todos los lifecycle scripts (<code>postinstall</code>). No hay excepciones sin una revisión de seguridad explícita.
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: instalación bloqueada por paquete demasiado reciente</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>minimumReleaseAge=1440</code> está activo</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se intenta añadir un paquete publicado hace menos de 24 h</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> pnpm rechaza la instalación con un error de edad mínima</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: lifecycle scripts bloqueados</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>allowBuilds</code> está vacío</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>pnpm install</code> con una dependencia que declara <code>postinstall</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el lifecycle script <strong>no</strong> se ejecuta</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-4</span>
+      <span class="req-title">Cadencia de auditoría de supply chain</span>
+      <span class="badge badge-should">SHOULD</span>
+    </div>
+    <div class="req-body">
+      <p>El proyecto <span class="badge badge-should">SHOULD</span> ejecutar <code>pnpm audit</code> en cada PR y <span class="badge badge-must">MUST</span> ejecutarlo al menos semanalmente. Los CVEs de severidad crítica o alta deben bloquear el merge hasta ser resueltos o reconocidos explícitamente.</p>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: auditoría en CI</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que se abre un PR</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> el CI ejecuta <code>pnpm audit</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el paso falla ante hallazgos de severidad crítica o alta</div>
+        <div class="scenario-step"><span class="keyword">Y</span> el PR no puede fusionarse hasta que se resuelva el hallazgo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Domain: supabase-setup ────────────────────────────────────────────── -->
+  <div class="domain-banner">Dominio: configuración de Supabase</div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-5</span>
+      <span class="req-title">Configuración del proyecto Supabase</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El proyecto Supabase debe crearse en la región <code>sa-east-1</code> (São Paulo). Auth, Storage y PostgREST deben estar habilitados. Las Edge Functions pueden usarse para lógica server-side.</p>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: región confirmada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que el proyecto Supabase ha sido creado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se revisa la página de configuración del proyecto</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la región muestra <code>sa-east-1</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-6</span>
+      <span class="req-title">Estructura de migraciones</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Todos los cambios de esquema deben expresarse como archivos SQL versionados bajo el directorio de migraciones. La primera migración debe crear la tabla <code>profiles</code> y habilitar RLS en ella.</p>
+      <pre><code>supabase/migrations/
+└── 20260621000000_initial_scaffold.sql</code></pre>
+      <span class="path-note">supabase/migrations/20260621000000_initial_scaffold.sql</span>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: migración aplicada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que el proyecto Supabase está conectado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>supabase db push</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> todas las migraciones se aplican sin errores</div>
+        <div class="scenario-step"><span class="keyword">Y</span> <code>supabase migration list</code> las muestra como aplicadas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Domain: security-scaffold ────────────────────────────────────────── -->
+  <div class="domain-banner">Dominio: scaffold de seguridad</div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-7</span>
+      <span class="req-title">RLS deny-by-default en toda tabla pública</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Toda tabla en el esquema <code>public</code> debe tener RLS habilitado. El estado por omisión es deny-all: sin política permisiva no hay acceso. Las políticas que otorgan acceso se añaden por tabla en cambios posteriores.</p>
+      <pre><code>-- Plantilla: se aplica a CADA tabla del esquema public
+ALTER TABLE public.{tabla} ENABLE ROW LEVEL SECURITY;
+-- Sin política permisiva = deny by default (semántica de RLS en Postgres)</code></pre>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: anon no puede leer profiles sin política</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que RLS está habilitado en <code>profiles</code> y no existe política SELECT</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> una solicitud anónima consulta <code>profiles</code> vía PostgREST</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la respuesta devuelve 0 filas (no un error — semántica deny-by-default)</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: service_role omite RLS correctamente</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que RLS está habilitado en <code>profiles</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> una llamada server-side usa la clave <code>service_role</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> puede leer todas las filas (service_role omite RLS por diseño)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-8</span>
+      <span class="req-title">Tabla profiles — scaffold mínimo para el MVP</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>La migración inicial debe crear la tabla <code>profiles</code> vinculada a <code>auth.users</code>. El MVP requiere exactamente 1 fila (Angélica / admin).</p>
+      <pre><code>CREATE TABLE public.profiles (
+  id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  rol        text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code></pre>
+
+      <div class="callout callout-security">
+        <div class="callout-title">Restricción crítica</div>
+        La clave <code>service_role</code> no puede aparecer en código del cliente ni en archivos <code>.env</code> comprometidos en git.
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: fila de perfil creada al registrar usuario</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que un trigger o función post-auth crea una fila de perfil</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se crea un usuario nuevo en Supabase Auth</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> existe una fila correspondiente en <code>public.profiles</code></div>
+        <div class="scenario-step"><span class="keyword">Y</span> <code>rol</code> tiene el valor por omisión <code>'admin'</code></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: rol no admin rechazado a nivel de base de datos</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el constraint <code>rol IN ('admin')</code> en el MVP</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se intenta un INSERT con <code>rol = 'employee'</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza con una violación de check constraint</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-9</span>
+      <span class="req-title">Separación de claves</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <table>
+        <thead>
+          <tr><th>Clave</th><th>Expuesta a</th><th>Uso</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>VITE_SUPABASE_URL</code></td>
+            <td>Bundle del cliente</td>
+            <td>URL del proyecto Supabase</td>
+          </tr>
+          <tr>
+            <td><code>VITE_SUPABASE_ANON_KEY</code></td>
+            <td>Bundle del cliente</td>
+            <td>Clave anon pública (segura solo con RLS)</td>
+          </tr>
+          <tr>
+            <td><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
+            <td>Solo servidor / Edge</td>
+            <td>No debe tener el prefijo <code>VITE_</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p><code>SUPABASE_SERVICE_ROLE_KEY</code> no debe aparecer en ningún archivo con prefijo <code>VITE_</code> ni en ningún import del lado del cliente.</p>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: service_role ausente del bundle</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que el proyecto se construye con <code>pnpm build</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>grep -r "service_role" dist/</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la salida está vacía (clave ausente del bundle)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-10</span>
+      <span class="req-title">Secretos nunca en el repositorio</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p><code>.env</code>, <code>.env.local</code>, <code>.envrc</code> y cualquier archivo con valores secretos deben estar en <code>.gitignore</code>. Solo <code>.env.example</code> con valores de marcador puede comprometerse.</p>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: .gitignore cubre archivos de entorno</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>.gitignore</code> está presente</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta <code>git status</code> tras crear <code>.env.local</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> <code>.env.local</code> aparece como ignorado, <strong>no</strong> como sin seguimiento</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Domain: hosting ───────────────────────────────────────────────────── -->
+  <div class="domain-banner">Dominio: hosting</div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-11</span>
+      <span class="req-title">Host — decisión acotada y reversible</span>
+    </div>
+    <div class="req-body">
+      <p>El bundle estático puede desplegarse en Vercel o Cloudflare Pages. La decisión se difiere a la fase de diseño y es reversible. HTTPS debe aplicarse en ambos; HTTP debe redirigir a HTTPS.</p>
+
+      <div class="callout callout-note">
+        <div class="callout-title">Restricción</div>
+        No se debe usar un destino de hosting que requiera SSR o un proceso persistente. El bundle debe permanecer como una SPA estática pura.
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-title">Resolución</div>
+        Resuelta en la fase de diseño: <strong>Cloudflare Pages</strong>. Ver <code>design.html</code> (D6).
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: decisión documentada antes del despliegue</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que la fase de diseño está completa</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se lee el documento de diseño</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> incluye la elección explícita de host (Vercel o Cloudflare Pages) con justificación</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Acceptance criteria ────────────────────────────────────────────────── -->
+  <section>
+    <h2>Criterios de aceptación</h2>
+
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Verificación</th><th>Método</th></tr>
+      </thead>
+      <tbody>
+        <tr class="v-row-shell">
+          <td>V-1</td>
+          <td><code>pnpm build</code> sale con código 0, sin errores de TS</td>
+          <td><code>pnpm build</code></td>
+        </tr>
+        <tr>
+          <td>V-2</td>
+          <td><code>pnpm dev</code> sirve en el puerto 5173</td>
+          <td>manual o <code>curl localhost:5173</code></td>
+        </tr>
+        <tr>
+          <td>V-3</td>
+          <td>La app conecta con Supabase (la clave anon resuelve la URL)</td>
+          <td>pestaña de red del navegador o e2e</td>
+        </tr>
+        <tr class="v-critical">
+          <td>V-4</td>
+          <td><code>grep -r "service_role" dist/</code> devuelve vacío</td>
+          <td>shell</td>
+        </tr>
+        <tr class="v-critical">
+          <td>V-5</td>
+          <td><code>git status</code> muestra los archivos <code>.env*</code> como ignorados</td>
+          <td>shell</td>
+        </tr>
+        <tr class="v-critical">
+          <td>V-6</td>
+          <td>RLS habilitado en <code>profiles</code> (<code>pg_tables.rowsecurity = true</code>)</td>
+          <td>consulta a Supabase DB</td>
+        </tr>
+        <tr class="v-critical">
+          <td>V-7</td>
+          <td>Consulta anon a <code>profiles</code> devuelve 0 filas (sin política = deny)</td>
+          <td>solicitud PostgREST</td>
+        </tr>
+        <tr>
+          <td>V-8</td>
+          <td><code>pnpm-lock.yaml</code> existe y está comprometido</td>
+          <td><code>git ls-files pnpm-lock.yaml</code></td>
+        </tr>
+        <tr>
+          <td>V-9</td>
+          <td><code>pnpm audit</code> no reporta CVEs críticos o altos</td>
+          <td><code>pnpm audit</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-security">
+      <div class="callout-title">Criterios bloqueantes</div>
+      V-4 (clave service_role fuera del bundle), V-5 (secretos fuera del repo), V-6 y V-7 (RLS activo y deny-by-default) son prerrequisitos para cualquier deploy que escriba datos de negocio.
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,79 @@
+---
+change: setup-stack
+phase: tasks
+status: pending_apply
+depends_on: [proposal, spec, design]
+persistence: openspec
+updated_at: "2026-06-21T23:44:27Z"
+---
+
+# Tasks: Setup Stack — Infrastructure + Security Scaffold
+
+## Phase 1: Repo & Tooling Bootstrap (REQ-SETUP-1/2/3)
+
+- [x] 1.1 Init repo with `pnpm init` + set `packageManager: "pnpm@11"` in `package.json`; enable corepack (`corepack enable pnpm`). Commit `package.json`.
+- [x] 1.2 Write `.npmrc` with `minimumReleaseAge=1440` and `allowBuilds=` (empty — REQ-SETUP-3). **VERIFY** syntax against pnpm v11 docs before committing (open risk: `allowBuilds` key name may differ across v11 minor versions — run `pnpm install` and confirm lifecycle scripts are blocked).
+- [x] 1.3 Install Vite + React 19 + TypeScript deps: `pnpm add -D vite @vitejs/plugin-react typescript @types/react @types/react-dom` (REQ-SETUP-2).
+- [x] 1.4 Install Tailwind v4 + Vite plugin: `pnpm add -D tailwindcss @tailwindcss/vite` (REQ-SETUP-2).
+- [x] 1.5 Install `vite-plugin-pwa` and `workbox-window`: `pnpm add -D vite-plugin-pwa workbox-window` (REQ-SETUP-2).
+- [x] 1.6 Create `vite.config.ts` with `react()` + `tailwindcss()` + `VitePWA({ registerType: 'autoUpdate' })` plugins per spec REQ-SETUP-2 contract.
+- [x] 1.7 Create `tsconfig.json` + `tsconfig.app.json` (strict mode, path aliases `@/*` → `src/*`).
+- [x] 1.8 Create `index.html` entry point referencing `src/main.tsx`.
+- [x] 1.9 Write `.gitignore`: must cover `.env`, `.env.*`, `.envrc`, `dist/`, `node_modules/`, `.DS_Store` (REQ-SETUP-10, T8).
+- [ ] 1.10 Commit `pnpm-lock.yaml` after first `pnpm install` (REQ-SETUP-3, V-8).
+
+## Phase 2: Supabase Project Setup (REQ-SETUP-5/6)
+
+- [x] 2.1 Create Supabase project in region `sa-east-1` (São Paulo). Enable Auth + Storage + PostgREST (REQ-SETUP-5). Confirm region in project settings dashboard.
+- [ ] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; add `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix — REQ-SETUP-9).
+- [ ] 2.3 Create `.env.example` with placeholder values only (`VITE_SUPABASE_URL=`, `VITE_SUPABASE_ANON_KEY=`) — this is the ONLY env file committed to git (REQ-SETUP-10).
+- [ ] 2.4 Create `supabase/migrations/` directory; write `20260621000000_initial_scaffold.sql` (populated in Phase 3).
+
+## Phase 3: Security Scaffold — SQL Migration (REQ-SETUP-6/7/8, D4/D5, T2/T5/T7)
+
+- [ ] 3.1 Write `profiles` table in migration per REQ-SETUP-8 exact schema: `id uuid PK → auth.users(id) ON DELETE CASCADE`, `rol text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin'))`, `created_at timestamptz DEFAULT now()`.
+- [ ] 3.2 Add `ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;` — deny-by-default (no policy = no access, REQ-SETUP-7, T2).
+- [ ] 3.3 Write the signup trigger SQL (intentionally omitted from spec, MUST be here): `CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$ BEGIN INSERT INTO public.profiles(id) VALUES (NEW.id); RETURN NEW; END; $$ LANGUAGE plpgsql SECURITY DEFINER;` + `CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();` (satisfies REQ-SETUP-8 scenario "profile row created on user signup").
+- [ ] 3.4 Create `auth_attempts` table: `(id uuid PK DEFAULT gen_random_uuid(), user_id uuid REFERENCES auth.users(id), attempted_at timestamptz DEFAULT now(), success boolean NOT NULL)`. Enable RLS deny-by-default. Used by D5 server-mirrored throttle (T5 defense in depth).
+- [ ] 3.5 Create empty `audit_log` table (OQ-2 RESOLVED): `(id uuid PK DEFAULT gen_random_uuid(), actor_id uuid REFERENCES auth.users(id), action text NOT NULL, entity text, entity_id text, detail jsonb, created_at timestamptz DEFAULT now())`. Enable RLS deny-by-default (T7). Per-table triggers deferred to `data-model` change.
+- [ ] 3.6 Verify migration applies cleanly: `supabase db push` (or Supabase Dashboard SQL editor) → `supabase migration list` shows migration as applied (V-6 precursor).
+
+## Phase 4: App Shell & Routing Skeleton (REQ-SETUP-1/2, D1/D2)
+
+- [x] 4.1 Install React Router v7: `pnpm add react-router` (pin to a release published after 2026-05-12 — guard enforces; verify with `pnpm why react-router`). D1.
+- [x] 4.2 Install nanostores: `pnpm add nanostores @nanostores/react`. D2.
+- [x] 4.3 Install `@supabase/supabase-js`: `pnpm add @supabase/supabase-js`.
+- [x] 4.4 Create `src/lib/supabase.ts` — single shared client (D3): `createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } })`. No `service_role` import anywhere in `src/`.
+- [x] 4.5 Create `src/lib/crypto.ts` — WebCrypto helpers per D5: `deriveKey(pin, salt)` using PBKDF2 600k iterations SHA-256; `encryptToken(token, key)` AES-GCM; `decryptToken(enc, key)` AES-GCM. **Flag**: WebCrypto + IndexedDB must be validated inside the installed PWA (not just browser — SW context may differ; add a smoke test in 5.6).
+- [x] 4.6 Create `src/lib/router.tsx` — `createBrowserRouter` with 9 routes, each lazy-importing its feature screen (D1, REQ-SETUP-11 pure static SPA).
+- [x] 4.7 Create `src/stores/`: `auth.ts` (session atom), `lock.ts` (PIN lockout state), `saleDraft.ts` (current sale), `ui.ts` (global UI flags). nanostores atoms only (D2).
+- [x] 4.8 Scaffold feature directories and skeleton screens (index files with `export default function XScreen() { return <div>XScreen</div> }`): `auth/PinScreen`, `dashboard/DashboardScreen`, `venta/SaleScreen` + `TicketView`, `escaner/ScannerScreen`, `catalogo/CatalogScreen` + `ProductDetailScreen`, `proveedor/SupplierScreen`, `dte/DteImportScreen`.
+- [x] 4.9 Scaffold `src/components/`: create empty `atoms/`, `molecules/`, `organisms/` directories with placeholder index files.
+- [x] 4.10 Create `src/main.tsx` — mounts `<RouterProvider>` + Supabase session bootstrap listener (calls `supabase.auth.onAuthStateChange`).
+
+## Phase 5: Cloudflare Pages Deploy Config + CSP (D6/OQ-1, T3)
+
+- [x] 5.1 Create `public/_headers` file with strict CSP per T3 mitigation: `default-src 'self'`, `connect-src 'self' https://*.supabase.co`, `script-src 'self'` (no `unsafe-inline`, no `unsafe-eval`), `style-src 'self' 'unsafe-inline'` (Tailwind runtime needs this — document the exception), `img-src 'self' data: blob:`, `frame-ancestors 'none'`. Also include `Strict-Transport-Security: max-age=31536000; includeSubDomains`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
+- [ ] 5.2 Create `wrangler.toml` (or CF Pages project config) with `[build] command = "pnpm build"` and `pages_build_output_dir = "dist"`.
+- [ ] 5.3 Configure CF Pages project in Cloudflare dashboard: connect repo, set env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in CF Pages settings (REQ-SETUP-9 — no `service_role` in CF Pages env vars client-side).
+
+## Phase 6: Supply-chain Guards & Env Validation (REQ-SETUP-3/4/9/10)
+
+- [ ] 6.1 Run `pnpm audit` after all installs; resolve any critical/high findings before proceeding (REQ-SETUP-4, V-9).
+- [x] 6.2 Verify `.npmrc` `allowBuilds=` is correct pnpm v11 syntax by running `pnpm install` on a dep with a known `postinstall` (or check `pnpm config` output). Document confirmed syntax in a code comment inside `.npmrc`.
+- [ ] 6.3 Verify `grep -r "service_role" dist/` returns empty after `pnpm build` (V-4, T4).
+- [ ] 6.4 Verify `git status` shows `.env.local` as ignored, not untracked (V-5, T8).
+- [ ] 6.5 Verify `git ls-files pnpm-lock.yaml` returns the file (V-8).
+
+## Phase 7: Acceptance Criteria Verification (V-1 → V-9)
+
+- [x] 7.1 V-1: Run `pnpm build` → exit 0, `dist/index.html` exists, no TS errors.
+- [ ] 7.2 V-2: Run `pnpm dev` → dev server at `http://localhost:5173` without errors.
+- [ ] 7.3 V-3: Open app in browser → network tab shows successful Supabase anon request (URL resolves, no 401/404 on auth endpoint).
+- [ ] 7.4 V-4: `grep -r "service_role" dist/` → empty output.
+- [ ] 7.5 V-5: `git status` after creating `.env.local` → file is ignored.
+- [ ] 7.6 V-6: Query `SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'` → `rowsecurity=true` for `profiles`, `auth_attempts`, `audit_log`.
+- [ ] 7.7 V-7: Anon PostgREST `GET /rest/v1/profiles` → `[]` (0 rows, not an error).
+- [ ] 7.8 V-8: `git ls-files pnpm-lock.yaml` → `pnpm-lock.yaml` (committed).
+- [ ] 7.9 V-9: `pnpm audit` → no critical/high CVEs.
+- [ ] 7.10 PWA smoke test (D5 flag): install PWA locally, run `crypto.ts` `deriveKey` + `encryptToken` + `decryptToken` round-trip inside the installed SW context; confirm WebCrypto + IndexedDB work as expected (not just in normal browser tab).

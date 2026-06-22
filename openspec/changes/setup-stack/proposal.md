@@ -1,69 +1,105 @@
 # Propuesta: Inicialización del Stack Tecnológico (setup-stack)
 
-Esta propuesta detalla la arquitectura inicial y el plan para bootstraping de la infraestructura del proyecto Antimahue.
+> Actualizada 2026-06-21 — reemplaza la arquitectura anterior (Astro + FastAPI + TimescaleDB en monorepo). Motivación: eliminar el API Python en Railway, simplificar a una arquitectura serverless de menor fricción (inspirada en `iot-assistant`, "parecida, no igual") y poner la **seguridad en el centro** desde el inicio.
 
-## Alternativas y Estructura del Repositorio
+## 1. Contexto y motivación
 
-Para manejar el frontend, backend y base de datos, proponemos una estructura de monorrepo limpio:
+La propuesta original planteaba un monorepo con frontend Astro + backend FastAPI (Python) + TimescaleDB en Docker, desplegando un API Python en Railway. Al revisar las necesidades reales de Antimahue (inventario + punto de venta para una sola tienda), ese stack resultó sobre-dimensionado:
+
+- El backend Python de `iot-assistant` existe por dos razones que Antimahue NO tiene: reconocimiento de componentes por imagen (IA de visión) e ingesta de telemetría IoT. Antimahue no procesa ninguna de las dos.
+- TimescaleDB resuelve series temporales de sensores. Antimahue no tiene series temporales; las "ventas del día" son una agregación SQL normal.
+
+Todo lo que Antimahue necesita del servidor se resuelve en TypeScript + Supabase, sin Python, sin Railway y sin Docker en producción.
+
+## 2. Seguridad como principio rector (transversal)
+
+Antimahue maneja **dinero** (de Angélica y de sus clientes) y **datos personales de terceros** (clientes, proveedores, RUT en los DTE). Por eso la seguridad —personal y cibernética— es un **principio rector del proyecto**, presente en cada fase de implementación, no una tarea de hardening al final.
+
+No-negociables que condicionan toda la arquitectura:
+
+- **El cliente es no confiable.** Al ser una SPA, todo el código vive en el browser. La autorización REAL se aplica en **RLS/Postgres**, nunca solo en el JavaScript. Un cliente manipulado no debe poder leer ni escribir lo que no le corresponde.
+- **RLS deny-by-default desde el día 1** en toda tabla del schema `public`.
+- **Separación de claves**: la `anon` key es pública (cliente, segura solo con RLS); la `service_role` jamás entra al bundle — solo en Edge Functions/servidor.
+- **Validación e integridad server-side**: totales, montos y stock se validan con constraints de Postgres + funciones RPC. La venta es una **transacción atómica** (descuenta stock + registra pago + genera ticket, todo o nada). Un cliente alterado no puede vender con precio modificado ni dejar stock negativo.
+- **Trazabilidad / auditoría**: toda operación sobre dinero o stock (venta, deshacer venta, cambio de precio/stock) queda registrada con autor, fecha y detalle.
+- **PIN endurecido**: 4 dígitos es débil → rate-limiting + bloqueo temporal ante intentos fallidos. El PIN protege un token ya emitido; no es la credencial en sí.
+- **Cadena de suministro**: pnpm v11 con `minimumReleaseAge` + `allowBuilds` vacío + lockfile + auditoría periódica (ver §5).
+- **Transporte y sesión**: HTTPS siempre; tokens con expiración corta + refresh; manejo seguro del token en el dispositivo.
+- **Datos personales**: minimización (guardar solo lo necesario) y cumplimiento de la normativa chilena de protección de datos personales (a precisar en specs).
+- **Continuidad**: backups y plan de restore definidos desde el inicio (perder datos = perder dinero).
+- **Mínimo privilegio** en claves, roles y políticas.
+
+Cada `spec`, `design` y `tasks` de cada change incluye su **dimensión de seguridad explícita**; el `design` incorpora un **threat model ligero**; antes de cada merge significativo se corre un **security review** (ver §8).
+
+## 3. Arquitectura propuesta (serverless, sin backend propio)
+
+| Capa | Tecnología | Responsabilidad |
+| --- | --- | --- |
+| Frontend | SPA: Vite + React 19 + TypeScript + Tailwind v4, empaquetada como PWA (`vite-plugin-pwa`) | Toda la UI: PIN, dashboard, venta, escáner, catálogo, paletas. App privada detrás de login. |
+| Backend | Supabase (PostgreSQL + Auth + Storage + RLS + PostgREST + Edge Functions) | Datos, autenticación, almacenamiento de imágenes, API REST automática. |
+| Región DB | Supabase en São Paulo (`sa-east-1`) | Menor latencia desde Chile (~70 ms medidos; USA ~150 ms). |
+| Host | A confirmar (Vercel o Cloudflare Pages) — reversible | Sirve el bundle estático desde el edge (~17 ms desde Chile en ambos). |
+
+### Por qué SPA y no Astro
+
+La app principal es 100 % privada (detrás de PIN), sin contenido público ni SEO — el portal público y la comunidad serán una app SEPARADA (ver §6). Una app POS interactiva detrás de login es el caso natural de una SPA. Astro (content-first, MPA con islas) agregaría complejidad de SSR/hidratación sin beneficio. El handoff de diseño ya recomendaba "React + Vite → PWA".
+
+### Lógica server-side sin Python
+
+- Parsing de DTE XML (Tipo 33/46/39) → función del host en TS (`fast-xml-parser`) o Edge Function de Supabase.
+- Asistente de armonía cromática → cálculo HSL/CIELAB en el cliente (determinista, sin IA).
+- Escaneo de código de barras → cliente (Barcode Detection API).
+
+## 4. Estructura del repositorio (simplificada)
 
 ```text
 /
-├── frontend/             # Astro 6 + React 19 + Tailwind v4 + TS
-├── backend/              # FastAPI (Python 3.12) + IA (Claude/GPT-4o)
-├── docker/               # Configuraciones específicas de contenedores
-├── openspec/             # Especificaciones SDD (este directorio)
-├── docker-compose.yml    # Orquestación local (TimescaleDB, Postgres)
-├── .envrc                # Variables de entorno y secretos locales
-└── AGENTS.md             # Documentación de agentes
+├── src/                   # SPA Vite + React 19 + TS
+│   ├── components/         # UI (atomic / container-presentational)
+│   ├── features/          # venta, catálogo, paletas, dte, auth
+│   ├── lib/               # cliente Supabase, helpers
+│   └── main.tsx
+├── supabase/
+│   └── migrations/        # SQL versionado (RLS incluido)
+├── public/                # íconos PWA, manifest
+├── openspec/              # especificaciones SDD
+├── index.html
+├── vite.config.ts
+└── package.json
 ```
 
----
+Sin `backend/`, sin `docker/`, sin `docker-compose.yml`. Supabase Cloud reemplaza la base local en Docker; para desarrollo se usa Supabase CLI solo si se necesita paridad local.
 
-## 1. Frontend (Astro 6 + React 19 + Tailwind v4)
+## 5. Gestión de dependencias: pnpm v11 (obligatorio)
 
-### Enfoque de Integración
-* **Astro 6** actuará como el orquestador principal del frontend, proveyendo enrutamiento basado en archivos, excelente performance por default (islas de interactividad), y SSR (Server-Side Rendering) híbrido.
-* **React 19** se utilizará mediante el integrador oficial `@astrojs/react` para componentes que requieran interactividad compleja (como dashboards o flujos dinámicos).
-* **Tailwind CSS v4**: Utilizaremos el nuevo `@tailwindcss/vite` integrado directamente en la configuración de Vite de Astro 6. Tailwind v4 elimina la necesidad de un archivo `tailwind.config.js` y usa directivas nativas de CSS v4 (`@theme`, `@import "tailwindcss";`).
+El proyecto usa **pnpm v11** como package manager, no npm. Es una decisión de seguridad (parte del principio rector §2), no de preferencia, y es **mandatoria**:
 
----
+- `minimumReleaseAge: 1440` (24 h) — no instala paquetes publicados hace menos de un día. Defensa directa contra ataques de supply-chain de ventana corta.
+- `allowBuilds` vacío — bloquea lifecycle scripts (`postinstall`), el vector habitual de ejecución de malware.
+- Lockfile (`pnpm-lock.yaml`) commiteado y versiones pineadas; `pnpm audit` periódico.
 
-## 2. Backend (FastAPI + Python 3.12)
+### Nota sobre el incidente TanStack (2026-05-11)
 
-### Enfoque y Estructura
-* Usaremos **FastAPI** estructurado de la siguiente forma:
-  ```text
-  backend/
-  ├── app/
-  │   ├── api/             # Routers y endpoints
-  │   ├── core/            # Configuración, seguridad y clientes de LLMs (Claude/GPT)
-  │   ├── models/          # Modelos Pydantic y esquemas de base de datos
-  │   ├── services/        # Lógica de negocio (IA integrador, DB manager)
-  │   └── main.py          # Punto de entrada de la aplicación
-  ├── requirements.txt     # Dependencias de Python
-  └── .venv/               # Entorno virtual local (aislado)
-  ```
-* Seguiremos la guía de la skill `managing-python-dependencies` usando un entorno virtual exclusivo para el backend.
+Si se usara TanStack Router/Start, tener presente: el 2026-05-11 se publicaron 84 versiones maliciosas en 42 paquetes `@tanstack/*` por **secuestro del pipeline de GitHub Actions** (no robo de credenciales ni falla del código de TanStack). Afectó a `@tanstack/react-router`, `vue-router`, `solid-router`, `router-core` (1.169.5/1.169.8), `react-start` (1.167.68/71) y `router-plugin` (1.167.38/41). **Limpios**: `@tanstack/query*`, `table*`, `form*`, `virtual*`, `store`. Las versiones maliciosas fueron deprecadas y removidas; usar versiones posteriores al 2026-05-12. Con `minimumReleaseAge: 1440` el riesgo queda neutralizado (se detectaron en 20-26 minutos, nunca habrían entrado). Alternativa sin la mancha del incidente: **React Router v7** (no afectado). El router exacto se decide en diseño.
 
----
+## 6. Alcance (MVP) y extensibilidad
 
-## 3. Base de Datos y Docker (Supabase + TimescaleDB)
+- **MVP**: un solo usuario (Angélica, admin). Sin empleados todavía.
+- **Diferido a post-MVP**: múltiples usuarios y roles (admin/empleado); portal público y comunidad como **app separada** en subdominio, consumiendo el backend vía API REST (PostgREST).
+- **Criterio de diseño**: el modelo de datos debe permitir agregar esas funciones sin rediseño, sin construirlas ahora. Preparar barato (tabla `profiles` con `rol`, FKs `created_by`, campos de color en productos); no construir (gestión de empleados, RLS multi-rol compleja, portal público).
+- **Seguridad base**: RLS activado en todas las tablas del schema `public` desde el día 1 (Supabase expone PostgREST con la anon key). Se difiere el RLS multi-rol complejo, no el RLS en sí.
 
-### Orquestación Local
-Proponemos levantar la base de datos localmente utilizando Docker para asegurar consistencia:
-* **PostgreSQL 16 con la extensión TimescaleDB** (imagen oficial `timescale/timescaledb:latest-pg16`) corriendo en un contenedor de Docker.
-* **Integración con Supabase**: 
-  * *Opción A (Recomendada)*: Usar el cliente de Supabase apuntando al proyecto cloud para autenticación y base de datos en staging/producción, mientras que para desarrollo local y almacenamiento de series temporales (métricas) usamos el contenedor de TimescaleDB directamente.
-  * *Opción B*: Configurar el CLI de Supabase localmente para correr todo el stack de Supabase (Postgres, Auth, Storage, etc.) mediante Docker, integrándole TimescaleDB. Esto es más pesado pero provee una paridad exacta con Supabase local.
+## 7. Decisiones diferidas a la fase de diseño
 
-Recomendamos la **Opción A** por simplicidad inicial, usando el Postgres/TimescaleDB local en Docker y configurando el cliente de base de datos para interactuar con él, y migrando el esquema a Supabase Cloud cuando esté listo.
+- Router exacto (React Router v7 vs TanStack Router).
+- Host de producción (Vercel vs Cloudflare Pages) — reversible, no bloqueante.
+- Estrategia del PIN (lock local del dispositivo vs desbloqueo de credencial real) + mecanismo de rate-limiting.
+- Librería de estado (nanostores / zustand) y patrón del cliente Supabase.
 
----
+## 8. Plan de fases (SDD) — con seguridad integrada en cada una
 
-## Plan de Ejecución de Fases (SDD)
-
-1. **Specs (Especificación Técnica)**: Definición formal de dependencias exactas, puertos, configuraciones de variables de entorno y esquemas básicos de datos.
-2. **Design (Diseño)**: Diseño de la arquitectura de comunicación Frontend-Backend y el modelo de datos.
-3. **Tasks (Plan de Tareas)**: Generación del checklist detallado de comandos de instalación y creación de archivos base.
-4. **Apply (Aplicación)**: Instalación física del frontend (Vite/Astro), el backend (FastAPI), y los archivos Docker.
-5. **Verify (Verificación)**: Comprobación de que todo levanta y compila (sin romper la regla de no compilar después de cambios de producción, verificaremos la inicialización de los servicios locales).
+1. **Specs** — modelo de datos + **políticas RLS por tabla**, constraints de integridad, contrato de la función DTE, requisitos de auditoría y de protección de datos.
+2. **Design** — arquitectura de carpetas, router, estrategia de auth/PIN (rate-limiting), mapeo de pantallas del handoff, y **threat model ligero** (activos, amenazas, mitigaciones).
+3. **Tasks** — checklist de bootstrapping + tareas de seguridad explícitas (RLS, audit log, validaciones server-side) como parte del *done*, no opcionales.
+4. **Apply** — scaffolding del proyecto y configuración base, con los guards de pnpm activos.
+5. **Verify** — que la app levante, compile y conecte con Supabase + **tests de RLS** y security review antes de dar por cerrado.

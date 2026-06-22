@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta: Inicialización del Stack — Antimahue</title>
+<style>
+  /* ─── Paleta Antimahue ─────────────────────────────────────────────────── */
+  :root {
+    --color-bg:         #faf7f2;   /* pergamino */
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;   /* lino cálido */
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;   /* terracota */
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;   /* madera oscura */
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;   /* tinta oscura */
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;   /* acento lana */
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --color-badge-completed: #3a6e45;
+    --color-badge-pending:   #7a4e2d;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ─── Layout ─────────────────────────────────────────────────────────────── */
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: 0.72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle {
+    color: #d4b89a;
+    font-size: .9rem;
+    margin-top: .4rem;
+  }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-info      { background: var(--color-info-lt);    color: var(--color-info); }
+  .badge-pending   { background: var(--color-wood-lt);    color: var(--color-wood); }
+
+  .main-content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+  section:first-child { margin-top: 1.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.2rem 0 .5rem;
+  }
+  h4 {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 1rem 0 .4rem;
+  }
+
+  p { margin-bottom: .8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  /* ─── Callouts ───────────────────────────────────────────────────────────── */
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security {
+    border-color: var(--color-danger);
+    background: var(--color-danger-lt);
+  }
+  .callout-security .callout-title {
+    font-weight: 700;
+    color: var(--color-danger);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-info {
+    border-color: var(--color-info);
+    background: var(--color-info-lt);
+  }
+  .callout-info .callout-title {
+    font-weight: 700;
+    color: var(--color-info);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-note {
+    border-color: var(--color-terracotta);
+    background: var(--color-terracota-lt);
+  }
+  .callout-note .callout-title {
+    font-weight: 700;
+    color: var(--color-terracotta);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  /* ─── Tables ─────────────────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  /* ─── Code ───────────────────────────────────────────────────────────────── */
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* ─── Details / accordion ────────────────────────────────────────────────── */
+  details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: .8rem 0;
+    background: var(--color-surface);
+  }
+  summary {
+    padding: .7rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-wood);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::after { content: '▸'; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  details > *:not(summary) { padding: 0 1rem 1rem; }
+
+  /* ─── Phase timeline ─────────────────────────────────────────────────────── */
+  .phases { display: flex; flex-direction: column; gap: .5rem; }
+  .phase-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .phase-num {
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    border-radius: 50%;
+    background: var(--color-terracotta);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .85rem;
+    margin-top: .1rem;
+  }
+  .phase-body strong { color: var(--color-wood); }
+
+  /* ─── Security grid ──────────────────────────────────────────────────────── */
+  .security-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .8rem;
+    margin: 1rem 0;
+  }
+  .security-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: .85rem 1rem;
+    border-left: 3px solid var(--color-danger);
+  }
+  .security-card .sc-title {
+    font-weight: 600;
+    font-size: .88rem;
+    color: var(--color-danger);
+    margin-bottom: .3rem;
+  }
+  .security-card p { font-size: .85rem; color: var(--color-text-muted); }
+
+  /* ─── Path note ──────────────────────────────────────────────────────────── */
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · setup-stack</div>
+  <h1>Propuesta: Inicialización del stack tecnológico</h1>
+  <div class="subtitle">Arquitectura serverless con seguridad como principio rector — reemplaza Astro + FastAPI + TimescaleDB</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Propuesta</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Actualizado:</strong> 2026-06-21</span>
+  <span><strong>Depende de:</strong> —</span>
+</div>
+
+<main class="main-content">
+
+  <section>
+    <h2>1. Contexto y motivación</h2>
+    <p>La arquitectura original planteaba un monorepo con frontend Astro, backend FastAPI (Python) y TimescaleDB en Docker, con un API Python en Railway. Al revisar las necesidades reales de Antimahue —inventario y punto de venta para una sola tienda— ese stack resultó sobredimensionado:</p>
+    <ul>
+      <li>El backend Python del proyecto de referencia (<em>iot-assistant</em>) existe por dos razones que Antimahue no tiene: reconocimiento de componentes por imagen (IA de visión) e ingesta de telemetría IoT.</li>
+      <li>TimescaleDB resuelve series temporales de sensores; las ventas del día son una agregación SQL normal.</li>
+    </ul>
+    <p>Todo lo que Antimahue necesita del servidor se resuelve en TypeScript + Supabase, sin Python, sin Railway y sin Docker en producción.</p>
+  </section>
+
+  <section>
+    <h2>2. Seguridad como principio rector</h2>
+
+    <div class="callout callout-security">
+      <div class="callout-title">No-negociables de seguridad</div>
+      Antimahue maneja dinero (de Angélica y de sus clientes) y datos personales de terceros (clientes, proveedores, RUT en los DTE). La seguridad es un <strong>principio rector del proyecto</strong>, presente en cada fase de implementación, no una tarea de endurecimiento al final.
+    </div>
+
+    <div class="security-grid">
+      <div class="security-card">
+        <div class="sc-title">Cliente no confiable</div>
+        <p>La autorización real se aplica en RLS/Postgres, nunca solo en el JavaScript del navegador.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">RLS deny-by-default desde el día 1</div>
+        <p>Todas las tablas del esquema <code>public</code> tienen RLS activo desde el primer día.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Separación de claves</div>
+        <p>La clave <code>anon</code> es pública y opera solo con RLS; la <code>service_role</code> nunca entra al bundle del cliente.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Integridad server-side</div>
+        <p>Totales, montos y stock se validan con constraints de Postgres + funciones RPC. La venta es una transacción atómica.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Trazabilidad y auditoría</div>
+        <p>Toda operación sobre dinero o stock queda registrada con autor, fecha y detalle.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">PIN endurecido</div>
+        <p>Rate-limiting y bloqueo temporal ante intentos fallidos. El PIN protege un token ya emitido; no es la credencial en sí.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Cadena de suministro</div>
+        <p>pnpm v11 con <code>minimumReleaseAge</code> + <code>allowBuilds</code> vacío + lockfile + auditoría periódica.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Transporte y sesión</div>
+        <p>HTTPS siempre; tokens con expiración corta + refresh; manejo seguro del token en el dispositivo.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Datos personales</div>
+        <p>Minimización de datos y cumplimiento de la normativa chilena de protección de datos personales.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Continuidad operativa</div>
+        <p>Respaldos y plan de restauración definidos desde el inicio; perder datos equivale a perder dinero.</p>
+      </div>
+      <div class="security-card">
+        <div class="sc-title">Mínimo privilegio</div>
+        <p>Claves, roles y políticas con el menor nivel de acceso necesario.</p>
+      </div>
+    </div>
+
+    <p>Cada especificación, diseño y conjunto de tareas de cada cambio incluye su dimensión de seguridad explícita; el diseño incorpora un modelo de amenazas; antes de cada merge significativo se ejecuta una revisión de seguridad.</p>
+  </section>
+
+  <section>
+    <h2>3. Arquitectura propuesta</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Capa</th>
+          <th>Tecnología</th>
+          <th>Responsabilidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Frontend</td>
+          <td>SPA: Vite + React 19 + TypeScript + Tailwind v4 + <code>vite-plugin-pwa</code></td>
+          <td>Toda la interfaz: PIN, dashboard, venta, escáner, catálogo, paletas de color. App privada detrás de login.</td>
+        </tr>
+        <tr>
+          <td>Backend</td>
+          <td>Supabase (PostgreSQL + Auth + Storage + RLS + PostgREST + Edge Functions)</td>
+          <td>Datos, autenticación, almacenamiento de imágenes, API REST automática.</td>
+        </tr>
+        <tr>
+          <td>Región DB</td>
+          <td>Supabase en São Paulo (<code>sa-east-1</code>)</td>
+          <td>Menor latencia desde Chile (~70 ms medidos; EE.UU. ~150 ms).</td>
+        </tr>
+        <tr>
+          <td>Hosting</td>
+          <td>Cloudflare Pages (confirmado en fase de diseño)</td>
+          <td>Sirve el bundle estático desde el edge (~17 ms desde Chile). Decisión reversible.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Por qué SPA y no Astro</h3>
+    <p>La aplicación principal es 100 % privada, sin contenido público ni SEO. El portal público y la comunidad serán una aplicación separada. Una aplicación POS interactiva detrás de login es el caso natural de una SPA. Astro agrega complejidad de SSR/hidratación sin beneficio. El handoff de diseño ya recomendaba React + Vite → PWA.</p>
+
+    <h3>Lógica server-side sin Python</h3>
+    <ul>
+      <li>Parsing de DTE XML (Tipo 33/46/39) → función en TypeScript (<code>fast-xml-parser</code>) o Edge Function de Supabase.</li>
+      <li>Asistente de armonía cromática → cálculo HSL/CIELAB en el cliente (determinista, sin IA).</li>
+      <li>Escaneo de código de barras → cliente (Barcode Detection API).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>4. Estructura del repositorio</h2>
+
+    <pre><code>/
+├── src/                   # SPA Vite + React 19 + TS
+│   ├── components/        # UI (atomic / container-presentational)
+│   ├── features/          # venta, catálogo, paletas, dte, auth
+│   ├── lib/               # cliente Supabase, helpers
+│   └── main.tsx
+├── supabase/
+│   └── migrations/        # SQL versionado (RLS incluido)
+├── public/                # íconos PWA, manifest
+├── openspec/              # especificaciones SDD
+├── index.html
+├── vite.config.ts
+└── package.json</code></pre>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Sin backend propio</div>
+      El repositorio no tiene directorio <code>backend/</code>, <code>docker/</code> ni <code>docker-compose.yml</code>. Supabase Cloud reemplaza la base local en Docker.
+    </div>
+  </section>
+
+  <section>
+    <h2>5. Gestión de dependencias: pnpm v11 (obligatorio)</h2>
+
+    <p>El proyecto usa pnpm v11 como gestor de paquetes. Es una decisión de seguridad —parte del principio rector— y es mandatoria:</p>
+
+    <table>
+      <thead>
+        <tr><th>Configuración</th><th>Propósito</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>minimumReleaseAge: 1440</code></td>
+          <td>No instala paquetes publicados hace menos de 24 h. Defensa directa contra ataques de supply-chain de ventana corta.</td>
+        </tr>
+        <tr>
+          <td><code>allowBuilds</code> vacío</td>
+          <td>Bloquea lifecycle scripts (<code>postinstall</code>), el vector habitual de ejecución de malware.</td>
+        </tr>
+        <tr>
+          <td>Lockfile comprometido</td>
+          <td><code>pnpm-lock.yaml</code> en el repositorio con versiones pineadas.</td>
+        </tr>
+        <tr>
+          <td><code>pnpm audit</code> periódico</td>
+          <td>Auditoría de vulnerabilidades en cada PR y al menos semanal.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>Incidente TanStack (2026-05-11) — contexto</summary>
+      <p>El 2026-05-11 se publicaron 84 versiones maliciosas en 42 paquetes <code>@tanstack/*</code> por secuestro del pipeline de GitHub Actions. Los paquetes afectados incluyeron <code>@tanstack/react-router</code>, <code>vue-router</code>, <code>solid-router</code>, <code>router-core</code>, <code>react-start</code> y <code>router-plugin</code>. Las versiones maliciosas se detectaron y removieron en 20-26 minutos; con <code>minimumReleaseAge: 1440</code> nunca habrían sido instalables. Como alternativa sin la mancha del incidente, se eligió React Router v7 (no afectado).</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>6. Alcance (MVP) y extensibilidad</h2>
+
+    <table>
+      <thead>
+        <tr><th>Ámbito</th><th>Detalle</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>MVP</strong></td>
+          <td>Un solo usuario (Angélica, admin). Sin empleados todavía.</td>
+        </tr>
+        <tr>
+          <td><strong>Post-MVP diferido</strong></td>
+          <td>Múltiples usuarios y roles (admin/empleado); portal público y comunidad como aplicación separada en subdominio.</td>
+        </tr>
+        <tr>
+          <td><strong>Criterio de diseño</strong></td>
+          <td>El modelo de datos debe permitir agregar esas funciones sin rediseño, sin construirlas ahora: tabla <code>profiles</code> con campo <code>rol</code>, FK <code>created_by</code>, campos de color en productos.</td>
+        </tr>
+        <tr>
+          <td><strong>Seguridad base</strong></td>
+          <td>RLS activo en todas las tablas desde el día 1. Se difiere el RLS multi-rol complejo, no el RLS en sí.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>7. Decisiones diferidas a la fase de diseño</h2>
+    <ul>
+      <li>Router exacto (React Router v7 vs TanStack Router).</li>
+      <li>Host de producción (Vercel vs Cloudflare Pages) — reversible, no bloqueante.</li>
+      <li>Estrategia del PIN (bloqueo local del dispositivo vs desbloqueo de credencial real) + mecanismo de rate-limiting.</li>
+      <li>Librería de estado (nanostores / zustand) y patrón del cliente Supabase.</li>
+    </ul>
+    <div class="callout callout-info">
+      <div class="callout-title">Estado actual</div>
+      Todas estas decisiones quedaron resueltas en la fase de diseño. Ver <code>design.html</code> para los detalles.
+    </div>
+  </section>
+
+  <section>
+    <h2>8. Plan de fases SDD — con seguridad integrada</h2>
+
+    <div class="phases">
+      <div class="phase-item">
+        <div class="phase-num">1</div>
+        <div class="phase-body"><strong>Especificaciones</strong> — modelo de datos, políticas RLS por tabla, constraints de integridad, contrato de la función DTE, requisitos de auditoría y protección de datos.</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">2</div>
+        <div class="phase-body"><strong>Diseño</strong> — arquitectura de carpetas, router, estrategia de auth/PIN (rate-limiting), mapeo de pantallas del handoff y modelo de amenazas STRIDE-lite.</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">3</div>
+        <div class="phase-body"><strong>Tareas</strong> — checklist de bootstrapping con tareas de seguridad explícitas (RLS, audit log, validaciones server-side) como parte del criterio de completitud.</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">4</div>
+        <div class="phase-body"><strong>Apply</strong> — scaffolding del proyecto y configuración base, con los guards de pnpm activos.</div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">5</div>
+        <div class="phase-body"><strong>Verify</strong> — compilación, conexión con Supabase, tests de RLS y security review antes de dar el cambio por cerrado.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

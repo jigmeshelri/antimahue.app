@@ -1,14 +1,14 @@
 change:
   name: setup-stack
-  status: proposal
+  status: apply
   created_at: "2026-06-18T01:11:00Z"
-  updated_at: "2026-06-18T01:11:00Z"
+  updated_at: "2026-06-21T23:44:27Z"
   phase_states:
     explore: completed
-    proposal: in_progress
-    specs: pending
-    design: pending
-    tasks: pending
-    apply: pending
+    proposal: completed
+    specs: completed
+    design: completed
+    tasks: completed
+    apply: in_progress
     verify: pending
     archive: pending

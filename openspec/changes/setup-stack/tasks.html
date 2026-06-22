@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tareas: Setup Stack — Antimahue</title>
+<style>
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --color-warn:       #92400e;
+    --color-warn-lt:    #fef3c7;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; margin-bottom: .35rem; }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle { color: #d4b89a; font-size: .9rem; margin-top: .4rem; }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-pending   { background: var(--color-wood-lt);    color: var(--color-wood); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-verify    { background: var(--color-info-lt);    color: var(--color-info); }
+  .badge-warn      { background: var(--color-warn-lt);    color: var(--color-warn); border: 1px solid #d97706; }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+
+  p { margin-bottom: .8rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security { border-color: var(--color-danger); background: var(--color-danger-lt); }
+  .callout-security .callout-title { font-weight: 700; color: var(--color-danger); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .callout-info { border-color: var(--color-info); background: var(--color-info-lt); }
+  .callout-info .callout-title { font-weight: 700; color: var(--color-info); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .callout-warn { border-color: var(--color-warn); background: var(--color-warn-lt); }
+  .callout-warn .callout-title { font-weight: 700; color: var(--color-warn); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  /* ─── Phase block ────────────────────────────────────────────────────────── */
+  .phase {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    margin: 1.5rem 0;
+    overflow: hidden;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .8rem 1.1rem;
+    background: linear-gradient(90deg, var(--color-wood) 0%, #9a643e 100%);
+    color: #fff;
+  }
+  .phase-num {
+    width: 2.2rem;
+    height: 2.2rem;
+    min-width: 2.2rem;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .95rem;
+  }
+  .phase-title { font-weight: 700; font-size: 1rem; }
+  .phase-refs { margin-left: auto; font-size: .72rem; opacity: .8; font-family: var(--font-mono); }
+
+  .task-list { padding: 0; list-style: none; }
+  .task-item {
+    display: flex;
+    gap: .85rem;
+    align-items: flex-start;
+    padding: .7rem 1.1rem;
+    border-top: 1px solid var(--color-border);
+    font-size: .9rem;
+  }
+  .task-item:first-child { border-top: none; }
+  .task-id {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    background: var(--color-wood-lt);
+    padding: .15em .4em;
+    border-radius: 3px;
+    white-space: nowrap;
+    margin-top: .1rem;
+    min-width: 2.8rem;
+    text-align: center;
+  }
+  .task-check {
+    width: 1.1rem;
+    height: 1.1rem;
+    min-width: 1.1rem;
+    border-radius: 3px;
+    border: 2px solid var(--color-border);
+    background: var(--color-surface-alt);
+    margin-top: .2rem;
+  }
+  .task-content { flex: 1; }
+  .task-content p { margin-bottom: .3rem; font-size: .9rem; }
+  .task-content code { font-size: .82em; }
+  .task-flag {
+    font-size: .75rem;
+    color: var(--color-warn);
+    background: var(--color-warn-lt);
+    border: 1px solid #d97706;
+    border-radius: 3px;
+    padding: .1em .4em;
+    font-weight: 600;
+    margin-top: .3rem;
+    display: inline-block;
+  }
+  .task-flag-security {
+    font-size: .75rem;
+    color: var(--color-danger);
+    background: var(--color-danger-lt);
+    border: 1px solid var(--color-danger);
+    border-radius: 3px;
+    padding: .1em .4em;
+    font-weight: 600;
+    margin-top: .3rem;
+    display: inline-block;
+  }
+  .task-item.task-security { background: #fff8f8; }
+
+  /* ─── Summary board ──────────────────────────────────────────────────────── */
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: .7rem;
+    margin: 1rem 0 2rem;
+  }
+  .phase-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: .85rem 1rem;
+    border-left: 3px solid var(--color-terracotta);
+  }
+  .phase-card .pc-num { font-size: .72rem; font-family: var(--font-mono); color: var(--color-text-muted); margin-bottom: .2rem; }
+  .phase-card .pc-title { font-weight: 600; font-size: .9rem; margin-bottom: .25rem; }
+  .phase-card .pc-count { font-size: .8rem; color: var(--color-text-muted); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td { padding: .55rem .85rem; border-top: 1px solid var(--color-border); vertical-align: top; }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · setup-stack</div>
+  <h1>Tareas: Setup Stack</h1>
+  <div class="subtitle">Infraestructura + scaffold de seguridad — 7 fases, 35 tareas — estado: pendiente de apply</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Tareas</span>
+  <span><strong>Estado:</strong> <span class="badge badge-pending">Pendiente de apply</span></span>
+  <span><strong>Depende de:</strong> Propuesta, Especificación, Diseño</span>
+  <span><strong>Actualizado:</strong> 2026-06-21</span>
+</div>
+
+<main class="main-content">
+
+  <section>
+    <h2>Resumen de fases</h2>
+    <div class="phase-grid">
+      <div class="phase-card">
+        <div class="pc-num">Fase 1</div>
+        <div class="pc-title">Repo y tooling</div>
+        <div class="pc-count">10 tareas — REQ-SETUP-1/2/3</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 2</div>
+        <div class="pc-title">Configuración de Supabase</div>
+        <div class="pc-count">4 tareas — REQ-SETUP-5/6</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 3</div>
+        <div class="pc-title">Scaffold de seguridad — SQL</div>
+        <div class="pc-count">6 tareas — REQ-SETUP-6/7/8, D4/D5, T2/T5/T7</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 4</div>
+        <div class="pc-title">App shell y routing skeleton</div>
+        <div class="pc-count">10 tareas — REQ-SETUP-1/2, D1/D2</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 5</div>
+        <div class="pc-title">CF Pages deploy + CSP</div>
+        <div class="pc-count">3 tareas — D6/OQ-1, T3</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 6</div>
+        <div class="pc-title">Guards supply-chain + validación de entorno</div>
+        <div class="pc-count">5 tareas — REQ-SETUP-3/4/9/10</div>
+      </div>
+      <div class="phase-card">
+        <div class="pc-num">Fase 7</div>
+        <div class="pc-title">Verificación de criterios de aceptación</div>
+        <div class="pc-count">10 tareas — V-1 a V-9 + smoke test PWA</div>
+      </div>
+    </div>
+
+    <div class="callout callout-security">
+      <div class="callout-title">Prerrequisitos bloqueantes</div>
+      Las tareas de la Fase 3 (RLS, separación de claves) son prerequisito para cualquier deploy que escriba datos de negocio. No son opcionales — son parte del criterio de «hecho».
+    </div>
+  </section>
+
+  <!-- ─── Phase 1 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <div class="phase-title">Repo y tooling bootstrap</div>
+      <div class="phase-refs">REQ-SETUP-1 · REQ-SETUP-2 · REQ-SETUP-3</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.1</span>
+        <div class="task-content">
+          <p>Inicializar el repo con <code>pnpm init</code> + establecer <code>"packageManager": "pnpm@11"</code> en <code>package.json</code>; habilitar corepack (<code>corepack enable pnpm</code>). Comprometer <code>package.json</code>.</p>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.2</span>
+        <div class="task-content">
+          <p>Crear <code>.npmrc</code> con <code>minimumReleaseAge=1440</code> y <code>allowBuilds=</code> (vacío — REQ-SETUP-3).</p>
+          <span class="task-flag">Verificar sintaxis contra docs de pnpm v11 antes de comprometer. Riesgo abierto: el nombre de la clave <code>allowBuilds</code> puede variar entre versiones menores de v11 — ejecutar <code>pnpm install</code> y confirmar que los lifecycle scripts quedan bloqueados.</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.3</span>
+        <div class="task-content">
+          <p>Instalar dependencias de Vite + React 19 + TypeScript:</p>
+          <pre><code>pnpm add -D vite @vitejs/plugin-react typescript @types/react @types/react-dom</code></pre>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.4</span>
+        <div class="task-content">
+          <p>Instalar Tailwind v4 + plugin Vite:</p>
+          <pre><code>pnpm add -D tailwindcss @tailwindcss/vite</code></pre>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.5</span>
+        <div class="task-content">
+          <p>Instalar <code>vite-plugin-pwa</code> y <code>workbox-window</code>:</p>
+          <pre><code>pnpm add -D vite-plugin-pwa workbox-window</code></pre>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.6</span>
+        <div class="task-content">
+          <p>Crear <code>vite.config.ts</code> con los plugins <code>react()</code> + <code>tailwindcss()</code> + <code>VitePWA({ registerType: 'autoUpdate' })</code>, conforme al contrato de REQ-SETUP-2.</p>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.7</span>
+        <div class="task-content">
+          <p>Crear <code>tsconfig.json</code> + <code>tsconfig.app.json</code> (modo estricto, alias de rutas <code>@/*</code> → <code>src/*</code>).</p>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.8</span>
+        <div class="task-content">
+          <p>Crear <code>index.html</code> como punto de entrada referenciando <code>src/main.tsx</code>.</p>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">1.9</span>
+        <div class="task-content">
+          <p>Crear <code>.gitignore</code>: debe cubrir <code>.env</code>, <code>.env.*</code>, <code>.envrc</code>, <code>dist/</code>, <code>node_modules/</code>, <code>.DS_Store</code> (REQ-SETUP-10, T8).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">1.10</span>
+        <div class="task-content">
+          <p>Comprometer <code>pnpm-lock.yaml</code> tras el primer <code>pnpm install</code> (REQ-SETUP-3, V-8).</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 2 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <div class="phase-title">Configuración del proyecto Supabase</div>
+      <div class="phase-refs">REQ-SETUP-5 · REQ-SETUP-6</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">2.1</span>
+        <div class="task-content">
+          <p>Crear el proyecto Supabase en la región <code>sa-east-1</code> (São Paulo). Habilitar Auth + Storage + PostgREST (REQ-SETUP-5). Confirmar la región en el panel de configuración del proyecto.</p>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">2.2</span>
+        <div class="task-content">
+          <p>Crear <code>.env.local</code> (en .gitignore) con los valores reales de <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code>; añadir <code>SUPABASE_SERVICE_ROLE_KEY</code> <strong>sin</strong> el prefijo <code>VITE_</code> (REQ-SETUP-9).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">2.3</span>
+        <div class="task-content">
+          <p>Crear <code>.env.example</code> con valores de marcador únicamente (<code>VITE_SUPABASE_URL=</code>, <code>VITE_SUPABASE_ANON_KEY=</code>) — es el único archivo de entorno que se compromete en git (REQ-SETUP-10).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">2.4</span>
+        <div class="task-content">
+          <p>Crear el directorio <code>supabase/migrations/</code>; preparar el archivo <code>20260621000000_initial_scaffold.sql</code> (contenido se escribe en la Fase 3).</p>
+          <span class="path-note">supabase/migrations/20260621000000_initial_scaffold.sql</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 3 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <div class="phase-title">Scaffold de seguridad — migración SQL</div>
+      <div class="phase-refs">REQ-SETUP-6/7/8 · D4/D5 · T2/T5/T7</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">3.1</span>
+        <div class="task-content">
+          <p>Escribir la tabla <code>profiles</code> en la migración conforme al esquema exacto de REQ-SETUP-8: <code>id uuid PK → auth.users(id) ON DELETE CASCADE</code>, <code>rol text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin'))</code>, <code>created_at timestamptz DEFAULT now()</code>.</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">3.2</span>
+        <div class="task-content">
+          <p>Añadir <code>ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;</code> — deny-by-default (sin política = sin acceso, REQ-SETUP-7, T2).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">3.3</span>
+        <div class="task-content">
+          <p>Escribir el SQL del trigger de registro (no incluido en la especificación, debe estar aquí): función <code>public.handle_new_user()</code> con <code>SECURITY DEFINER</code> que inserta en <code>profiles</code> al crear un usuario en <code>auth.users</code>.</p>
+          <pre><code>CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles(id) VALUES (NEW.id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();</code></pre>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">3.4</span>
+        <div class="task-content">
+          <p>Crear la tabla <code>auth_attempts</code> para el throttle replicado en servidor (defensa en profundidad, D5, T5):</p>
+          <pre><code>CREATE TABLE public.auth_attempts (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      uuid REFERENCES auth.users(id),
+  attempted_at timestamptz DEFAULT now(),
+  success      boolean NOT NULL
+);
+ALTER TABLE public.auth_attempts ENABLE ROW LEVEL SECURITY;</code></pre>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">3.5</span>
+        <div class="task-content">
+          <p>Crear la tabla <code>audit_log</code> vacía (OQ-2 resuelto) como infraestructura de seguridad (T7). Los triggers por tabla se añaden en el cambio <code>data-model</code>.</p>
+          <pre><code>CREATE TABLE public.audit_log (
+  id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id  uuid REFERENCES auth.users(id),
+  action    text NOT NULL,
+  entity    text,
+  entity_id text,
+  detail    jsonb,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;</code></pre>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">3.6</span>
+        <div class="task-content">
+          <p>Verificar que la migración aplica limpiamente: <code>supabase db push</code> (o el editor SQL del dashboard de Supabase) → <code>supabase migration list</code> muestra la migración como aplicada (precursor de V-6).</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 4 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <div class="phase-title">App shell y routing skeleton</div>
+      <div class="phase-refs">REQ-SETUP-1/2 · D1/D2</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.1</span>
+        <div class="task-content">
+          <p>Instalar React Router v7 (pin a una versión publicada después del 2026-05-12 — el guard lo garantiza; verificar con <code>pnpm why react-router</code>). D1.</p>
+          <pre><code>pnpm add react-router</code></pre>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.2</span>
+        <div class="task-content">
+          <p>Instalar nanostores. D2.</p>
+          <pre><code>pnpm add nanostores @nanostores/react</code></pre>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.3</span>
+        <div class="task-content">
+          <p>Instalar <code>@supabase/supabase-js</code>.</p>
+          <pre><code>pnpm add @supabase/supabase-js</code></pre>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">4.4</span>
+        <div class="task-content">
+          <p>Crear el cliente Supabase compartido en <code>src/lib/supabase.ts</code> (D3): <code>createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } })</code>. Ningún import de <code>service_role</code> en <code>src/</code>.</p>
+          <span class="path-note">src/lib/supabase.ts</span>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">4.5</span>
+        <div class="task-content">
+          <p>Crear los helpers de WebCrypto en <code>src/lib/crypto.ts</code> conforme a D5: <code>deriveKey(pin, salt)</code> con PBKDF2 600k iteraciones SHA-256; <code>encryptToken(token, key)</code> AES-GCM; <code>decryptToken(enc, key)</code> AES-GCM.</p>
+          <span class="path-note">src/lib/crypto.ts</span>
+          <span class="task-flag">WebCrypto + IndexedDB deben validarse dentro de la PWA instalada (no solo en el navegador — el contexto del SW puede diferir; añadir smoke test en 7.10).</span>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.6</span>
+        <div class="task-content">
+          <p>Crear el router en <code>src/lib/router.tsx</code> — <code>createBrowserRouter</code> con 9 rutas, cada una importando su pantalla de feature con lazy loading (D1, REQ-SETUP-11 SPA estática pura).</p>
+          <span class="path-note">src/lib/router.tsx</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.7</span>
+        <div class="task-content">
+          <p>Crear los stores en <code>src/stores/</code>: <code>auth.ts</code> (átomo de sesión), <code>lock.ts</code> (estado de bloqueo PIN), <code>saleDraft.ts</code> (venta actual), <code>ui.ts</code> (flags globales de UI). Solo átomos de nanostores (D2).</p>
+          <span class="path-note">src/stores/</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.8</span>
+        <div class="task-content">
+          <p>Crear los directorios de feature y las pantallas skeleton (archivos índice con un componente mínimo de retorno): <code>auth/PinScreen</code>, <code>dashboard/DashboardScreen</code>, <code>venta/SaleScreen</code> + <code>TicketView</code>, <code>escaner/ScannerScreen</code>, <code>catalogo/CatalogScreen</code> + <code>ProductDetailScreen</code>, <code>proveedor/SupplierScreen</code>, <code>dte/DteImportScreen</code>.</p>
+          <span class="path-note">src/features/</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.9</span>
+        <div class="task-content">
+          <p>Crear <code>src/components/</code> con los directorios vacíos <code>atoms/</code>, <code>molecules/</code>, <code>organisms/</code> y archivos índice de marcador.</p>
+          <span class="path-note">src/components/</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">4.10</span>
+        <div class="task-content">
+          <p>Crear <code>src/main.tsx</code> — monta <code>&lt;RouterProvider&gt;</code> + listener de bootstrap de sesión de Supabase (<code>supabase.auth.onAuthStateChange</code>).</p>
+          <span class="path-note">src/main.tsx</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 5 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">5</div>
+      <div class="phase-title">Cloudflare Pages — config de deploy + CSP</div>
+      <div class="phase-refs">D6/OQ-1 · T3</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">5.1</span>
+        <div class="task-content">
+          <p>Crear <code>public/_headers</code> con CSP estricta conforme a la mitigación de T3:</p>
+          <ul>
+            <li><code>default-src 'self'</code></li>
+            <li><code>connect-src 'self' https://*.supabase.co</code></li>
+            <li><code>script-src 'self'</code> (sin <code>unsafe-inline</code>, sin <code>unsafe-eval</code>)</li>
+            <li><code>style-src 'self' 'unsafe-inline'</code> (Tailwind runtime lo requiere — documentar la excepción)</li>
+            <li><code>img-src 'self' data: blob:</code></li>
+            <li><code>frame-ancestors 'none'</code></li>
+            <li><code>Strict-Transport-Security: max-age=31536000; includeSubDomains</code></li>
+            <li><code>X-Frame-Options: DENY</code></li>
+            <li><code>X-Content-Type-Options: nosniff</code></li>
+          </ul>
+          <span class="path-note">public/_headers</span>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">5.2</span>
+        <div class="task-content">
+          <p>Crear <code>wrangler.toml</code> (o configuración del proyecto CF Pages) con <code>[build] command = "pnpm build"</code> y <code>pages_build_output_dir = "dist"</code>.</p>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">5.3</span>
+        <div class="task-content">
+          <p>Configurar el proyecto CF Pages en el dashboard de Cloudflare: conectar el repositorio, establecer las variables de entorno <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> en la configuración de CF Pages (REQ-SETUP-9 — sin <code>service_role</code> en variables de entorno del cliente).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 6 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">6</div>
+      <div class="phase-title">Guards de supply chain + validación de entorno</div>
+      <div class="phase-refs">REQ-SETUP-3/4/9/10</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">6.1</span>
+        <div class="task-content">
+          <p>Ejecutar <code>pnpm audit</code> tras todas las instalaciones; resolver cualquier hallazgo crítico o alto antes de continuar (REQ-SETUP-4, V-9).</p>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">6.2</span>
+        <div class="task-content">
+          <p>Verificar que <code>allowBuilds=</code> en <code>.npmrc</code> es la sintaxis correcta para pnpm v11 ejecutando <code>pnpm install</code> con una dependencia que tenga un <code>postinstall</code> conocido (o revisando la salida de <code>pnpm config</code>). Documentar la sintaxis confirmada en un comentario dentro del <code>.npmrc</code>.</p>
+          <span class="path-note">.npmrc</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">6.3</span>
+        <div class="task-content">
+          <p>Verificar que <code>grep -r "service_role" dist/</code> devuelve vacío tras <code>pnpm build</code> (V-4, T4).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">6.4</span>
+        <div class="task-content">
+          <p>Verificar que <code>git status</code> muestra <code>.env.local</code> como ignorado, no como sin seguimiento (V-5, T8).</p>
+          <span class="task-flag-security">SEGURIDAD — crítico</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">6.5</span>
+        <div class="task-content">
+          <p>Verificar que <code>git ls-files pnpm-lock.yaml</code> devuelve el archivo (V-8).</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── Phase 7 ─────────────────────────────────────────────────────────── -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">7</div>
+      <div class="phase-title">Verificación de criterios de aceptación (V-1 → V-9)</div>
+      <div class="phase-refs">Criterios de aceptación de la especificación</div>
+    </div>
+    <ul class="task-list">
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.1</span>
+        <div class="task-content">
+          <p><strong>V-1:</strong> Ejecutar <code>pnpm build</code> → código de salida 0, <code>dist/index.html</code> existe, sin errores de TypeScript.</p>
+          <span class="badge badge-verify">V-1</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.2</span>
+        <div class="task-content">
+          <p><strong>V-2:</strong> Ejecutar <code>pnpm dev</code> → servidor de desarrollo en <code>http://localhost:5173</code> sin errores.</p>
+          <span class="badge badge-verify">V-2</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.3</span>
+        <div class="task-content">
+          <p><strong>V-3:</strong> Abrir la app en el navegador → la pestaña de red muestra una solicitud anon a Supabase exitosa (la URL resuelve, sin 401/404 en el endpoint de auth).</p>
+          <span class="badge badge-verify">V-3</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">7.4</span>
+        <div class="task-content">
+          <p><strong>V-4:</strong> <code>grep -r "service_role" dist/</code> → salida vacía.</p>
+          <span class="badge badge-verify">V-4</span>
+          <span class="task-flag-security">SEGURIDAD — bloqueante</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">7.5</span>
+        <div class="task-content">
+          <p><strong>V-5:</strong> <code>git status</code> tras crear <code>.env.local</code> → el archivo aparece como ignorado.</p>
+          <span class="badge badge-verify">V-5</span>
+          <span class="task-flag-security">SEGURIDAD — bloqueante</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">7.6</span>
+        <div class="task-content">
+          <p><strong>V-6:</strong> Consultar <code>SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'</code> → <code>rowsecurity=true</code> para <code>profiles</code>, <code>auth_attempts</code>, <code>audit_log</code>.</p>
+          <span class="badge badge-verify">V-6</span>
+          <span class="task-flag-security">SEGURIDAD — bloqueante</span>
+        </div>
+      </li>
+      <li class="task-item task-security">
+        <div class="task-check"></div>
+        <span class="task-id">7.7</span>
+        <div class="task-content">
+          <p><strong>V-7:</strong> Solicitud anon de PostgREST <code>GET /rest/v1/profiles</code> → <code>[]</code> (0 filas, no un error).</p>
+          <span class="badge badge-verify">V-7</span>
+          <span class="task-flag-security">SEGURIDAD — bloqueante</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.8</span>
+        <div class="task-content">
+          <p><strong>V-8:</strong> <code>git ls-files pnpm-lock.yaml</code> → <code>pnpm-lock.yaml</code> (está comprometido).</p>
+          <span class="badge badge-verify">V-8</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.9</span>
+        <div class="task-content">
+          <p><strong>V-9:</strong> <code>pnpm audit</code> → sin CVEs críticos o altos.</p>
+          <span class="badge badge-verify">V-9</span>
+        </div>
+      </li>
+      <li class="task-item">
+        <div class="task-check"></div>
+        <span class="task-id">7.10</span>
+        <div class="task-content">
+          <p><strong>Smoke test PWA (flag D5):</strong> Instalar la PWA localmente, ejecutar el ciclo <code>deriveKey</code> + <code>encryptToken</code> + <code>decryptToken</code> de <code>crypto.ts</code> dentro del contexto del SW instalado; confirmar que WebCrypto + IndexedDB funcionan en ese contexto, no solo en la pestaña normal del navegador.</p>
+          <span class="path-note">src/lib/crypto.ts</span>
+          <span class="task-flag">Validación específica de PWA — el contexto del Service Worker puede diferir del de la pestaña.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <section>
+    <h2>Criterios de aceptación — resumen</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Verificación</th><th>Bloqueante para deploy</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>V-1</td><td><code>pnpm build</code> sale con código 0, sin errores de TS</td><td>No</td></tr>
+        <tr><td>V-2</td><td><code>pnpm dev</code> sirve en puerto 5173</td><td>No</td></tr>
+        <tr><td>V-3</td><td>La app conecta con Supabase (clave anon)</td><td>No</td></tr>
+        <tr><td><strong>V-4</strong></td><td><code>grep -r "service_role" dist/</code> vacío</td><td><strong>Sí — crítico</strong></td></tr>
+        <tr><td><strong>V-5</strong></td><td><code>.env*</code> aparece como ignorado</td><td><strong>Sí — crítico</strong></td></tr>
+        <tr><td><strong>V-6</strong></td><td>RLS habilitado en las 3 tablas</td><td><strong>Sí — crítico</strong></td></tr>
+        <tr><td><strong>V-7</strong></td><td>Anon devuelve 0 filas en <code>profiles</code></td><td><strong>Sí — crítico</strong></td></tr>
+        <tr><td>V-8</td><td><code>pnpm-lock.yaml</code> comprometido</td><td>No</td></tr>
+        <tr><td>V-9</td><td><code>pnpm audit</code> sin CVEs críticos/altos</td><td>No</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>

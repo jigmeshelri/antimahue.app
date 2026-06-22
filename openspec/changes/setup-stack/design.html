@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diseño: Setup Stack — Antimahue</title>
+<style>
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; margin-bottom: .35rem; }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle { color: #d4b89a; font-size: .9rem; margin-top: .4rem; }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed  { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-resolved   { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-chosen     { background: #e3f0e7; color: #2a5e37; font-weight: 700; }
+  .badge-rejected   { background: #f7e8e8; color: #7a2020; }
+  .badge-security   { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-must       { background: var(--color-danger-lt);  color: var(--color-danger); border: 1px solid var(--color-danger); }
+  .badge-in-progress{ background: var(--color-info-lt);    color: var(--color-info); }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.4rem 0 .5rem;
+  }
+
+  p { margin-bottom: .8rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security { border-color: var(--color-danger); background: var(--color-danger-lt); }
+  .callout-security .callout-title { font-weight: 700; color: var(--color-danger); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .callout-info { border-color: var(--color-info); background: var(--color-info-lt); }
+  .callout-info .callout-title { font-weight: 700; color: var(--color-info); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .callout-note { border-color: var(--color-terracotta); background: var(--color-terracota-lt); }
+  .callout-note .callout-title { font-weight: 700; color: var(--color-terracotta); margin-bottom: .4rem; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td { padding: .55rem .85rem; border-top: 1px solid var(--color-border); vertical-align: top; }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: .8rem 0;
+    background: var(--color-surface);
+  }
+  summary {
+    padding: .7rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-wood);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::after { content: '▸'; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  details > *:not(summary) { padding: 0 1rem 1rem; }
+
+  /* ─── Decision card ──────────────────────────────────────────────────────── */
+  .decision-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    margin: 1.4rem 0;
+    overflow: hidden;
+  }
+  .decision-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .decision-id {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    background: var(--color-wood-lt);
+    padding: .15em .5em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .decision-title { font-weight: 700; font-size: .95rem; flex: 1; }
+  .decision-body { padding: .85rem 1rem; }
+  .decision-body > *:last-child { margin-bottom: 0; }
+
+  /* ─── STRIDE threat model ────────────────────────────────────────────────── */
+  .threat-table tbody tr td:first-child { font-weight: 700; font-family: var(--font-mono); font-size: .8rem; }
+  .stride-S  { border-left: 3px solid #d97706; }
+  .stride-T  { border-left: 3px solid var(--color-danger); }
+  .stride-R  { border-left: 3px solid #7c3aed; }
+  .stride-I  { border-left: 3px solid #2d5a8e; }
+  .stride-D  { border-left: 3px solid #374151; }
+  .stride-E  { border-left: 3px solid #b91c1c; }
+
+  /* ─── Component tree ─────────────────────────────────────────────────────── */
+  .tree {
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    line-height: 1.7;
+    margin: .8rem 0;
+  }
+  .tree .dir { color: #f0c080; }
+  .tree .comment { color: #8a7060; }
+
+  /* ─── PIN lockout table ──────────────────────────────────────────────────── */
+  .lockout-table tbody tr:nth-child(n+2) td:first-child { font-weight: 600; color: var(--color-danger); }
+
+  /* ─── File changes table ─────────────────────────────────────────────────── */
+  .fc-create td:first-child { color: var(--color-success); font-weight: 600; }
+  .fc-modify td:first-child { color: var(--color-info); font-weight: 600; }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · setup-stack</div>
+  <h1>Diseño: Setup Stack</h1>
+  <div class="subtitle">Infraestructura + scaffold de seguridad — decisiones de arquitectura, modelo de amenazas, árbol de componentes</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Diseño</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completado</span></span>
+  <span><strong>Depende de:</strong> Propuesta, Especificación</span>
+  <span><strong>Resuelve:</strong> §7 router, host, PIN, state-lib, supabase-client</span>
+  <span><strong>Produce:</strong> §8 modelo de amenazas</span>
+</div>
+
+<main class="main-content">
+
+  <section>
+    <h2>Enfoque técnico</h2>
+    <p>Una SPA estática (Vite + React 19 + TypeScript + Tailwind v4 + <code>vite-plugin-pwa</code>) se comunica directamente con Supabase (<code>sa-east-1</code>) mediante <code>@supabase/supabase-js</code> usando <strong>solo la clave anon</strong>. El bundle del navegador es no confiable: la autorización real reside en RLS/Postgres, nunca en JavaScript.</p>
+    <p>Este documento resuelve las cuatro decisiones diferidas de la propuesta §7, produce el modelo de amenazas STRIDE-lite de §8, y mapea las 9 pantallas del handoff a un árbol de componentes feature-sliced + atómico. El alcance es infraestructura + scaffold de seguridad mínimo; las tablas de negocio corresponden al cambio futuro <code>data-model</code>. Cada decisión explicita su postura de seguridad.</p>
+  </section>
+
+  <section>
+    <h2>Decisiones de arquitectura</h2>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D1</span>
+        <span class="decision-title">Router: React Router v7</span>
+        <span class="badge badge-resolved">Resuelto</span>
+      </div>
+      <div class="decision-body">
+        <table>
+          <thead><tr><th>Opción</th><th>Análisis</th><th>Decisión</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>React Router v7 (declarativo, data APIs)</td>
+              <td>Maduro, ecosistema amplio, <strong>no afectado por el incidente de supply-chain del 2026-05-11</strong>; <code>createBrowserRouter</code> es modo nativo de SPA</td>
+              <td><span class="badge badge-chosen">Elegido</span></td>
+            </tr>
+            <tr>
+              <td>TanStack Router</td>
+              <td>Enrutamiento con tipos de primera clase, pero <code>@tanstack/react-router</code> estuvo entre los paquetes comprometidos el 2026-05-11 (propuesta §5)</td>
+              <td><span class="badge badge-rejected">Descartado</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Justificación:</strong> Ambos routers son técnicamente adecuados para una SPA privada de 9 pantallas. El guard <code>minimumReleaseAge: 1440</code> ya neutraliza el incidente de TanStack, pero <em>seguridad primero</em> implica superficie de ataque mínima por defecto, no «riesgo mitigado». Elegir el paquete sin historial de incidentes es la postura conservadora que exige la propuesta §2. La ventaja en tipos de TanStack es marginal para un conjunto fijo de rutas pequeño.</p>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D2</span>
+        <span class="decision-title">Librería de estado: nanostores</span>
+        <span class="badge badge-resolved">Resuelto</span>
+      </div>
+      <div class="decision-body">
+        <table>
+          <thead><tr><th>Opción</th><th>Análisis</th><th>Decisión</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>nanostores</td>
+              <td>~1 KB, átomos agnósticos al framework, mantiene el estado de auth/sesión fuera del árbol de React y fuera de <code>localStorage</code>; se integra limpiamente con los listeners de Supabase</td>
+              <td><span class="badge badge-chosen">Elegido</span></td>
+            </tr>
+            <tr>
+              <td>zustand</td>
+              <td>Ergonómico y popular, pero su middleware <code>persist</code> tentaría almacenar la sesión en <code>localStorage</code>, un antipatrón aquí (ver D4)</td>
+              <td><span class="badge badge-rejected">Descartado</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Justificación:</strong> El estado a gestionar es pequeño (estado de auth, estado del bloqueo PIN, borrador de venta activa, flags de UI). nanostores mantiene el bundle liviano (objetivo PWA) y su minimalismo desincentiva persistir estado sensible en disco. Los datos de servidor (catálogo, ventas) son propiedad de Supabase, no del store del cliente.</p>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D3</span>
+        <span class="decision-title">Patrón del cliente Supabase</span>
+        <span class="badge badge-resolved">Resuelto</span>
+      </div>
+      <div class="decision-body">
+        <p>Un único cliente compartido en el navegador, creado a partir de <code>VITE_SUPABASE_URL</code> + <code>VITE_SUPABASE_ANON_KEY</code>, instanciado una sola vez en el módulo del cliente de Supabase en <code>src/lib/</code>. La clave <code>service_role</code> nunca se importa en el cliente (REQ-SETUP-9, V-4). La lógica server-side vive en Edge Functions de Supabase, que usan <code>service_role</code> desde el almacén de secretos de la función, nunca en el bundle.</p>
+        <pre><code>// src/lib/supabase.ts — único lugar donde se crea el cliente
+import { createClient } from '@supabase/supabase-js'
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, storage: secureSessionStorage, autoRefreshToken: true } }
+)</code></pre>
+        <span class="path-note">src/lib/supabase.ts</span>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D4</span>
+        <span class="decision-title">Almacenamiento del token de sesión en el dispositivo</span>
+        <span class="badge badge-security">Crítico de seguridad</span>
+      </div>
+      <div class="decision-body">
+        <table>
+          <thead><tr><th>Opción</th><th>Análisis</th><th>Decisión</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>localStorage</code> (por omisión en Supabase)</td>
+              <td>Persiste entre reinicios, pero cualquier script XSS inyectado puede leerlo; sobrevive indefinidamente</td>
+              <td><span class="badge badge-rejected">Descartado</span></td>
+            </tr>
+            <tr>
+              <td><code>sessionStorage</code> + re-auth por PIN</td>
+              <td>Se borra al cerrar la pestaña; XSS todavía puede leerlo mientras la pestaña esté abierta</td>
+              <td><span class="badge badge-rejected">Parcial</span></td>
+            </tr>
+            <tr>
+              <td>Refresh token en memoria + desbloqueo PIN (D5)</td>
+              <td>Refresh token cifrado en IndexedDB bajo clave derivada del PIN (WebCrypto PBKDF2/AES-GCM); access token solo en memoria; PIN re-deriva la clave en cada sesión</td>
+              <td><span class="badge badge-chosen">Elegido</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Justificación:</strong> La PWA puede estar instalada durante semanas; un token en <code>localStorage</code> es el objetivo de mayor valor para un ataque XSS (amenaza T3). Se almacena el <strong>refresh token cifrado en reposo</strong> en IndexedDB, bajo una clave derivada del PIN (WebCrypto PBKDF2/AES-GCM, ver D5); el access token de corta duración vive solo en memoria. Combinado con una CSP estricta, esto limita el robo de tokens por XSS. Con <code>autoRefreshToken: true</code>, el access token se mantiene fresco desde el refresh token en memoria mientras la app está desbloqueada.</p>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D5</span>
+        <span class="decision-title">Estrategia del PIN: «desbloquear una credencial emitida»</span>
+        <span class="badge badge-security">Crítico de seguridad</span>
+      </div>
+      <div class="decision-body">
+        <div class="callout callout-security">
+          <div class="callout-title">Principio fundamental</div>
+          El PIN <strong>no es una credencial</strong> y nunca va al servidor. Modelo: <em>login real una vez → token vinculado al dispositivo → el PIN lo desbloquea localmente</em>.
+        </div>
+
+        <pre><code>REGISTRO (login real con Supabase Auth, email+contraseña):
+  Supabase emite {access_token, refresh_token}
+  El usuario establece PIN p
+  salt = random(16);  k = PBKDF2(p, salt, 600k iters, SHA-256)  // WebCrypto
+  Almacenar en IndexedDB: { enc = AES-GCM(refresh_token, k), salt, fail_count=0, locked_until=null }
+  // p y k NUNCA se persisten; el plaintext del refresh_token tampoco
+
+DESBLOQUEO DIARIO (ingreso del PIN — Pantalla 1):
+  si now < locked_until: rechazar (bloqueo temporal)
+  k' = PBKDF2(intento_pin, salt, 600k, SHA-256)
+  intentar refresh_token = AES-GCM-decrypt(enc, k')
+    éxito → fail_count=0; supabase.setSession(refresh_token); app desbloqueada
+    fallo (PIN incorrecto → falla el auth tag de GCM) → fail_count++; aplicar backoff</code></pre>
+
+        <h3>Rate-limiting y bloqueos por intentos fallidos</h3>
+        <p>4 dígitos = 10 000 combinaciones = factible de fuerza bruta. Por eso se aplica bloqueo progresivo:</p>
+        <table class="lockout-table">
+          <thead>
+            <tr><th>Intentos fallidos</th><th>Acción</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1–4</td><td>Permitir; incrementar contador</td></tr>
+            <tr><td>5</td><td>Bloquear 30 s (<code>locked_until = now+30s</code>)</td></tr>
+            <tr><td>6</td><td>Bloquear 5 min</td></tr>
+            <tr><td>7</td><td>Bloquear 1 h</td></tr>
+            <tr><td>8+</td><td>Bloquear 24 h + requiere re-login completo (email+contraseña); borrar <code>enc</code></td></tr>
+          </tbody>
+        </table>
+        <p>El estado de bloqueo vive en IndexedDB (cliente) Y se replica a una fila <code>auth_attempts</code> en el servidor en cada fallo. Defensa en profundidad: la compuerta criptográfica (GCM tag) significa que un PIN incorrecto no produce ningún token incluso sin rate-limit; el rate-limit frena el grinding en línea. Las 600 mil iteraciones de PBKDF2 encarecen el grinding fuera de línea sobre un blob de IndexedDB robado.</p>
+        <p><strong>Preparado para múltiples usuarios sin rediseño:</strong> el registro es por fila de <code>auth.users</code>; el registro de IndexedDB se identifica por <code>user.id</code>. Agregar empleados más adelante implica nuevas filas en <code>profiles</code> + relajar el constraint <code>rol</code> + RLS por rol, sin cambiar el mecanismo de PIN.</p>
+      </div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-header">
+        <span class="decision-id">D6</span>
+        <span class="decision-title">Host: Cloudflare Pages</span>
+        <span class="badge badge-resolved">Resuelto — 2026-06-21</span>
+      </div>
+      <div class="decision-body">
+        <table>
+          <thead>
+            <tr><th>Criterio</th><th>Vercel</th><th>Cloudflare Pages</th><th>Ventaja</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Latencia edge desde Chile</td>
+              <td>~17 ms</td>
+              <td>~17 ms</td>
+              <td>Empate</td>
+            </tr>
+            <tr>
+              <td>PoP en Santiago</td>
+              <td>No</td>
+              <td><strong>Sí</strong></td>
+              <td>CF</td>
+            </tr>
+            <tr>
+              <td>Cuello de botella real (RTT BD, São Paulo)</td>
+              <td>~70 ms</td>
+              <td>~70 ms</td>
+              <td>Empate</td>
+            </tr>
+            <tr>
+              <td>SPA estática + HTTPS + redirect HTTP→HTTPS</td>
+              <td>Sí</td>
+              <td>Sí</td>
+              <td>Empate</td>
+            </tr>
+            <tr>
+              <td>CSP / cabeceras de seguridad</td>
+              <td>Vía config</td>
+              <td><strong>Archivo <code>_headers</code> nativo</strong></td>
+              <td>CF leve</td>
+            </tr>
+            <tr>
+              <td>Costo a esta escala</td>
+              <td>Tier gratuito OK</td>
+              <td>Tier gratuito OK</td>
+              <td>Empate</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Justificación:</strong> La latencia al edge empata (~17 ms) y el RTT a la BD (~70 ms a São Paulo) domina en ambos casos. Los desempates son el PoP de Santiago de CF (más cercano a Angélica) y su archivo <code>_headers</code> nativo para la CSP estricta que requiere la mitigación de T3. <strong>Reversible</strong> (bundle estático puro, REQ-SETUP-11): cambiar a Vercel más adelante implica solo modificar la configuración de despliegue, sin cambios de código.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Modelo de amenazas (STRIDE-lite)</h2>
+
+    <p><strong>Activos:</strong> A1 dinero/datos de ventas; A2 PII de terceros (clientes, proveedores, RUT en DTE); A3 sesiones/tokens de auth; A4 integridad del stock.</p>
+
+    <div class="callout callout-security">
+      <div class="callout-title">Obligatorio</div>
+      T2 (RLS) y T4 (separación de claves) son bloqueantes para cualquier apply que escriba datos de negocio. Son el principio rector de la especificación hecho operativo.
+    </div>
+
+    <table class="threat-table">
+      <thead>
+        <tr><th>ID</th><th>STRIDE</th><th>Amenaza</th><th>Mitigación</th><th>Principio §2</th></tr>
+      </thead>
+      <tbody>
+        <tr class="stride-T">
+          <td>T1</td>
+          <td>Tampering</td>
+          <td>Cliente manipulado vende a precio alterado o deja el stock en negativo</td>
+          <td>Validación server-side: CHECK constraints de Postgres + RPC atómica para la venta (futuro <code>data-model</code>); el cliente no puede evadirla</td>
+          <td>validación e integridad server-side</td>
+        </tr>
+        <tr class="stride-I">
+          <td>T2</td>
+          <td>Info disclosure</td>
+          <td>Cliente anon o manipulado lee filas que no le corresponden (A1/A2)</td>
+          <td><strong>RLS deny-by-default en toda tabla <code>public</code></strong> desde el día 1 (REQ-SETUP-7); consulta anon devuelve 0 filas sin política (V-7)</td>
+          <td>cliente no confiable; RLS deny-by-default</td>
+        </tr>
+        <tr class="stride-T">
+          <td>T3</td>
+          <td>Tampering / Spoofing</td>
+          <td>XSS roba el token de sesión (A3)</td>
+          <td>CSP estricta vía <code>_headers</code> de CF (sin inline/eval, <code>connect-src</code> bloqueado); access token solo en memoria; refresh token cifrado con PIN en reposo (D4/D5); SW de <code>vite-plugin-pwa</code> desde el mismo origen</td>
+          <td>manejo seguro del token; HTTPS siempre</td>
+        </tr>
+        <tr class="stride-E">
+          <td>T4</td>
+          <td>Elevation of privilege</td>
+          <td>La clave <code>service_role</code> se filtra al bundle → bypass total de RLS</td>
+          <td>Separación de claves (REQ-SETUP-9); <code>service_role</code> solo en secretos de Edge Function; check en tiempo de build: <code>grep -r service_role dist/</code> vacío (V-4)</td>
+          <td>separación de claves; mínimo privilegio</td>
+        </tr>
+        <tr class="stride-S">
+          <td>T5</td>
+          <td>Spoofing</td>
+          <td>Fuerza bruta del PIN (10 000 combinaciones, A3)</td>
+          <td>El PIN desbloquea, no es una credencial (D5); compuerta criptográfica GCM + bloqueo exponencial + throttle replicado en servidor + PBKDF2 600k</td>
+          <td>PIN endurecido + rate-limiting + bloqueo</td>
+        </tr>
+        <tr class="stride-T">
+          <td>T6</td>
+          <td>Tampering (supply chain)</td>
+          <td>Dependencia maliciosa se ejecuta al instalar (ej. TanStack 2026-05-11)</td>
+          <td>pnpm v11 <code>minimumReleaseAge=1440</code> + <code>allowBuilds</code> vacío + lockfile comprometido + <code>pnpm audit</code> en CI (REQ-SETUP-3/4); React Router elegido sobre TanStack (D1)</td>
+          <td>cadena de suministro</td>
+        </tr>
+        <tr class="stride-R">
+          <td>T7</td>
+          <td>Repudiation</td>
+          <td>El operador niega una acción sobre dinero o stock</td>
+          <td>Tabla <code>audit_log</code> (autor + timestamp + detalle) en toda operación de dinero/stock — scaffold ahora como infraestructura de seguridad; triggers poblados por el cambio <code>data-model</code></td>
+          <td>trazabilidad / auditoría</td>
+        </tr>
+        <tr class="stride-I">
+          <td>T8</td>
+          <td>Info disclosure</td>
+          <td>Secretos comprometidos en git</td>
+          <td><code>.gitignore</code> cubre <code>.env*</code>/<code>.envrc</code>; solo <code>.env.example</code> se compromete (REQ-SETUP-10, V-5)</td>
+          <td>datos personales / mínimo privilegio</td>
+        </tr>
+        <tr class="stride-D">
+          <td>T9</td>
+          <td>DoS / pérdida</td>
+          <td>Pérdida de datos = pérdida de dinero (A1)</td>
+          <td>Backups gestionados de Supabase; plan de restauración documentado desde el día 1</td>
+          <td>continuidad: backups y restore</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Arquitectura de componentes — 9 pantallas del handoff</h2>
+
+    <p>Feature-sliced <code>src/features/*</code> (slices verticales) + componentes atómicos compartidos <code>src/components/</code> (primitivos de UI horizontales), con el patrón container/presentacional dentro de cada feature.</p>
+
+    <div class="tree"><span class="dir">src/</span>
+├── <span class="dir">components/</span>                 <span class="comment"># UI ATÓMICA compartida (presentacional, sin datos)</span>
+│   ├── <span class="dir">atoms/</span>                  <span class="comment"># Button, Input, PinDot, Badge, Icon</span>
+│   ├── <span class="dir">molecules/</span>              <span class="comment"># PinPad, SearchBar, ProductCard, KpiCard</span>
+│   └── <span class="dir">organisms/</span>              <span class="comment"># AppShell, NavBar, ProductGrid, TicketLines</span>
+├── <span class="dir">features/</span>                   <span class="comment"># SLICES VERTICALES (container = datos+lógica)</span>
+│   ├── <span class="dir">auth/</span>                   <span class="comment"># Pantalla 1 PIN → PinScreen + usePinUnlock + lockout store</span>
+│   ├── <span class="dir">dashboard/</span>              <span class="comment"># Pantalla 2 Dashboard → DashboardScreen + consultas KPI</span>
+│   ├── <span class="dir">venta/</span>                  <span class="comment"># Pantalla 3 Venta + 5 Ticket → SaleScreen, TicketView, sale-draft store</span>
+│   ├── <span class="dir">escaner/</span>                <span class="comment"># Pantalla 4 Escáner → ScannerScreen (Barcode Detection API)</span>
+│   ├── <span class="dir">catalogo/</span>               <span class="comment"># Pantalla 6 Catálogo + 7 Detalle → CatalogScreen, ProductDetailScreen</span>
+│   ├── <span class="dir">proveedor/</span>              <span class="comment"># Pantalla 8 Proveedor → SupplierScreen</span>
+│   └── <span class="dir">dte/</span>                    <span class="comment"># Pantalla 9 Importación DTE → DteImportScreen</span>
+├── <span class="dir">lib/</span>                        <span class="comment"># supabase.ts (D3), crypto.ts (D5 WebCrypto), router.tsx (D1)</span>
+├── <span class="dir">stores/</span>                     <span class="comment"># nanostores: auth.ts, lock.ts, saleDraft.ts, ui.ts (D2)</span>
+└── main.tsx                    <span class="comment"># RouterProvider + bootstrap de sesión Supabase</span></div>
+    <span class="path-note">src/</span>
+
+    <table>
+      <thead>
+        <tr><th>Pantalla</th><th>Slice de feature</th><th>Container</th><th>Notas</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 PIN</td>
+          <td><code>auth</code></td>
+          <td><code>PinScreen</code></td>
+          <td>Puerta de entrada a la app; desbloqueo D5; usa molécula <code>PinPad</code></td>
+        </tr>
+        <tr>
+          <td>2 Dashboard</td>
+          <td><code>dashboard</code></td>
+          <td><code>DashboardScreen</code></td>
+          <td>Tarjetas KPI (solo lectura)</td>
+        </tr>
+        <tr>
+          <td>3 Venta</td>
+          <td><code>venta</code></td>
+          <td><code>SaleScreen</code></td>
+          <td>Borrador de venta en store; RPC atómica al confirmar (futuro)</td>
+        </tr>
+        <tr>
+          <td>4 Escáner</td>
+          <td><code>escaner</code></td>
+          <td><code>ScannerScreen</code></td>
+          <td>Barcode Detection API del lado del cliente</td>
+        </tr>
+        <tr>
+          <td>5 Ticket</td>
+          <td><code>venta</code></td>
+          <td><code>TicketView</code></td>
+          <td>Render de la venta completada</td>
+        </tr>
+        <tr>
+          <td>6 Catálogo</td>
+          <td><code>catalogo</code></td>
+          <td><code>CatalogScreen</code></td>
+          <td>Organismo <code>ProductGrid</code></td>
+        </tr>
+        <tr>
+          <td>7 Detalle</td>
+          <td><code>catalogo</code></td>
+          <td><code>ProductDetailScreen</code></td>
+          <td>Campos de color preparados (propuesta §6)</td>
+        </tr>
+        <tr>
+          <td>8 Proveedor</td>
+          <td><code>proveedor</code></td>
+          <td><code>SupplierScreen</code></td>
+          <td>PII de proveedor → protegida por RLS (T2)</td>
+        </tr>
+        <tr>
+          <td>9 Importación DTE</td>
+          <td><code>dte</code></td>
+          <td><code>DteImportScreen</code></td>
+          <td>Parse XML en cliente o Edge Fn; RUT es PII (A2)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <div class="callout-title">Alcance</div>
+      Solo la estructura de carpetas y los límites entre módulos. Las especificaciones por componente son responsabilidad de los cambios de negocio futuros. Todo acceso a datos pasa por <code>src/lib/supabase.ts</code>; ningún componente importa <code>@supabase/supabase-js</code> directamente.
+    </div>
+  </section>
+
+  <section>
+    <h2>Archivos a crear o modificar</h2>
+
+    <table>
+      <thead>
+        <tr><th>Acción</th><th>Archivo</th><th>Descripción</th></tr>
+      </thead>
+      <tbody>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td><code>vite.config.ts</code></td>
+          <td>Vite + react + tailwind v4 + VitePWA (REQ-SETUP-2)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td><code>.npmrc</code></td>
+          <td><code>minimumReleaseAge=1440</code>, <code>allowBuilds=</code> (REQ-SETUP-3)</td>
+        </tr>
+        <tr class="fc-modify">
+          <td>Crear / Modificar</td>
+          <td><code>.gitignore</code></td>
+          <td>Ignorar <code>.env*</code>, <code>.envrc</code> (REQ-SETUP-10)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td><code>.env.example</code></td>
+          <td>Placeholders: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code> únicamente</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td><code>public/_headers</code></td>
+          <td>CSP + HSTS + redirect HTTP→HTTPS (CF Pages, D6, T3)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Cliente Supabase en <code>src/lib/</code></td>
+          <td>Cliente único, clave anon, sesión segura (D3/D4)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Módulo crypto en <code>src/lib/</code></td>
+          <td>WebCrypto PBKDF2/AES-GCM para desbloqueo PIN (D5)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Router en <code>src/lib/</code></td>
+          <td>React Router v7 <code>createBrowserRouter</code> con 9 rutas (D1)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Stores en <code>src/stores/</code></td>
+          <td>nanostores: auth, lock, saleDraft, ui (D2)</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Slices de feature en <code>src/features/</code></td>
+          <td>9 pantallas skeleton</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Componentes en <code>src/components/</code></td>
+          <td>Átomos, moléculas, organismos compartidos</td>
+        </tr>
+        <tr class="fc-create">
+          <td>Crear</td>
+          <td>Migración SQL en <code>supabase/migrations/</code></td>
+          <td><code>profiles</code> + RLS + <code>auth_attempts</code> + scaffold de <code>audit_log</code> (REQ-SETUP-6/7/8, T5/T7)</td>
+        </tr>
+      </tbody>
+    </table>
+    <span class="path-note">supabase/migrations/20260621000000_initial_scaffold.sql</span>
+  </section>
+
+  <section>
+    <h2>Estrategia de pruebas</h2>
+
+    <table>
+      <thead>
+        <tr><th>Capa</th><th>Qué se prueba</th><th>Método</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Unitario</td>
+          <td>Derivación de clave PIN en <code>crypto.ts</code> (PBKDF2), ciclo cifrado/descifrado, máquina de estados de bloqueo (D5)</td>
+          <td>Vitest, WebCrypto en jsdom/node</td>
+        </tr>
+        <tr>
+          <td>Integración</td>
+          <td>RLS deny-by-default (anon a <code>profiles</code> → 0 filas, V-7); migración aplicada (V-6)</td>
+          <td>Supabase local / solicitud PostgREST</td>
+        </tr>
+        <tr>
+          <td>Build / seguridad</td>
+          <td><code>pnpm build</code> con código de salida 0 (V-1); <code>grep service_role dist/</code> vacío (V-4); <code>.env*</code> ignorado (V-5); <code>pnpm audit</code> limpio (V-9)</td>
+          <td>Shell en CI</td>
+        </tr>
+        <tr>
+          <td>E2E (ligero)</td>
+          <td>Flujo feliz de desbloqueo PIN + bloqueo tras 5 fallos</td>
+          <td>Playwright (diferido al apply si el tiempo lo permite)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Preguntas abiertas — resueltas</h2>
+
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Pregunta</th><th>Resolución</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>OQ-1</td>
+          <td>¿Vercel o Cloudflare Pages?</td>
+          <td><span class="badge badge-resolved">Resuelto</span> <strong>Cloudflare Pages</strong> — confirmado por el usuario el 2026-06-21. Ver D6.</td>
+        </tr>
+        <tr>
+          <td>OQ-2</td>
+          <td>¿Scaffold <code>audit_log</code> ahora o después?</td>
+          <td><span class="badge badge-resolved">Resuelto</span> <strong>Scaffold vacío ahora</strong> en <code>setup-stack</code> como infraestructura de seguridad (T7). Los triggers se añaden en el cambio <code>data-model</code>.</td>
+        </tr>
+        <tr>
+          <td>OQ-3</td>
+          <td>¿PBKDF2 600k iteraciones o Argon2id?</td>
+          <td><span class="badge badge-resolved">Resuelto</span> <strong>PBKDF2 600k iteraciones</strong> (WebCrypto nativo, sin dependencia de WASM). Argon2id se revisita si el perfil de amenazas aumenta.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>
