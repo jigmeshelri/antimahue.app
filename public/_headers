@@ -1,0 +1,34 @@
+/*
+  # Security headers — Cloudflare Pages (D6, T3)
+  # Applied to every response from the origin.
+
+  # Prevent clickjacking
+  X-Frame-Options: DENY
+
+  # Prevent MIME-type sniffing
+  X-Content-Type-Options: nosniff
+
+  # HTTPS only, 1 year, include subdomains
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+  # Referrer policy — no referrer for cross-origin requests
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Content Security Policy (T3 mitigation — no unsafe-inline/eval for scripts)
+  #
+  # default-src 'self'          → baseline deny-all, only same-origin
+  # connect-src *.supabase.co   → Supabase REST/Auth/Realtime/Storage
+  # script-src 'self'           → no unsafe-inline, no unsafe-eval (XSS mitigation)
+  # style-src 'self' 'unsafe-inline' → Tailwind v4 injects styles at runtime;
+  #                               'unsafe-inline' is required for Tailwind CSS-in-JS.
+  #                               EXCEPTION DOCUMENTED: remove when Tailwind ships static-only mode.
+  # img-src 'self' data: blob:  → local images + canvas data URIs + barcode blobs
+  # font-src 'self'             → local fonts only
+  # frame-ancestors 'none'      → equivalent to X-Frame-Options: DENY but CSP-level
+  # base-uri 'self'             → prevent base tag injection
+  # form-action 'self'          → prevent form hijacking
+  #
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://*.supabase.co; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+  # Permissions policy — disable unused browser features
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
