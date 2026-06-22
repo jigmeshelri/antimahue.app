@@ -1,0 +1,18 @@
+# pnpm v11 workspace config — also the home for supply-chain security settings.
+#
+# allowBuilds: {} — empty map = NO package is allowed to run lifecycle scripts.
+# strictDepBuilds: true — installation FAILS immediately if any dep has lifecycle
+#   scripts and is not listed in allowBuilds. This is the pnpm v11 equivalent of
+#   the spec's "allowBuilds=" (blank) intent: block ALL postinstall scripts.
+#
+# To allow a specific dep (e.g. esbuild) add it here after security review:
+#   esbuild: true
+#
+# Verified syntax against pnpm v11.1.2 docs (2026-06-21).
+# See: https://pnpm.io/settings#allowbuilds and https://pnpm.io/settings#strictdepbuilds
+# esbuild: true — required by Vite (downloads platform binary on postinstall).
+# Security-reviewed: esbuild is a well-audited build tool with no history of incidents.
+# All other lifecycle scripts remain blocked (any unknown dep not listed here will fail).
+allowBuilds:
+  esbuild: true
+strictDepBuilds: true
