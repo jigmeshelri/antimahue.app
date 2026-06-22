@@ -55,7 +55,7 @@ updated_at: "2026-06-21T23:44:27Z"
 
 - [x] 5.1 Create `public/_headers` file with strict CSP per T3 mitigation: `default-src 'self'`, `connect-src 'self' https://*.supabase.co`, `script-src 'self'` (no `unsafe-inline`, no `unsafe-eval`), `style-src 'self' 'unsafe-inline'` (Tailwind runtime needs this — document the exception), `img-src 'self' data: blob:`, `frame-ancestors 'none'`. Also include `Strict-Transport-Security: max-age=31536000; includeSubDomains`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
 - [x] 5.2 Create `wrangler.jsonc` (CF Pages config) with `pages_build_output_dir = "dist"` and `compatibility_date` (JSON format per wrangler skill — `wrangler.toml` is legacy; JSONC is current). Instructions for CF dashboard are documented inline.
-- [ ] 5.3 Configure CF Pages project in Cloudflare dashboard: connect repo, set env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in CF Pages settings (REQ-SETUP-9 — no `service_role` in CF Pages env vars client-side). REQUIRES HUMAN — needs CF dashboard credentials.
+- [x] 5.3 Deploy to Cloudflare (Workers Static Assets, not Pages classic — see commit 8e8c512). DEPLOYED + VERIFIED at runtime (2026-06-22): https://antimahue-app.sergio-donoso-2d1.workers.dev → HTTP 200; security headers applied (CSP, HSTS preload, X-Frame DENY, nosniff, Referrer-Policy, Permissions-Policy); SPA fallback OK (`/venta` → 200); `<title>Antimahue POS</title>`. Env vars `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` set in CF; no `service_role` client-side.
 
 ## Phase 6: Supply-chain Guards & Env Validation (REQ-SETUP-3/4/9/10)
 
