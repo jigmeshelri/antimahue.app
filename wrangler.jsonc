@@ -1,23 +1,41 @@
-// Cloudflare Pages deploy config (D6 — setup-stack)
-// Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+// Workers Static Assets deploy config (D6 — setup-stack)
+// Docs: https://developers.cloudflare.com/workers/static-assets/
 //
-// This file configures the Cloudflare Pages project build.
-// It is NOT a Workers config — Antimahue is a pure static SPA (REQ-SETUP-11).
+// This file configures a Workers Static Assets deployment (pure static SPA, REQ-SETUP-11).
+// CF is migrating Pages → Workers Static Assets; this config uses the Workers Builds path
+// that the CF dashboard triggers via `wrangler deploy` (not `wrangler pages deploy`).
+//
+// Security headers (CSP/HSTS/X-Frame-Options) are applied via public/_headers
+// (copied to dist/_headers by Vite). Workers Static Assets respects _headers for
+// static asset responses: https://developers.cloudflare.com/workers/static-assets/headers/
+//
+// SPA routing: not_found_handling: "single-page-application" serves /index.html (200 OK)
+// for any unmatched route, enabling React Router v7 client-side routing.
 //
 // To deploy manually:
-//   pnpm dlx wrangler pages deploy dist --project-name antimahue
+//   pnpm dlx wrangler deploy
 //
-// CF Pages dashboard setup (task 5.3 — requires human with CF credentials):
-//   1. Connect repo at https://dash.cloudflare.com → Pages → Create project → Connect to Git
-//   2. Set "Build command":          pnpm build
-//   3. Set "Build output directory": dist
-//   4. Set env vars in Pages settings (NOT in this file):
+// CF dashboard setup (task 5.3 — requires human with CF credentials):
+//   1. Connect repo at https://dash.cloudflare.com → Workers & Pages → Create → Workers
+//      (or use existing project connected via "Workers Builds" / Git integration)
+//   2. Build command:          pnpm build
+//   3. Build output directory: dist  (wrangler reads assets.directory from this file)
+//   4. Set env vars in Worker settings (NOT in this file):
 //        VITE_SUPABASE_URL      → <your Supabase project URL>
-//        VITE_SUPABASE_ANON_KEY → <your Supabase anon key>
+//        VITE_SUPABASE_PUBLISHABLE_KEY → <your Supabase publishable key (sb_publishable_...)>
 //      NEVER add SUPABASE_SERVICE_ROLE_KEY here (REQ-SETUP-9, T4).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "antimahue",
-  "pages_build_output_dir": "dist",
-  "compatibility_date": "2026-06-21"
+  "compatibility_date": "2026-06-21",
+  // No "main" field — assets-only Worker (no Worker script required for pure SPA).
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#assets
+  "assets": {
+    "directory": "./dist",
+    // Serve index.html (200 OK) for any route not matched by a static file.
+    // Required for React Router v7 client-side routing (all routes handled in browser).
+    "not_found_handling": "single-page-application",
+    // auto-trailing-slash: /about → /about/ → about.html (standard SPA behavior).
+    "html_handling": "auto-trailing-slash"
+  }
 }
