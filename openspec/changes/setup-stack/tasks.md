@@ -27,16 +27,16 @@ updated_at: "2026-06-21T23:44:27Z"
 - [x] 2.1 Create Supabase project in region `sa-east-1` (São Paulo). Enable Auth + Storage + PostgREST (REQ-SETUP-5). Confirm region in project settings dashboard.
 - [ ] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; add `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix — REQ-SETUP-9).
 - [ ] 2.3 Create `.env.example` with placeholder values only (`VITE_SUPABASE_URL=`, `VITE_SUPABASE_ANON_KEY=`) — this is the ONLY env file committed to git (REQ-SETUP-10).
-- [ ] 2.4 Create `supabase/migrations/` directory; write `20260621000000_initial_scaffold.sql` (populated in Phase 3).
+- [x] 2.4 Create `supabase/migrations/` directory; write `20260621000000_initial_scaffold.sql` (populated in Phase 3).
 
 ## Phase 3: Security Scaffold — SQL Migration (REQ-SETUP-6/7/8, D4/D5, T2/T5/T7)
 
-- [ ] 3.1 Write `profiles` table in migration per REQ-SETUP-8 exact schema: `id uuid PK → auth.users(id) ON DELETE CASCADE`, `rol text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin'))`, `created_at timestamptz DEFAULT now()`.
-- [ ] 3.2 Add `ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;` — deny-by-default (no policy = no access, REQ-SETUP-7, T2).
-- [ ] 3.3 Write the signup trigger SQL (intentionally omitted from spec, MUST be here): `CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$ BEGIN INSERT INTO public.profiles(id) VALUES (NEW.id); RETURN NEW; END; $$ LANGUAGE plpgsql SECURITY DEFINER;` + `CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();` (satisfies REQ-SETUP-8 scenario "profile row created on user signup").
-- [ ] 3.4 Create `auth_attempts` table: `(id uuid PK DEFAULT gen_random_uuid(), user_id uuid REFERENCES auth.users(id), attempted_at timestamptz DEFAULT now(), success boolean NOT NULL)`. Enable RLS deny-by-default. Used by D5 server-mirrored throttle (T5 defense in depth).
-- [ ] 3.5 Create empty `audit_log` table (OQ-2 RESOLVED): `(id uuid PK DEFAULT gen_random_uuid(), actor_id uuid REFERENCES auth.users(id), action text NOT NULL, entity text, entity_id text, detail jsonb, created_at timestamptz DEFAULT now())`. Enable RLS deny-by-default (T7). Per-table triggers deferred to `data-model` change.
-- [ ] 3.6 Verify migration applies cleanly: `supabase db push` (or Supabase Dashboard SQL editor) → `supabase migration list` shows migration as applied (V-6 precursor).
+- [x] 3.1 Write `profiles` table in migration per REQ-SETUP-8 exact schema: `id uuid PK → auth.users(id) ON DELETE CASCADE`, `rol text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin'))`, `created_at timestamptz DEFAULT now()`.
+- [x] 3.2 Add `ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;` — deny-by-default (no policy = no access, REQ-SETUP-7, T2).
+- [x] 3.3 Write the signup trigger SQL (intentionally omitted from spec, MUST be here): `CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$ BEGIN INSERT INTO public.profiles(id) VALUES (NEW.id); RETURN NEW; END; $$ LANGUAGE plpgsql SECURITY DEFINER;` + `CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();` (satisfies REQ-SETUP-8 scenario "profile row created on user signup"). Also: REVOKE EXECUTE FROM PUBLIC (advisor lint 0028/0029 — trigger functions must not be PostgREST-callable).
+- [x] 3.4 Create `auth_attempts` table: `(id uuid PK DEFAULT gen_random_uuid(), user_id uuid REFERENCES auth.users(id), attempted_at timestamptz DEFAULT now(), success boolean NOT NULL)`. Enable RLS deny-by-default. Used by D5 server-mirrored throttle (T5 defense in depth).
+- [x] 3.5 Create empty `audit_log` table (OQ-2 RESOLVED): `(id uuid PK DEFAULT gen_random_uuid(), actor_id uuid REFERENCES auth.users(id), action text NOT NULL, entity text, entity_id text, detail jsonb, created_at timestamptz DEFAULT now())`. Enable RLS deny-by-default (T7). Per-table triggers deferred to `data-model` change.
+- [x] 3.6 Verify migration applies cleanly: applied via Supabase MCP `apply_migration` → `list_migrations` shows `20260621000000_initial_scaffold` as applied; `list_tables` confirms all 3 tables with `rls_enabled: true` (V-6 precursor).
 
 ## Phase 4: App Shell & Routing Skeleton (REQ-SETUP-1/2, D1/D2)
 
