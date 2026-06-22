@@ -19,7 +19,7 @@ project:
         - Edge Functions
       region: sa-east-1 (São Paulo)
     host:
-      target: TBD  # Vercel | Cloudflare Pages — reversible (static bundle, edge)
+      target: Cloudflare (Workers Static Assets)  # LIVE en antimahue.com — reversible (bundle estático, edge)
     package_manager: pnpm@11
     principles:
       - security-first

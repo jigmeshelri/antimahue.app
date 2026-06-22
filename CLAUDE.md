@@ -10,9 +10,9 @@ PWA de **inventario y punto de venta** para la tienda de lanas, algodón, hilos,
 
 Principios de diseño que condicionan toda decisión técnica (de `docs/product-definition.md`): cero fricción (≤2 toques por tarea frecuente), lenguaje familiar ("ovillo", "madeja", "palillo" — no jerga de sistemas), teléfono-first, tolerante a errores (deshacer en vez de diálogos de confirmación).
 
-## Estado del repo: `setup-stack` en `apply` — el scaffold de la SPA YA EXISTE
+## Estado del repo: `setup-stack` 48/48 — deployado en producción (`antimahue.com`)
 
-El bootstrapping arrancó (2026-06-21, apply batch 1). Existe `package.json` (pnpm@11), Vite 6 + React 19 + Tailwind 4 + TS + `vite-plugin-pwa`, el árbol `src/` (atomic design: `components/{atoms,molecules,organisms}` + `features/` + `lib/` + `stores/`), `vite.config.ts`, `tsconfig*.json`, `index.html`, `public/_headers` (CSP). **El build da verde** (PWA generada).
+El bootstrapping está COMPLETO (apply 48/48, cerrado 2026-06-22). Existe `package.json` (pnpm@11), Vite 6 + React 19 + Tailwind 4 + TS + `vite-plugin-pwa`, el árbol `src/` (atomic design: `components/{atoms,molecules,organisms}` + `features/` + `lib/` + `stores/`), `vite.config.ts`, `tsconfig*.json`, `index.html`, `public/_headers` (CSP), el scaffold de seguridad de la DB en `supabase/migrations/` (`profiles` + trigger de signup + RLS deny-by-default + `audit_log`), y `wrangler.jsonc` (Workers Static Assets). **El build da verde** (PWA generada) y la app está **LIVE en `antimahue.com`** (Cloudflare Workers Static Assets, HTTP 200 + CSP/HSTS + SPA fallback).
 
 Comandos reales (de `package.json`):
 - `pnpm dev` — dev server Vite (`http://localhost:5173`).
@@ -20,7 +20,7 @@ Comandos reales (de `package.json`):
 - `pnpm typecheck` — typecheck sin emitir.
 - `pnpm preview` — sirve el `dist/` buildeado.
 
-**Todavía NO hay tests** (no inventes `pnpm test` — falla). Pendiente del `apply` (ver `diario/2026-06-21.md` + `setup-stack/tasks.md`, 23/48 done): el SQL del scaffold de seguridad (`supabase/migrations/` está VACÍO — `profiles` + trigger de signup + RLS deny-by-default + `audit_log`), el **commit inicial** (todo sin commitear aún), `wrangler`/CF Pages config, y la Fase 7 de aceptación.
+**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El `apply` está cerrado (48/48, ver `diario/2026-06-22.md`); **lo único pendiente es el `sdd-archive` del change** (diferido a sesión con contexto limpio — sincroniza delta specs → main specs y cierra el change). Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
 
 ## Metodología: Spec-Driven Development (SDD) vía openspec
 
@@ -36,7 +36,7 @@ Changes activos al momento de escribir esto (verificá `state.yaml` actual, esto
 
 | Change | Fase actual | Qué es |
 | --- | --- | --- |
-| `setup-stack` | `apply` / in_progress (23/48 tasks) | Bootstrapping de la SPA + scaffold de seguridad. Stack **CERRADO** (ver abajo). |
+| `setup-stack` | `apply` 48/48 done + deployado — pendiente `sdd-archive` | Bootstrapping de la SPA + scaffold de seguridad. Stack **CERRADO** (ver abajo). |
 | `color-palette-assistant` | proposal completo, `specs` pending | Asistente de armonía cromática que mapea teoría de color contra stock real. |
 
 La orquestación SDD del user (skills `sdd-*`, `/sdd-*`) genera artefactos en **doble formato** cuando aplica: `.html` rico para revisión humana + `.md` agent-optimized para el LLM. Ver el global CLAUDE.md del user para la convención completa.
@@ -47,7 +47,7 @@ La vieja tensión Astro+FastAPI vs React+Vite **se resolvió** a favor del stack
 
 - **Frontend:** SPA con **Vite 6 + React 19 + Tailwind 4 + TypeScript**, PWA vía `vite-plugin-pwa`. Routing con **React Router v7** (NO TanStack — descartado por el incidente supply-chain del 2026-05-11). Estado con **nanostores**. Atomic design en `src/components/`.
 - **Backend:** **Supabase directo** (PostgreSQL + Auth + Storage + RLS + PostgREST + Edge Functions), región `sa-east-1` (São Paulo), ref `aruteznqhdaaxxvllvzm`. **Sin FastAPI, sin Railway, sin Docker en prod, sin TimescaleDB** — Antimahue no tiene visión-IA ni series temporales que los justifiquen.
-- **Host:** Cloudflare Pages (bundle estático en el edge; reversible).
+- **Host:** Cloudflare **Workers Static Assets** (bundle estático en el edge; reversible). LIVE en `antimahue.com`. NO Pages classic: el dashboard nuevo de CF corre `wrangler deploy` (Workers Builds), por eso `wrangler.jsonc` usa `assets.directory` + `not_found_handling: single-page-application`, no `pages_build_output_dir`.
 - **Package manager:** **pnpm 11** secure-by-default: `minimumReleaseAge=1440` en `.npmrc`; `allowBuilds` (solo `esbuild`, security-reviewed) + `strictDepBuilds: true` en `pnpm-workspace.yaml` (NO en `.npmrc` — esa key no existe ahí en v11).
 - **Seguridad = principio rector:** maneja dinero + datos de terceros → RLS deny-by-default, cliente no confiable (autorización en Postgres, no en el JS), separación de claves anon/service_role, PIN endurecido con PBKDF2. Presente en cada fase, no al final.
 
