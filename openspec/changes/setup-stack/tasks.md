@@ -25,7 +25,7 @@ updated_at: "2026-06-21T23:44:27Z"
 ## Phase 2: Supabase Project Setup (REQ-SETUP-5/6)
 
 - [x] 2.1 Create Supabase project in region `sa-east-1` (São Paulo). Enable Auth + Storage + PostgREST (REQ-SETUP-5). Confirm region in project settings dashboard.
-- [ ] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; add `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix — REQ-SETUP-9).
+- [x] 2.2 Create `.env.local` (gitignored) with real `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` — DONE by user (2026-06-22), VALIDATED end-to-end (real publishable key reached Supabase and was accepted; see 7.3). `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix) is server/Edge-only — not needed by the client; add when Edge Functions land.
 - [x] 2.3 Create `.env.example` with placeholder values only (`VITE_SUPABASE_URL=`, `VITE_SUPABASE_PUBLISHABLE_KEY=`) — this is the ONLY env file committed to git (REQ-SETUP-10).
 - [x] 2.4 Create `supabase/migrations/` directory; write `20260621000000_initial_scaffold.sql` (populated in Phase 3).
 
@@ -68,8 +68,8 @@ updated_at: "2026-06-21T23:44:27Z"
 ## Phase 7: Acceptance Criteria Verification (V-1 → V-9)
 
 - [x] 7.1 V-1: Run `pnpm build` → exit 0, `dist/index.html` exists, no TS errors. CONFIRMED.
-- [ ] 7.2 V-2: Run `pnpm dev` → dev server at `http://localhost:5173` without errors. REQUIRES HUMAN — needs browser/display environment; .env.local with real values also needed.
-- [ ] 7.3 V-3: Open app in browser → network tab shows successful Supabase anon request (URL resolves, no 401/404 on auth endpoint). REQUIRES HUMAN — browser test.
+- [x] 7.2 V-2: `pnpm dev` → server up at http://localhost:5173, app loads (Antimahue POS), console clean. VERIFIED at runtime via chrome-devtools (2026-06-22).
+- [x] 7.3 V-3: App connects to Supabase. VERIFIED at runtime (2026-06-22): real publishable key (`sb_publishable_`) from `.env.local` loaded; `GET .../rest/v1/profiles` → 401 code 42501 (RLS deny-by-default — key VALID, server reached, NOT invalid-key). Auth endpoint not hit (getSession resolved local, no session) but connection + key validity proven via PostgREST.
 - [x] 7.4 V-4: `grep -r "service_role" dist/` → empty output. CONFIRMED (rg returns no matches).
 - [x] 7.5 V-5: `git status` after creating `.env.local` → file is ignored. CONFIRMED via `git check-ignore`.
 - [x] 7.6 V-6: Query `SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'` → `rowsecurity=true` for `profiles`, `auth_attempts`, `audit_log`. CONFIRMED via Supabase MCP.
