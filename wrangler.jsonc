@@ -26,7 +26,7 @@
 //      NEVER add SUPABASE_SERVICE_ROLE_KEY here (REQ-SETUP-9, T4).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "antimahue",
+  "name": "antimahue-app",
   "compatibility_date": "2026-06-21",
   // No "main" field — assets-only Worker (no Worker script required for pure SPA).
   // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#assets
