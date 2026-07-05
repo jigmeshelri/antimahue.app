@@ -10,7 +10,7 @@ PWA de **inventario y punto de venta** para la tienda de lanas, algodón, hilos,
 
 Principios de diseño que condicionan toda decisión técnica (de `docs/product-definition.md`): cero fricción (≤2 toques por tarea frecuente), lenguaje familiar ("ovillo", "madeja", "palillo" — no jerga de sistemas), teléfono-first, tolerante a errores (deshacer en vez de diálogos de confirmación).
 
-## Estado del repo: `setup-stack` 48/48 — deployado en producción (`antimahue.com`)
+## Estado del repo: `setup-stack` cerrado y archivado — LIVE en producción (`antimahue.com`)
 
 El bootstrapping está COMPLETO (apply 48/48, cerrado 2026-06-22). Existe `package.json` (pnpm@11), Vite 6 + React 19 + Tailwind 4 + TS + `vite-plugin-pwa`, el árbol `src/` (atomic design: `components/{atoms,molecules,organisms}` + `features/` + `lib/` + `stores/`), `vite.config.ts`, `tsconfig*.json`, `index.html`, `public/_headers` (CSP), el scaffold de seguridad de la DB en `supabase/migrations/` (`profiles` + trigger de signup + RLS deny-by-default + `audit_log`), y `wrangler.jsonc` (Workers Static Assets). **El build da verde** (PWA generada) y la app está **LIVE en `antimahue.com`** (Cloudflare Workers Static Assets, HTTP 200 + CSP/HSTS + SPA fallback).
 
@@ -20,7 +20,7 @@ Comandos reales (de `package.json`):
 - `pnpm typecheck` — typecheck sin emitir.
 - `pnpm preview` — sirve el `dist/` buildeado.
 
-**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El `apply` está cerrado (48/48, ver `diario/2026-06-22.md`); **lo único pendiente es el `sdd-archive` del change** (diferido a sesión con contexto limpio — sincroniza delta specs → main specs y cierra el change). Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
+**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El change `setup-stack` está **cerrado y archivado** (apply 48/48 + `sdd-archive` ejecutados el 2026-06-22, ver `diario/2026-06-22.md`): vive en `openspec/changes/archive/2026-06-22-setup-stack/` y su spec consolidada quedó en `openspec/specs/setup-stack/spec.md`. Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
 
 ## Metodología: Spec-Driven Development (SDD) vía openspec
 
@@ -36,8 +36,9 @@ Changes activos al momento de escribir esto (verificá `state.yaml` actual, esto
 
 | Change | Fase actual | Qué es |
 | --- | --- | --- |
-| `setup-stack` | `apply` 48/48 done + deployado — pendiente `sdd-archive` | Bootstrapping de la SPA + scaffold de seguridad. Stack **CERRADO** (ver abajo). |
 | `color-palette-assistant` | proposal completo, `specs` pending | Asistente de armonía cromática que mapea teoría de color contra stock real. |
+
+(`setup-stack` ya no es un change activo: se archivó el 2026-06-22 — ver "Estado del repo" arriba. Los changes cerrados viven en `openspec/changes/archive/`.)
 
 La orquestación SDD del user (skills `sdd-*`, `/sdd-*`) genera artefactos en **doble formato** cuando aplica: `.html` rico para revisión humana + `.md` agent-optimized para el LLM. Ver el global CLAUDE.md del user para la convención completa.
 
