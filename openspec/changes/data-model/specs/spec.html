@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Especificación: Data Model — Antimahue</title>
+<style>
+  /* ─── Paleta Antimahue ─────────────────────────────────────────────────── */
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle { color: #d4b89a; font-size: .9rem; margin-top: .4rem; }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-must      { background: var(--color-danger-lt);  color: var(--color-danger); border: 1px solid var(--color-danger); }
+  .badge-should    { background: var(--color-info-lt);    color: var(--color-info); border: 1px solid var(--color-info); }
+
+  .toc {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0;
+    font-size: .87rem;
+  }
+  .toc a { color: var(--color-terracotta); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.4rem 0 .5rem;
+  }
+  h4 {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 1rem 0 .3rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  p { margin-bottom: .8rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security {
+    border-color: var(--color-danger);
+    background: var(--color-danger-lt);
+  }
+  .callout-security .callout-title {
+    font-weight: 700;
+    color: var(--color-danger);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-info {
+    border-color: var(--color-info);
+    background: var(--color-info-lt);
+  }
+  .callout-info .callout-title {
+    font-weight: 700;
+    color: var(--color-info);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-note {
+    border-color: var(--color-terracotta);
+    background: var(--color-terracota-lt);
+  }
+  .callout-note .callout-title {
+    font-weight: 700;
+    color: var(--color-terracotta);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  /* ─── Bloque de requisito ────────────────────────────────────────────────── */
+  .req {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: 1.4rem 0;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+  .req-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+  .req-id {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    background: var(--color-wood-lt);
+    padding: .15em .5em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .req-title { font-weight: 600; font-size: .95rem; }
+  .req-body { padding: .85rem 1rem; }
+  .req-body > *:last-child { margin-bottom: 0; }
+
+  /* ─── Escenario ──────────────────────────────────────────────────────────── */
+  .scenario {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    margin-top: .8rem;
+    font-size: .87rem;
+  }
+  .scenario-title {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .5rem;
+  }
+  .scenario-step { margin-bottom: .25rem; }
+  .scenario-step .keyword { font-weight: 600; color: var(--color-terracotta); min-width: 3.5rem; display: inline-block; }
+
+  /* ─── Encabezado de dominio ──────────────────────────────────────────────── */
+  .domain-banner {
+    background: linear-gradient(135deg, var(--color-wood) 0%, var(--color-terracotta) 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: .6rem 1rem;
+    font-weight: 700;
+    font-size: .82rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · data-model</div>
+  <h1>Especificación: modelo de datos, RLS y RPC de dominio</h1>
+  <div class="subtitle">Catálogo, venta, configuración y seguridad — requisitos verificables, sin UI</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Especificación</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Depende de:</strong> Propuesta (D1–D7 aprobadas)</span>
+  <span><strong>Cierra:</strong> REQ-SETUP-7 / V-7 de <code>setup-stack</code></span>
+</div>
+
+<main class="main-content">
+
+  <div class="callout callout-security">
+    <div class="callout-title">Principio rector heredado de setup-stack</div>
+    El bundle del cliente no es confiable. Toda la autorización de dinero y stock vive en Postgres —RLS, CHECK y funciones RPC—, nunca solo en JavaScript. Esta especificación entrega lo que <code>setup-stack</code> dejó explícitamente diferido: los <code>GRANT</code> y las políticas con <code>auth.uid()</code> sobre tablas de negocio.
+  </div>
+
+  <div class="toc">
+    <strong>Dominios de esta especificación:</strong>
+    <ul>
+      <li><a href="#dominio-catalogo">Catálogo</a> (4 requisitos)</li>
+      <li><a href="#dominio-venta">Venta</a> (4 requisitos)</li>
+      <li><a href="#dominio-configuracion">Configuración</a> (3 requisitos)</li>
+      <li><a href="#dominio-seguridad">Seguridad</a> (5 requisitos)</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: CATÁLOGO ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-catalogo">Dominio: catálogo</div>
+  <p>Datos del catálogo de productos: columnas visibles para el vendedor, aislamiento de costo y proveedor en una tabla separada (decisión D2), atributo de color estructurado (D5) y la función que escribe ambas tablas en una sola transacción.</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CAT-1</span>
+      <span class="req-title">Columnas de <code>productos</code> seguras para el vendedor</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>La tabla <code>productos</code> contiene únicamente columnas visibles para cualquier rol. <code>costo</code> y <code>proveedor_id</code> no existen ahí — se movieron a <code>producto_costos</code> (D2). El stock nunca puede quedar en negativo.</p>
+      <table>
+        <thead><tr><th>Columna</th><th>Tipo</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>uuid PK</td><td><code>gen_random_uuid()</code></td></tr>
+          <tr><td>sku</td><td>text</td><td>campo de código de barras (D1)</td></tr>
+          <tr><td>nombre, tipo, marca, grosor</td><td>text</td><td></td></tr>
+          <tr><td>color_nombre, color_hex</td><td>text, NULL</td><td>REQ-DM-CAT-4</td></tr>
+          <tr><td>precio_venta, peso_metraje</td><td>numeric</td><td></td></tr>
+          <tr><td>stock</td><td>int</td><td><code>CHECK (stock >= 0)</code></td></tr>
+          <tr><td>stock_minimo</td><td>int, NULL</td><td>override — ver dominio configuración</td></tr>
+          <tr><td>imagen_url</td><td>text, NULL</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <div class="scenario">
+        <div class="scenario-title">Escenario: producto creado sin columnas de costo</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que un cliente inserta una fila vía <code>crear_producto</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se inspecciona la fila devuelta</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> no tiene columna <code>costo</code> ni <code>proveedor_id</code></div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: stock negativo rechazado por el constraint de la tabla</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el CHECK <code>stock >= 0</code> en <code>productos</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> un UPDATE intenta dejar <code>stock = -1</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza por violación del constraint</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CAT-2</span>
+      <span class="req-title"><code>producto_costos</code> — tabla 1:1 solo para administrador</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>producto_costos(producto_id uuid PK/FK → productos.id, costo numeric NOT NULL, proveedor_id uuid NULL → proveedores.id, updated_at)</code>. La exposición de lectura y escritura es exclusiva para el administrador (detalle en el dominio seguridad, REQ-DM-SEG-3).</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un costo por producto</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>producto_id</code> es PK y FK a <code>productos.id</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se inserta una segunda fila con el mismo <code>producto_id</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres rechaza la clave duplicada</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CAT-3</span>
+      <span class="req-title">Tabla <code>proveedores</code></span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>proveedores(id uuid PK, nombre text NOT NULL, contacto text NULL, telefono text NULL, created_at)</code>. Misma exposición admin-only que <code>producto_costos</code>.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: proveedor con datos de contacto</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una fila creada con <code>nombre</code> y <code>telefono</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> un administrador la lee</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> ambos campos están presentes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CAT-4</span>
+      <span class="req-title">Color estructurado desde el día 1</span>
+      <span class="badge badge-should">SHOULD</span>
+    </div>
+    <div class="req-body">
+      <p><code>color_nombre text NULL</code> + <code>color_hex text NULL CHECK (color_hex ~ '^#[0-9A-Fa-f]{6}$')</code>. Ambas columnas nulables — etiquetar un color nunca bloquea la creación del producto.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: producto creado sin color</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que ambas columnas quedan en NULL</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>crear_producto</code> se ejecuta sin campos de color</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la inserción se completa sin error</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: hexadecimal inválido rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el CHECK sobre <code>color_hex</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se intenta un valor como <code>"azul"</code> o <code>"#12"</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza por violación del constraint</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CAT-5</span>
+      <span class="req-title">RPC atómica <code>crear_producto</code> / <code>actualizar_producto</code></span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Función SECURITY DEFINER (<code>SET search_path = ''</code>) que escribe <code>productos</code> y <code>producto_costos</code> en una sola transacción. Un producto con datos de costo no puede quedar en <code>productos</code> sin su fila correspondiente en <code>producto_costos</code>, ni al revés.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: costo inválido revierte toda la escritura</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>crear_producto</code> se llama con un <code>costo</code> negativo</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la función se ejecuta</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la transacción se revierte completa</div>
+        <div class="scenario-step"><span class="keyword">Y</span> no queda ninguna fila huérfana en <code>productos</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: VENTA ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-venta">Dominio: venta</div>
+  <p>Ciclo de vida de la venta: <code>ventas</code>/<code>venta_items</code> con precio congelado (D4), el ledger tipado de stock <code>movimientos_stock</code> (D3) y las dos funciones que hacen valer la integridad de dinero y stock del lado del servidor.</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-VENTA-1</span>
+      <span class="req-title"><code>ventas</code> / <code>venta_items</code> — precio congelado</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>ventas(id, actor_id → auth.users, medio_pago text CHECK, total numeric, estado text CHECK IN ('confirmada','deshecha') DEFAULT 'confirmada', created_at)</code> y <code>venta_items(id, venta_id, producto_id, cantidad int CHECK (> 0), precio_unitario)</code>. El <code>precio_unitario</code> se toma en el momento de la venta y no cambia si después se actualiza <code>productos.precio_venta</code>.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el precio del ticket no cambia tras una actualización posterior</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una venta confirmada con <code>precio_unitario = 1000</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>productos.precio_venta</code> se actualiza después a <code>1200</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la fila de <code>venta_items</code> sigue mostrando <code>1000</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-VENTA-2</span>
+      <span class="req-title">Ledger tipado <code>movimientos_stock</code></span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>movimientos_stock(id, producto_id, tipo text CHECK IN ('venta','deshacer_venta','compra','ajuste'), cantidad, referencia_id NULL, actor_id, created_at)</code>. El valor <code>'compra'</code> queda reservado desde ahora, aunque todavía no exista la tabla de compras — prepara el terreno para el futuro import de DTE sin tocar el contrato del ledger.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el movimiento se escribe en la misma transacción que el stock</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>confirmar_venta</code> se ejecuta para una venta</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> termina</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> <code>productos.stock</code> baja y existe una fila de <code>movimientos_stock</code> con <code>tipo='venta'</code> que referencia esa venta</div>
+        <div class="scenario-step"><span class="keyword">Y</span> ambos cambios son visibles juntos — nunca desde dos puntos de entrada distintos (riesgo R1)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-VENTA-3</span>
+      <span class="req-title">RPC atómica <code>confirmar_venta</code> — stock nunca negativo</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">SEGURIDAD</span>
+    </div>
+    <div class="req-body">
+      <p>Función SECURITY DEFINER que crea <code>ventas</code> + <code>venta_items</code>, descuenta <code>productos.stock</code> e inserta el movimiento <code>'venta'</code>, todo en una transacción. El <code>total</code> se recalcula en el servidor a partir de <code>venta_items</code> — el total enviado por el cliente no se usa. El stock nunca puede quedar negativo.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: stock insuficiente rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un producto con <code>stock = 2</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>confirmar_venta</code> pide <code>cantidad = 5</code> de ese producto</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la función devuelve un error</div>
+        <div class="scenario-step"><span class="keyword">Y</span> no se crea ninguna fila en <code>ventas</code>/<code>venta_items</code>/<code>movimientos_stock</code>, y el stock sigue en 2</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el total se calcula en el servidor</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una solicitud que envía un <code>total</code> distinto de la suma real de los ítems</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>confirmar_venta</code> se ejecuta</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el <code>total</code> guardado es el calculado por el servidor, no el enviado por el cliente</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-VENTA-4</span>
+      <span class="req-title">RPC <code>deshacer_venta</code> — deshacer suave, solo la última venta</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">SEGURIDAD</span>
+    </div>
+    <div class="req-body">
+      <p>Función que verifica que <code>venta_id</code> sea la venta <code>confirmada</code> más reciente, cambia su estado a <code>'deshecha'</code> (las filas se conservan, sin borrado físico — D4) e inserta un movimiento compensatorio por cada ítem, restaurando el stock. La regla «solo la última» se verifica dentro de la función, no solo en la interfaz — el cliente no es confiable.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: deshacer una venta que no es la última — rechazado por la RPC</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> las ventas A (más antigua) y B (más reciente), ambas <code>confirmada</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se llama <code>deshacer_venta(A.id)</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la función devuelve un error</div>
+        <div class="scenario-step"><span class="keyword">Y</span> <code>A.estado</code> permanece en <code>'confirmada'</code>, sin efecto parcial</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: deshacer una venta ya deshecha — rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una venta A con <code>estado = 'deshecha'</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>deshacer_venta(A.id)</code> se llama de nuevo</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la función devuelve un error y no se duplica el movimiento compensatorio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: CONFIGURACIÓN ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-configuracion">Dominio: configuración</div>
+  <p>Ajustes globales de la tienda y el override de stock mínimo por producto (D6): un valor por defecto que se propaga de forma retroactiva, con un override nulable por producto que tiene prioridad cuando está definido.</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CFG-1</span>
+      <span class="req-title">Tabla singleton <code>configuracion</code></span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>configuracion(id int PK CHECK (id = 1), stock_minimo_default int NOT NULL, updated_at)</code>. Debe existir exactamente una fila para que la app resuelva el umbral por defecto. Si esa fila se siembra en la migración o se crea en la primera escritura del administrador queda a criterio del diseño.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: segunda fila del singleton rechazada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que <code>configuracion</code> ya tiene una fila con <code>id = 1</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se intenta un INSERT con <code>id = 2</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza (violación de CHECK o de clave primaria)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CFG-2</span>
+      <span class="req-title">Override nulable de <code>productos.stock_minimo</code>, resuelto con COALESCE</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El umbral efectivo en el momento de la lectura es <code>COALESCE(productos.stock_minimo, configuracion.stock_minimo_default)</code>. No se usa un <code>DEFAULT</code> literal de columna — congelaría el valor al insertar y no seguiría un cambio posterior del default global (D6).</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el cambio del default global se propaga de forma retroactiva</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un producto X con <code>stock_minimo</code> en NULL</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>configuracion.stock_minimo_default</code> cambia de 5 a 10</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el umbral efectivo del producto X pasa a 10 de inmediato, sin ningún UPDATE sobre <code>productos</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-CFG-3</span>
+      <span class="req-title">El override por producto tiene prioridad</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Un <code>productos.stock_minimo</code> no nulo tiene prioridad sobre el default global, sin importar cambios posteriores de este último.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el override ignora un cambio posterior del default global</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un producto Y con <code>stock_minimo = 20</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>configuracion.stock_minimo_default</code> cambia de 5 a 10</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el umbral efectivo del producto Y sigue en 20</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: SEGURIDAD ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-seguridad">Dominio: seguridad</div>
+
+  <div class="callout callout-security">
+    <div class="callout-title">Este dominio cierra un pendiente de setup-stack</div>
+    Los requisitos siguientes entregan los <code>GRANT</code> y las políticas con <code>auth.uid()</code> que <code>openspec/specs/setup-stack/spec.md</code> dejó explícitamente diferidos en REQ-SETUP-7 / V-7.
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-SEG-1</span>
+      <span class="req-title"><code>is_admin()</code> — SECURITY DEFINER, sin recursión de RLS</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">SEGURIDAD</span>
+    </div>
+    <div class="req-body">
+      <p><code>is_admin() RETURNS boolean</code>, SECURITY DEFINER, <code>SET search_path = ''</code>, lee <code>profiles.rol</code> sin pasar por las políticas RLS de esa misma tabla (riesgo R2, evita recursión). El permiso EXECUTE se otorga a <code>authenticated</code> — a diferencia de <code>handle_new_user()</code>, que solo se invoca desde un trigger, una función usada dentro de una cláusula <code>USING</code> debe poder ejecutarla el rol que hace la solicitud.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: is_admin() se usa dentro de una política sin recursión</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una política <code>USING (is_admin())</code> en <code>producto_costos</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> un usuario autenticado consulta la tabla</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la política se evalúa sin error de recursión, y el permiso EXECUTE sobre <code>is_admin()</code> no genera error</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-SEG-2</span>
+      <span class="req-title">RLS + GRANT en toda tabla de dominio — cierra REQ-SETUP-7 / V-7</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Toda tabla de los dominios catálogo, venta y configuración tiene RLS activo y al menos una política — ninguna queda en deny-by-default sin políticas. <code>authenticated</code> recibe <code>GRANT SELECT</code> (más escrituras acotadas vía RPC), bajo mínimo privilegio. <code>anon</code> no recibe ningún grant sobre tablas de dominio (la app se autentica por PIN sobre una sesión ya autenticada, según <code>setup-stack</code>).</p>
+      <table>
+        <thead><tr><th>Tabla</th><th>authenticated</th></tr></thead>
+        <tbody>
+          <tr><td>productos, ventas, venta_items, movimientos_stock, configuracion</td><td>SELECT (+ escrituras acotadas vía RPC)</td></tr>
+          <tr><td>producto_costos, proveedores</td><td>solo administrador, vía <code>is_admin()</code> — REQ-DM-SEG-3</td></tr>
+        </tbody>
+      </table>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: REQ-SETUP-7 / V-7 quedan cerrados</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que este cambio está aplicado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> <code>authenticated</code> pide <code>GET /productos</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la respuesta es <strong>200</strong> con filas — RLS activo y con política, no el <strong>401</strong> de línea base de <code>setup-stack</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-SEG-3</span>
+      <span class="req-title">Aislamiento de costo y proveedor: <code>[]</code>, nunca 403 (D2)</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p><code>producto_costos</code> y <code>proveedores</code> tienen políticas <code>USING (is_admin()) WITH CHECK (is_admin())</code> en cada operación. Un usuario autenticado que no es administrador recibe una lista vacía al consultar estas tablas —directamente o vía embedding de PostgREST—, nunca un error HTTP.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el vendedor no puede leer producto_costos ni proveedores</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un usuario autenticado con <code>profiles.rol != 'admin'</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> ejecuta <code>SELECT * FROM producto_costos</code> o <code>SELECT * FROM proveedores</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> ambas devuelven <code>[]</code> — cero filas, no un error 403</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: la consulta embebida se degrada con gracia</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> <code>GET /productos?select=*,producto_costos(costo)</code> pedido por un no administrador</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ejecuta</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> las filas de <code>productos</code> vuelven con normalidad y el <code>producto_costos</code> embebido llega como <code>[]</code>, sin que la solicitud entera falle</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-SEG-4</span>
+      <span class="req-title">Toda política de escritura tiene USING y WITH CHECK</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Toda política que permite INSERT o UPDATE define ambas cláusulas, <code>USING</code> y <code>WITH CHECK</code>. Una política de UPDATE con solo <code>USING</code> no existe — dejaría mutar una fila hacia un estado que quien escribe no podría haber insertado.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: UPDATE sin WITH CHECK correcto rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una política de UPDATE en <code>productos</code> acotada a <code>authenticated</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> una solicitud intenta dejar la fila en un estado que viola la cláusula <code>WITH CHECK</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres rechaza el UPDATE</div>
+        <div class="scenario-step"><span class="keyword">Y</span> una actualización dentro de los límites permitidos sigue funcionando</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-DM-SEG-5</span>
+      <span class="req-title">La integridad de dinero y stock nunca se confía al cliente</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>El stock no negativo, el total calculado en el servidor y la validación de <code>medio_pago</code> se aplican en las RPC y en constraints CHECK — nunca solo en JavaScript (principio rector, D7).</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: una llamada directa a la RPC, sin pasar por la interfaz, sigue exigiendo stock >= 0</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una solicitud directa a <code>confirmar_venta</code> que no pasa por la interfaz de la app</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> pide más stock del disponible</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> se rechaza igual que si viniera de la interfaz (ver dominio venta, REQ-DM-VENTA-3)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-title">Trazabilidad de escenarios obligatorios de seguridad</div>
+    <table>
+      <thead><tr><th>Escenario obligatorio</th><th>Requisito que lo cubre</th></tr></thead>
+      <tbody>
+        <tr><td>El vendedor no puede leer producto_costos ni proveedores → <code>[]</code></td><td>REQ-DM-SEG-3</td></tr>
+        <tr><td>UPDATE sin WITH CHECK correcto rechazado</td><td>REQ-DM-SEG-4</td></tr>
+        <tr><td>Deshacer una venta que no es la última → error de la RPC</td><td>REQ-DM-VENTA-4</td></tr>
+        <tr><td>El stock nunca queda negativo</td><td>REQ-DM-VENTA-3 + REQ-DM-CAT-1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <h2>Archivos de esta especificación</h2>
+    <p>Companion agent-optimized (inglés, RFC 2119, consumido por el tooling SDD):</p>
+    <span class="path-note">openspec/changes/data-model/specs/catalogo/spec.md</span>
+    <span class="path-note">openspec/changes/data-model/specs/venta/spec.md</span>
+    <span class="path-note">openspec/changes/data-model/specs/configuracion/spec.md</span>
+    <span class="path-note">openspec/changes/data-model/specs/seguridad/spec.md</span>
+  </section>
+
+</main>
+</body>
+</html>
