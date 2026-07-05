@@ -73,6 +73,7 @@ Skills de diseño fijadas en el repo (`.agents/skills/`, lockeadas en `skills-lo
 
 ## Convenciones y gotchas del repo
 
+- **Workflow git: SIEMPRE vía PR** (decisión 2026-07-05): nada de push directo a `main`, aunque el equipo sea de uno — rama corta → PR → merge. El PR ordena el trabajo y deja trazabilidad. Lo respalda el ruleset "Default" de GitHub sobre `main`/`develop`: PR obligatorio (0 approvals — podés mergear tu propio PR), sin force-push, sin borrado, commits firmados requeridos. Ojo: el admin tiene bypass "always" — el ruleset no te frena a vos, la disciplina es nuestra. GitHub borra la rama al mergear (`deleteBranchOnMerge`). Gotcha pendiente al 2026-07-05: `required_signatures` está activo pero la firma SSH local NO está configurada — los merges del admin pasan por bypass hasta configurarla.
 - **Secretos:** `.envrc` y `.env*` contienen API keys/tokens y están gitignoreados. Nunca commitearlos. (Ver `AGENTS.md`.)
 - **`AGENTS.md`** es el archivo de instrucciones de agentes del repo (mínimo hoy, pensado para crecer cuando haya código). Mantenelo y este CLAUDE.md sincronizados.
 - **Idioma de docs:** español (la audiencia primaria son humanos chilenos y Angélica). Aplica a `product-definition.md`, READMEs, diario, artefactos de revisión.

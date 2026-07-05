@@ -10,6 +10,11 @@
 - `pnpm preview` — sirve el `dist/` buildeado.
 - **NO existe `pnpm test`** — la suite de tests es trabajo futuro; no inventarlo.
 
+## Workflow git
+
+- **SIEMPRE vía PR a `main`** — sin push directo (ruleset de GitHub: PR obligatorio, sin force-push ni borrado en `main`/`develop`).
+- Conventional commits en inglés, atómicos (single responsibility), sin atribución de IA.
+
 ## Seguridad
 
 - `.envrc` y `.env*` contienen secretos (API keys, tokens) — gitignoreados, nunca commitearlos.
