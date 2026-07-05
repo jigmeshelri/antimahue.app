@@ -584,9 +584,10 @@ Pencil, CheckCircle, Image, Backspace, WhatsappLogo
 | `Antimahue Prototipo.dc.html` | Prototipo interactivo — 9 pantallas navegables |
 | `Ticket Térmico.dc.html` | Ticket de 80mm con botón de impresión |
 | `Antimahue Logo.dc.html` | Sistema de marca completo |
-| `product-definition.md` | Definición de producto original (Angélica) |
 | `assets/lana-orquidea-azul.jpg` | Foto de producto real |
 | `assets/logo-original.jpg` | Logo artesanal original de la tienda |
+
+> La definición de producto vive en [docs/product-definition.md](../product-definition.md) (antes había una copia en esta carpeta; se eliminó por quedar desactualizada).
 
 ---
 
