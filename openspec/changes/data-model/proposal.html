@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta: Modelo de datos — Antimahue</title>
+<style>
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: 0.72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle {
+    color: #d4b89a;
+    font-size: .9rem;
+    margin-top: .4rem;
+  }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-info      { background: var(--color-info-lt);    color: var(--color-info); }
+  .badge-pending   { background: var(--color-wood-lt);    color: var(--color-wood); }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+  section:first-child { margin-top: 1.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.2rem 0 .5rem;
+  }
+  h4 {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 1rem 0 .4rem;
+  }
+
+  p { margin-bottom: .8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security { border-color: var(--color-danger); background: var(--color-danger-lt); }
+  .callout-info { border-color: var(--color-info); background: var(--color-info-lt); }
+  .callout-note { border-color: var(--color-terracotta); background: var(--color-terracota-lt); }
+  .callout .callout-title {
+    font-weight: 700;
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-security .callout-title { color: var(--color-danger); }
+  .callout-info .callout-title { color: var(--color-info); }
+  .callout-note .callout-title { color: var(--color-terracotta); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: .8rem 0;
+    background: var(--color-surface);
+  }
+  summary {
+    padding: .7rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-wood);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::after { content: '▸'; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  details > *:not(summary) { padding: 0 1rem 1rem; }
+
+  /* Tarjetas de decisión */
+  .decision {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-terracotta);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .decision .d-id {
+    display: inline-block;
+    background: var(--color-terracotta);
+    color: #fff;
+    font-weight: 700;
+    font-size: .72rem;
+    padding: .12em .55em;
+    border-radius: 4px;
+    letter-spacing: .04em;
+    margin-right: .5rem;
+    vertical-align: middle;
+  }
+  .decision h3 { display: inline; color: var(--color-wood); margin: 0; font-size: 1rem; }
+  .decision .d-body { margin-top: .7rem; }
+  .decision .d-line { margin-bottom: .45rem; }
+  .decision .d-line .tag {
+    display: inline-block;
+    min-width: 6.5rem;
+    font-weight: 700;
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--color-text-muted);
+  }
+  .decision .tag-choice { color: var(--color-success); }
+  .decision .tag-reject { color: var(--color-danger); }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · data-model</div>
+  <h1>Propuesta: Modelo de datos del dominio</h1>
+  <div class="subtitle">Esquema de negocio, políticas RLS y funciones RPC — la primera capa de datos real del MVP</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Propuesta</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Actualizado:</strong> 2026-07-05</span>
+  <span><strong>Depende de:</strong> setup-stack</span>
+</div>
+
+<main class="main-content">
+
+  <section>
+    <h2>1. Contexto e intención</h2>
+    <p>El cambio anterior (<code>setup-stack</code>) dejó montado el andamiaje de seguridad —las tablas <code>profiles</code>, <code>auth_attempts</code> y <code>audit_log</code>— con RLS activo en modo negar-por-defecto y <strong>cero</strong> políticas o permisos. Todavía no existe ninguna tabla de negocio: no hay dónde guardar un producto, una venta ni un proveedor.</p>
+    <p>Este cambio define esa capa: el <strong>esquema del dominio</strong> (catálogo, venta, movimientos de stock, configuración), las <strong>políticas RLS y los permisos</strong> que exponen esas tablas al cliente con el mínimo privilegio, y las <strong>funciones RPC</strong> que resguardan la integridad de dinero y stock en el servidor. Con esto se cierra el trabajo que <code>setup-stack</code> dejó explícitamente diferido: los permisos y las políticas con <code>auth.uid()</code> anotados en su especificación.</p>
+    <p class="path-note">Trabajo diferido — requisito REQ-SETUP-7 y verificación V-7 en openspec/specs/setup-stack/spec.md</p>
+
+    <div class="callout callout-security">
+      <div class="callout-title">Principio rector heredado</div>
+      El bundle del cliente no es de confianza. La autorización real vive en Postgres (RLS, constraints y funciones), nunca solo en el JavaScript del navegador. Este cambio maneja el activo más sensible del negocio —dinero y stock—, así que ese principio condiciona cada tabla y cada función.
+    </div>
+
+    <p>No hay interfaz en este cambio. Esta es la primera capa de datos que después alimentará las pantallas (catálogo, venta, escáner, ticket, proveedor), que hoy son esqueletos vacíos y llegan en cambios posteriores.</p>
+  </section>
+
+  <section>
+    <h2>2. Alcance</h2>
+
+    <h3>Dentro del alcance</h3>
+    <ul>
+      <li>Tablas del dominio: <code>productos</code>, <code>producto_costos</code>, <code>proveedores</code>, <code>ventas</code>, <code>venta_items</code>, <code>movimientos_stock</code>, <code>configuracion</code>.</li>
+      <li>Enumeraciones y constraints CHECK para el medio de pago, el estado de la venta, el tipo de movimiento de stock y el formato de <code>color_hex</code>.</li>
+      <li>Políticas RLS (con <code>USING</code> y <code>WITH CHECK</code>) más los permisos <code>GRANT</code> a <code>authenticated</code> en cada tabla expuesta. Esto cierra REQ-SETUP-7 y V-7.</li>
+      <li>Funciones RPC del dominio (con <code>SECURITY DEFINER</code> y <code>search_path</code> vacío): <code>confirmar_venta</code>, <code>deshacer_venta</code>, <code>crear_producto</code>, <code>actualizar_producto</code>, y el ayudante de plataforma <code>is_admin()</code>.</li>
+      <li>Nuevas migraciones SQL versionadas.</li>
+    </ul>
+    <p class="path-note">Migraciones — supabase/migrations/</p>
+
+    <h3>Fuera del alcance</h3>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Se deja fuera</th><th>Motivo y destino</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Cualquier pantalla o componente React</td>
+          <td>Las carpetas de <code>features</code> siguen como esqueletos. Las pantallas llegan en cambios posteriores.</td>
+        </tr>
+        <tr>
+          <td>Tablas <code>compras</code> / <code>compra_items</code> y el parseo del XML de DTE</td>
+          <td>Se difieren a un cambio <code>dte-import</code>. El enum de <code>movimientos_stock.tipo</code> reserva desde ahora un valor <code>'compra'</code> para que ese cambio agregue tablas sin tocar el contrato del ledger.</td>
+        </tr>
+        <tr>
+          <td>Ampliar <code>profiles.rol</code> más allá de <code>'admin'</code> (alta de empleados)</td>
+          <td>Se difiere a un cambio de multi-rol. Este cambio ya escribe <code>is_admin()</code> y las políticas solo-admin, de modo que la separación queda estructural y lista el día que se agregue el rol <code>'empleado'</code>. Es el criterio de <code>setup-stack</code>: preparar barato, no construir de más.</td>
+        </tr>
+        <tr>
+          <td>Instalar las extensiones <code>vector</code> / <code>cube</code></td>
+          <td>El cálculo de distancia de color se queda en el frontend, tal como ya lo define la propuesta del asistente de color. Instalarlas ahora sería trabajo sin uso.</td>
+        </tr>
+        <tr>
+          <td>Triggers de <code>audit_log</code></td>
+          <td>El ledger tipado <code>movimientos_stock</code> cubre dinero y stock. Los triggers genéricos de auditoría quedan para más adelante.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Decisiones</h2>
+    <p>Siete decisiones, cada una con identificador estable (D1 a D7). El análisis de alternativas completo vive en la exploración; aquí queda la elección y el porqué.</p>
+
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Decisión</th><th>Elegido</th><th>Descartado</th></tr></thead>
+      <tbody>
+        <tr><td>D1</td><td>Idioma de tablas, columnas y funciones</td><td>Español para el dominio; inglés para la plataforma ya existente</td><td>Esquema todo en inglés; todo en español (renombrando la infraestructura)</td></tr>
+        <tr><td>D2</td><td>Ocultar costo y proveedor al empleado</td><td>Tabla aparte <code>producto_costos</code> solo-admin; <code>proveedor_id</code> también ahí; <code>proveedores</code> solo-admin</td><td>Permiso por columna (inviable); vista con máscara por columna</td></tr>
+        <tr><td>D3</td><td>Modelo de stock</td><td>Híbrido: columna <code>stock</code> mutable + ledger <code>movimientos_stock</code>, escritos en la misma función RPC</td><td>Solo columna mutable; ledger puro con stock derivado</td></tr>
+        <tr><td>D4</td><td>Venta y deshacer</td><td><code>ventas</code>/<code>venta_items</code>, precio congelado, cancelación blanda, «solo la última» validado en la RPC</td><td>Borrado físico; «solo la última» validado solo en la interfaz</td></tr>
+        <tr><td>D5</td><td>Atributo de color</td><td>Estructurado desde el día uno: <code>color_nombre</code> + <code>color_hex</code> con CHECK, ambos nulables</td><td>Solo texto libre</td></tr>
+        <tr><td>D6</td><td>Stock mínimo</td><td>Singleton <code>configuracion</code> con default global + override nulable por producto</td><td>Valor por defecto literal en la columna (se congela, no admite edición retroactiva)</td></tr>
+        <tr><td>D7</td><td>Refuerzo transversal</td><td><code>is_admin()</code> con SECURITY DEFINER; políticas con USING y WITH CHECK; integridad de dinero y stock en la RPC; permisos de mínimo privilegio</td><td>Confiar en el cliente / validar en el JavaScript</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D1</span><h3>Idioma: español en el dominio, inglés en la plataforma</h3>
+      <div class="d-body">
+        <p>El dominio es el comercio minorista chileno, y su vocabulario es irreductiblemente español: «boleta», «folio», «medio de pago» o DTE no tienen un equivalente fiel en inglés (una boleta es un documento tributario chileno concreto, no un «receipt» genérico). A eso se suma que el cambio vecino del asistente de color ya escribió <code>productos</code> y <code>color_hex</code>, y que el frontend ya eligió el campo <code>sku</code> en su store de venta.</p>
+        <p class="path-note">Store de venta con el campo sku — src/stores/saleDraft.ts</p>
+        <div class="d-line"><span class="tag tag-choice">Regla</span> Tablas, columnas y funciones del dominio en español (<code>productos.precio_venta</code>, <code>confirmar_venta()</code>). La capa de plataforma —<code>profiles</code>, <code>auth_attempts</code>, <code>audit_log</code>, y los ayudantes técnicos <code>is_admin()</code> y <code>handle_new_user()</code>— se queda en inglés y no se renombra.</div>
+        <div class="d-line"><span class="tag">Columnas técnicas</span> Las columnas universales <code>id</code>, <code>created_at</code> y <code>updated_at</code> siguen en inglés incluso en las tablas nuevas: son convención SQL universal, ya presente en la migración inicial. No se traducen a <code>identificador</code> ni <code>creado_en</code>.</div>
+        <div class="d-line"><span class="tag">Transición</span> Nada existente se renombra. La regla aplica solo a los objetos de dominio nuevos. La frontera español/inglés es un límite deliberado entre plataforma y dominio, no una inconsistencia accidental.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D2</span><h3>Aislar costo y proveedor del empleado</h3>
+      <div class="d-body">
+        <p>El permiso por columna de Postgres no sirve aquí: Supabase asigna a todos los usuarios de la app el mismo rol de base de datos, <code>authenticated</code>. La distinción admin/empleado vive en <code>profiles.rol</code>, no en el rol de conexión, así que un <code>GRANT</code> por columna no puede diferenciarlos. Es un callejón sin salida, no un tradeoff.</p>
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> En <code>productos</code> quedan solo las columnas que el empleado puede ver. El <code>costo</code> y el <code>proveedor_id</code> se mueven a una tabla 1:1 <code>producto_costos</code> con RLS <code>USING (is_admin()) WITH CHECK (is_admin())</code>. La tabla <code>proveedores</code> es igualmente solo-admin, porque la definición de producto dice que los empleados no ven costos ni proveedores.</div>
+        <div class="d-line"><span class="tag">Por qué</span> El secreto es estructural: una columna dentro de <code>producto_costos</code> es sensible por construcción, sin ningún <code>CASE</code> por columna que alguien pueda olvidar. Además, cuando el cliente pide costos junto con el producto y no es admin, PostgREST devuelve una lista vacía, no un error 403. Eso encaja con el principio del producto de tolerar errores sin diálogos.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> La vista con máscara por columna funciona, pero obliga a recordar el <code>CASE</code> en cada columna sensible nueva; con el tiempo, ese olvido es una fuga.</div>
+        <div class="d-line"><span class="tag">Escritura</span> Crear o editar un producto toca dos tablas, así que pasa por una sola función RPC (<code>crear_producto</code> / <code>actualizar_producto</code>) que las escribe de forma atómica.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D3</span><h3>Stock: columna rápida más ledger auditable</h3>
+      <div class="d-body">
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> <code>productos.stock</code> sigue siendo la fuente de lectura rápida (alertas de stock bajo del dashboard, catálogo, escáner). La tabla <code>movimientos_stock</code> registra cada cambio con su tipo, cantidad, referencia y autor.</div>
+        <div class="d-line"><span class="tag">Regla dura</span> La columna y el ledger se escriben siempre dentro de la misma función RPC y la misma transacción, nunca desde dos puntos distintos. Ningún mecanismo de Postgres detecta una desincronización silenciosa, así que se impone por diseño (ver riesgo R1).</div>
+        <div class="d-line"><span class="tag">Beneficio</span> Este ledger es el registro de auditoría tipado del stock, separado del <code>audit_log</code> genérico, y deja lugar natural para el futuro ingreso por DTE como movimientos de tipo compra.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D4</span><h3>Venta con deshacer de la última operación</h3>
+      <div class="d-body">
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> <code>ventas</code> con su estado y medio de pago, más <code>venta_items</code> con el detalle. El <code>precio_unitario</code> se congela como una foto del momento: si mañana se actualiza el precio del producto, el ticket pasado no cambia.</div>
+        <div class="d-line"><span class="tag">Deshacer</span> Cancelación blanda (<code>estado = 'deshecha'</code>): las filas se conservan y se insertan movimientos de stock compensatorios. Se prefiere al borrado físico porque preserva el rastro de auditoría y encaja con el principio de diseño «deshacer no es como si nunca hubiera pasado».</div>
+        <div class="d-line"><span class="tag">Regla clave</span> «Solo se puede deshacer la última venta confirmada» se valida dentro de <code>deshacer_venta(venta_id)</code>, no solo en la interfaz. El cliente no es de confianza: un pedido directo a la función no debe poder deshacer una venta antigua porque la interfaz no mostraba el botón.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D5</span><h3>Color estructurado desde el día uno</h3>
+      <div class="d-body">
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> Dos columnas nulables: <code>color_nombre</code> (para buscar y mostrar en las palabras que Angélica ya usa) y <code>color_hex</code> con un CHECK de formato <code>#RRGGBB</code>. Ambas nulables: etiquetar el color no bloquea la creación del producto.</div>
+        <div class="d-line"><span class="tag">Por qué</span> Es la única opción que no genera una migración de rework más adelante. El costo marginal es una columna y un CHECK. El cálculo de distancia sigue en el frontend, tal como define la propuesta del asistente de color.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D6</span><h3>Stock mínimo: default global con override por producto</h3>
+      <div class="d-body">
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> Una tabla <code>configuracion</code> de una sola fila (<code>CHECK (id = 1)</code>) con <code>stock_minimo_default</code>, más una columna nulable <code>productos.stock_minimo</code>. El valor efectivo se resuelve en la lectura con <code>COALESCE</code>: si el producto no tiene override, hereda el default global.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> Un valor por defecto literal en la columna se congela en el INSERT y no seguiría un cambio posterior del default global. Eso rompe la semántica que pide el producto: un default global editable que se aplica de forma retroactiva.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D7</span><h3>Seguridad transversal</h3>
+      <div class="d-body">
+        <div class="d-line"><span class="tag">is_admin()</span> Función que devuelve un booleano, con <code>SECURITY DEFINER</code> y <code>search_path</code> vacío. Lee <code>profiles.rol</code> sin pasar por su propia RLS, lo que evita la recursión (riesgo R2). Se le otorga EXECUTE a <code>authenticated</code>, a diferencia del trigger <code>handle_new_user()</code>, que lo revoca.</div>
+        <div class="d-line"><span class="tag">Políticas</span> Toda política de escritura lleva <code>USING</code> y <code>WITH CHECK</code>. Una política de UPDATE con solo <code>USING</code> permitiría mutar una fila hacia un estado que el autor no podría haber insertado.</div>
+        <div class="d-line"><span class="tag">Integridad</span> Que el stock nunca sea negativo, que el total se recalcule en el servidor y que el medio de pago se valide vive en la RPC y en los constraints, nunca en el JavaScript.</div>
+        <div class="d-line"><span class="tag">Permisos</span> Mínimo privilegio por tabla. <code>authenticated</code> recibe SELECT sobre <code>productos</code> y <code>ventas</code>, y ningún acceso directo a <code>producto_costos</code> o <code>proveedores</code> salvo a través de las políticas con <code>is_admin()</code>. Con esto se cierra REQ-SETUP-7 y V-7.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Áreas afectadas</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Área</th><th>Impacto</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Migraciones SQL</td><td>Nuevo</td><td>Tablas del dominio, enums, políticas RLS, permisos y funciones RPC.</td></tr>
+        <tr><td>Especificación de <code>setup-stack</code> (REQ-SETUP-7, V-7)</td><td>Cierra</td><td>Este cambio agrega los permisos y las políticas con <code>auth.uid()</code> que quedaron diferidos.</td></tr>
+        <tr><td>Carpetas de <code>features</code></td><td>Desbloquea (sin editar)</td><td>El esquema es la fuente de datos que las pantallas consumirán después.</td></tr>
+        <tr><td>Store de venta</td><td>Alinea (sin editar)</td><td>La RPC <code>confirmar_venta</code> es el cierre atómico que su comentario ya anticipa; se adopta el naming <code>sku</code>.</td></tr>
+        <tr><td>Configuración del proyecto</td><td>Modifica</td><td>Se agrega <code>data-model</code> a los cambios activos.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="path-note">Especificación de setup-stack — openspec/specs/setup-stack/spec.md · Store de venta — src/stores/saleDraft.ts · Config del proyecto — openspec/project.yaml</p>
+  </section>
+
+  <section>
+    <h2>5. Riesgos</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Riesgo</th><th>Probabilidad</th><th>Mitigación</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>La columna <code>stock</code> y el ledger se desincronizan en silencio (ningún check de la base lo detecta)</td><td>Media</td><td>Disciplina de una sola RPC por operación de stock; el diseño define cada operación como una función.</td></tr>
+        <tr><td>R2</td><td><code>is_admin()</code> provoca recursión de RLS si lee una tabla con RLS dependiente</td><td>Media</td><td>SECURITY DEFINER lee <code>profiles</code> sin pasar por sus políticas; patrón estándar de Supabase, a verificar en diseño.</td></tr>
+        <tr><td>R3</td><td>La RLS solo-admin queda inerte mientras solo exista el rol <code>'admin'</code></td><td>Alta (por diseño)</td><td>Aceptado: es estructural ahora y se activa el día que se agregue el rol <code>'empleado'</code>, sin rework.</td></tr>
+        <tr><td>R4</td><td>La frontera de idioma (<code>productos</code> junto a <code>profiles</code>) confunde a quien contribuye</td><td>Baja</td><td>D1 documenta el límite plataforma/dominio como regla, no como accidente.</td></tr>
+        <tr><td>R5</td><td>Se asume que el embedding de PostgREST degrada a lista vacía y no a 403 para el no-admin</td><td>Baja</td><td>Se verifica de forma empírica en la fase de verificación; alternativa: separar los endpoints de lectura.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. Plan de reversión</h2>
+    <p>Cada migración es aditiva: agrega tablas, funciones y políticas nuevas, sin alterar la infraestructura existente. La reversión es una migración de bajada que elimina los objetos nuevos en orden inverso de dependencia. Las tablas <code>profiles</code>, <code>auth_attempts</code> y <code>audit_log</code> no se tocan, así que la línea base de <code>setup-stack</code> queda intacta.</p>
+  </section>
+
+  <section>
+    <h2>7. Criterios de éxito</h2>
+    <ul>
+      <li>Todas las tablas del dominio creadas con RLS activo y políticas explícitas; ninguna tabla que deba leerse queda en negar-por-defecto.</li>
+      <li>No hay lógica de autorización en <code>src/</code>: cada regla es una política, un constraint o una RPC de Postgres.</li>
+      <li><code>confirmar_venta</code> es atómica (stock, venta, ítems y ledger, todo o nada); <code>deshacer_venta</code> rechaza cualquier venta que no sea la última.</li>
+      <li>Un usuario no-admin (el futuro empleado) no puede leer <code>producto_costos</code> ni <code>proveedores</code>; el embedding devuelve lista vacía.</li>
+      <li>REQ-SETUP-7 y V-7 satisfechos: permisos a <code>authenticated</code> y políticas con <code>auth.uid()</code> presentes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>8. Preguntas abiertas para el diseño</h2>
+    <ul>
+      <li><strong>OQ-1</strong> — Granularidad de las migraciones: una sola migración grande (como <code>setup-stack</code>) o una por subdominio (catálogo, venta, configuración).</li>
+      <li><strong>OQ-2</strong> — Ubicación exacta de <code>is_admin()</code>: en <code>public</code> (con higiene de permisos EXECUTE) o en un esquema no expuesto. Verificar que no exista un camino de recursión.</li>
+      <li><strong>OQ-3</strong> — Si <code>confirmar_venta</code> otorga EXECUTE a <code>authenticated</code> desde ahora (compatible con el futuro empleado) aunque hoy solo exista el admin. La recomendación es que sí.</li>
+      <li><strong>OQ-4</strong> — Semilla de <code>configuracion</code>: una fila sembrada (id = 1) en la migración, o creada en la primera escritura del admin.</li>
+      <li><strong>OQ-5</strong> — Si <code>productos.stock</code> lleva un <code>CHECK (stock >= 0)</code> además de la validación en la RPC, o si la RPC es la única fuente de verdad.</li>
+    </ul>
+  </section>
+
+</main>
+</body>
+</html>

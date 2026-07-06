@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tareas: modelo de datos del dominio · Antimahue</title>
+<style>
+  :root{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2; --admin:#8a4b9c; --admin-soft:#efe3f3;
+    --radius:12px; --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:980px;margin:0 auto;padding:2.4rem 1.3rem 4rem}
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:1.3rem;margin-bottom:2rem}
+  header.doc .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:600}
+  header.doc h1{font-size:1.85rem;margin:.35rem 0 .5rem;font-weight:700;line-height:1.2}
+  header.doc p.lead{margin:0;color:var(--muted);font-size:1.02rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .badge{font-size:.74rem;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:500}
+  .badge.brand{background:var(--brand-soft);border-color:#e3c3af;color:var(--brand)}
+  .badge.ok{background:var(--ok-soft);border-color:#c3ddc9;color:var(--ok)}
+  .badge.warn{background:var(--warn-soft);border-color:#e6cd8f;color:var(--warn)}
+  h2{font-size:1.28rem;margin:2.6rem 0 .9rem;padding-top:.4rem;font-weight:700;
+    border-top:1px solid var(--line)}
+  h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  h3{font-size:1.02rem;margin:1.5rem 0 .5rem;font-weight:600}
+  p{margin:.6rem 0}
+  section > p:first-of-type{margin-top:0}
+  code{font-family:var(--mono);font-size:.86em;background:#f0e7db;padding:.08em .35em;
+    border-radius:5px;color:#7a3f22;overflow-wrap:anywhere}
+  .path-note{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+    background:#f2ebe0;border-left:3px solid var(--line);padding:.4rem .7rem;margin:.4rem 0 1rem;
+    border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+  .tbl-scroll{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;width:100%;margin:0;font-size:.88rem}
+  .tbl-scroll table{min-width:680px}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--brand-soft);color:#7a3f22;font-weight:600;font-size:.8rem;
+    text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:nth-child(even){background:#fcf9f4}
+  td.id-col{font-family:var(--mono);font-weight:700;color:var(--brand);white-space:nowrap}
+  .callout{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.1rem 0;border:1px solid;
+    border-left-width:5px}
+  .callout h4{margin:0 0 .4rem;font-size:.94rem;font-weight:700;display:flex;gap:.4rem;align-items:center}
+  .callout p{margin:.35rem 0}
+  .callout.oq{background:var(--warn-soft);border-color:#e6cd8f;border-left-color:var(--warn)}
+  .callout.crit{background:var(--danger-soft);border-color:#e6b3ab;border-left-color:var(--danger)}
+  .callout.info{background:var(--brand-soft);border-color:#e3c3af;border-left-color:var(--brand)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.14rem .5rem;border-radius:5px;
+    font-family:var(--mono)}
+  .tag.def{background:var(--danger-soft);color:var(--danger)}
+  .tag.admin{background:var(--admin-soft);color:var(--admin)}
+  .tag.pending{background:#eee7db;color:var(--muted)}
+  .tag.human{background:var(--warn-soft);color:var(--warn)}
+  .tag.flag{background:var(--danger-soft);color:var(--danger)}
+  .tag.optional{background:#e7eef6;color:#3a6ea5}
+  ul.clean{margin:.6rem 0;padding-left:1.2rem}
+  ul.clean li{margin:.3rem 0}
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Antimahue · SDD · fase tasks</div>
+  <h1>Tareas: modelo de datos del dominio, políticas RLS y RPC</h1>
+  <p class="lead">Desglose ejecutable de <code>data-model</code>: tres migraciones ordenadas, cuatro RPC de
+  dominio y la verificación de los escenarios de seguridad obligatorios. Sin interfaz — el alcance completo
+  vive en el esquema de Postgres.</p>
+  <div class="meta">
+    <span class="badge brand">change: data-model</span>
+    <span class="badge">depende de: propuesta · specs · diseño</span>
+    <span class="badge warn">estado: pendiente de apply</span>
+    <span class="badge">6 fases · 24 tareas</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1.</span>Resumen de fases</h2>
+  <p>Las tres primeras fases son las tres migraciones, en el orden que exige el diseño (las tablas antes que
+  las políticas, las políticas antes que las RPC). Las fases 4 y 5 verifican el despliegue y los escenarios de
+  seguridad obligatorios. La fase 6 es un seguimiento opcional, no exigido por el diseño.</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Fase</th><th>Contenido</th><th>Archivo / alcance</th><th>Tareas</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Tablas del dominio</td><td><code>20260705000100_domain_tables.sql</code></td><td>9</td></tr>
+      <tr><td>2</td><td>Ayudante <code>is_admin()</code>, triggers, políticas y permisos</td><td><code>20260705000200_domain_rls.sql</code></td><td>10</td></tr>
+      <tr><td>3</td><td>Las cuatro RPC de dominio</td><td><code>20260705000300_domain_rpc.sql</code></td><td>5</td></tr>
+      <tr><td>4</td><td>Despliegue y verificación estructural</td><td>PR + integración de GitHub</td><td>2</td></tr>
+      <tr><td>5</td><td>Escenarios de seguridad obligatorios</td><td>consultas contra el proyecto desplegado</td><td>5</td></tr>
+      <tr><td>6</td><td>Seguimiento opcional</td><td>tipos TypeScript</td><td>1</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout info">
+    <h4>Alcance: esquema + RLS + RPC, sin interfaz</h4>
+    <p>Ninguna tarea toca <code>src/</code>. El SQL completo de cada objeto ya está escrito, literal, en
+    <code>design.md</code> — las tareas de este documento referencian esas líneas en lugar de repetir el DDL.</p>
+  </div>
+
+  <div class="callout crit">
+    <h4>Regla estructural de despliegue</h4>
+    <p>Los archivos de migración van a <code>supabase/migrations/</code> con prefijo de fecha estrictamente
+    creciente respecto del último existente (<code>20260621000000_initial_scaffold.sql</code>). Se despliegan
+    únicamente por push del repositorio — la integración de GitHub aplica <code>supabase/migrations/*.sql</code>
+    automáticamente al fusionar. <strong>Queda prohibido aplicar estos tres archivos mediante la herramienta
+    MCP <code>apply_migration</code></strong>: registraría un timestamp de ejecución distinto del prefijo del
+    archivo y el repositorio divergiría en silencio respecto de lo desplegado.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Fase 1 — tablas del dominio</h2>
+  <p>Archivo: <code>supabase/migrations/20260705000100_domain_tables.sql</code>.</p>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-1.1</td><td>Instalar <code>pg_trgm</code> en el esquema <code>extensions</code> (DD4).</td><td>—</td><td>La extensión vive en <code>extensions</code>, no en <code>public</code>: sin advertencia <code>extension_in_public</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.2</td><td><code>proveedores</code> + RLS activo.</td><td>REQ-DM-CAT-3</td><td>La tabla existe con <code>rowsecurity=true</code> (política se agrega en la fase 2).</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.3</td><td><code>productos</code>: columnas seguras para empleados, <code>color_hex</code> con CHECK de formato, <code>stock &gt;= 0</code>, índice GIN por nombre.</td><td>REQ-DM-CAT-1, REQ-DM-CAT-4</td><td><code>color_hex = 'blue'</code> se rechaza; color en NULL se acepta.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.4</td><td><code>producto_costos</code> 1:1, PK = FK a <code>productos.id</code>, <code>costo &gt;= 0</code>.</td><td>REQ-DM-CAT-2</td><td>Una segunda fila para el mismo <code>producto_id</code> viola la clave primaria.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.5</td><td><code>ventas</code> + índice parcial por venta confirmada.</td><td>REQ-DM-VENTA-1</td><td><code>estado</code> rechaza cualquier valor fuera de <code>confirmada</code>/<code>deshecha</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.6</td><td><code>venta_items</code>, <code>precio_unitario</code> como fotografía congelada.</td><td>REQ-DM-VENTA-1</td><td>La tabla existe con el índice por <code>venta_id</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.7</td><td><code>movimientos_stock</code>: libro tipado, <code>tipo</code> reserva ya el valor <code>compra</code> para el futuro cambio <code>dte-import</code>.</td><td>REQ-DM-VENTA-2</td><td>La tabla existe con el CHECK de tipo y el índice por producto.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.8</td><td><code>configuracion</code> singleton, fila sembrada <code>id=1</code> con <code>ON CONFLICT DO NOTHING</code>.</td><td>REQ-DM-CFG-1 / OQ-4</td><td>Una segunda fila <code>id=2</code> se rechaza; re-ejecutar la migración no duplica la semilla ni falla.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.9</td><td>Confirmar que las 7 tablas nuevas activan RLS en la misma sentencia de creación — ninguna queda sin RLS, ni siquiera transitoriamente dentro del archivo.</td><td>—</td><td>Revisión visual del archivo antes de comprometerlo.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Fase 2 — <code>is_admin()</code>, triggers, políticas y permisos</h2>
+  <p>Archivo: <code>supabase/migrations/20260705000200_domain_rls.sql</code>. Depende de la fase 1: las tablas
+  deben existir primero.</p>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-2.1</td><td><code>is_admin()</code> — <span class="tag def">DEFINER</span> · <code>SET search_path=''</code> · <code>STABLE</code>; <code>REVOKE FROM PUBLIC</code> y <code>GRANT TO authenticated</code>.</td><td>REQ-DM-SEG-1</td><td>Es invocable por <code>authenticated</code>; <code>anon</code> recibe permiso denegado.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.2</td><td><code>touch_updated_at()</code> + triggers <code>BEFORE UPDATE</code> en <code>productos</code>, <code>producto_costos</code>, <code>proveedores</code>, <code>configuracion</code>; EXECUTE revocado a todos los roles de API.</td><td>DD5</td><td>Un UPDATE directo sobre cualquiera de las cuatro tablas actualiza <code>updated_at</code> solo.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.3</td><td><code>productos</code>: <code>GRANT SELECT</code>; política <code>USING (true)</code>.</td><td>REQ-DM-SEG-2</td><td><code>GET /productos</code> como autenticado devuelve 200 con filas.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.4</td><td><code>producto_costos</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING (is_admin())</code>.</td><td>REQ-DM-SEG-3 / D2</td><td>El embedding <code>productos?select=*,producto_costos(costo)</code> para no-admin degrada el anidado a lista vacía.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.5</td><td><code>proveedores</code> <span class="tag admin">solo admin</span>: CRUD completo con <code>USING(is_admin()) WITH CHECK(is_admin())</code>.</td><td>REQ-DM-SEG-2/3/4</td><td>Política de escritura con ambas cláusulas presentes.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.6</td><td><code>ventas</code> + <code>venta_items</code>: <code>GRANT SELECT</code>; política <code>USING(true)</code> en cada una.</td><td>REQ-DM-SEG-2</td><td>Lectura de ambas tablas disponible para cualquier usuario autenticado.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.7</td><td><code>movimientos_stock</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING(is_admin())</code>.</td><td>REQ-DM-SEG-2</td><td>Libro de auditoría no legible por no-admin.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.8</td><td><code>configuracion</code>: SELECT abierto a todos; UPDATE solo admin con <code>USING</code> + <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-2/4</td><td>UPDATE de un no-admin se rechaza; SELECT funciona para cualquiera.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.9</td><td><code>profiles_select_own</code>: <code>GRANT SELECT</code>; política <code>USING(id=(select auth.uid()))</code>. <strong>Cierra REQ-SETUP-7 / V-7.</strong></td><td>REQ-SETUP-7 / V-7</td><td><code>GET /profiles</code> como autenticado responde 200 — reemplaza el 401 base de <code>setup-stack</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.10</td><td>Auditoría estática: toda política de INSERT/UPDATE de T-2.3–T-2.9 lleva <code>USING</code> Y <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-4</td><td>Ninguna política UPDATE queda solo con <code>USING</code> en el archivo.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Fase 3 — las cuatro RPC de dominio</h2>
+  <p>Archivo: <code>supabase/migrations/20260705000300_domain_rpc.sql</code>. Depende de las fases 1 y 2:
+  tablas y <code>is_admin()</code> deben existir antes.</p>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>RPC</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-3.1</td><td><code>confirmar_venta(p_items, p_medio_pago)</code> <span class="tag def">DEFINER</span> — bloqueo <code>FOR UPDATE</code>, precio autoritativo del servidor, total recalculado, libro en la misma transacción.</td><td>REQ-DM-VENTA-3</td><td>Cierre atómico todo-o-nada; stock insuficiente rechazado; total forjado por el cliente ignorado.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.2</td><td><code>deshacer_venta(p_venta_id)</code> <span class="tag def">DEFINER</span> — verifica que sea la última venta confirmada, anula suave, inserta ledger compensatorio.</td><td>REQ-DM-VENTA-4</td><td>Deshacer la última venta funciona; deshacer una venta anterior o ya deshecha se rechaza sin efecto parcial.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.3</td><td><code>crear_producto(p_producto, p_costo, p_proveedor_id)</code> <span class="tag def">DEFINER</span> — verifica <code>is_admin()</code> primero, escribe ambas tablas en una transacción.</td><td>REQ-DM-CAT-5</td><td>Un costo negativo revierte toda la transacción: no queda fila huérfana en <code>productos</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.4</td><td><code>actualizar_producto(...)</code> <span class="tag def">DEFINER</span> — contrato decidido en esta tarea (ver panel debajo).</td><td>REQ-DM-CAT-5</td><td>Ver panel «Contrato de <code>actualizar_producto</code>».</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.5</td><td><code>REVOKE FROM PUBLIC</code> + <code>GRANT TO authenticated</code> en las cuatro RPC; <code>anon</code> queda excluido.</td><td>OQ-3</td><td>Ninguna de las cuatro RPC es invocable por <code>anon</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout crit">
+    <h4>Contrato de <code>actualizar_producto</code> — decisión de esta fase, no del diseño</h4>
+    <p><code>design.md</code> dejó esta semántica como pregunta residual (línea 472). Se resuelve aquí:
+    firma <code>actualizar_producto(p_id uuid, p_producto jsonb, p_costo integer DEFAULT NULL,
+    p_proveedor_id uuid DEFAULT NULL, p_stock_delta integer DEFAULT NULL)</code>.</p>
+    <ul class="clean">
+      <li>Verifica <code>is_admin()</code> primero, igual que <code>crear_producto</code>.</li>
+      <li><strong>Si el payload <code>p_producto</code> trae una clave <code>stock</code>, la función lanza
+      una excepción.</strong> No se ignora en silencio: se rechaza. Todo cambio de stock pasa exclusivamente
+      por <code>p_stock_delta</code>.</li>
+      <li><code>UPDATE productos</code> toca solo columnas seguras para empleados, nunca <code>stock</code>
+      directamente; <code>producto_costos</code> se actualiza con <code>INSERT ... ON CONFLICT (producto_id)
+      DO UPDATE</code>.</li>
+      <li>Si <code>p_stock_delta</code> es distinto de NULL y de cero: suma el delta a <code>productos.stock</code>
+      e inserta una fila <code>movimientos_stock('ajuste', p_stock_delta)</code> en la misma transacción — así
+      la columna y el libro nunca se desincronizan (D3/R1). El CHECK <code>stock &gt;= 0</code> es el respaldo
+      final si un delta negativo dejaría el stock por debajo de cero: aborta la transacción completa.</li>
+    </ul>
+    <p>Criterio de aceptación: un payload <code>{"stock": 999}</code> hace que la RPC falle antes de escribir
+    nada; un <code>p_stock_delta = -3</code> sobre un stock de 2 aborta por el CHECK, y ni la columna ni el
+    libro quedan modificados.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Fase 4 — despliegue y verificación estructural</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Quién</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-4.1</td><td>Comprometer las tres migraciones en una rama corta, abrir PR y fusionar — sin push directo a <code>main</code> (convención del repositorio). El merge dispara el despliegue automático de la integración de GitHub.</td><td><span class="tag human">humano</span></td><td>Las tres migraciones aparecen aplicadas en el proyecto Supabase enlazado tras el merge.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.2</td><td>Confirmar el despliegue: <code>list_migrations</code> muestra los tres archivos; <code>list_tables</code> muestra las 7 tablas con <code>rls_enabled: true</code>; <code>get_advisors</code> no reporta ninguna advertencia nueva de <code>rls_enabled_no_policy</code> en tablas del dominio.</td><td>agente o humano, post-merge</td><td>Las tres verificaciones anteriores se cumplen.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout crit">
+    <h4>Recordatorio — nunca por MCP</h4>
+    <p>T-4.1 es la única vía de despliegue válida para estos tres archivos. <code>apply_migration</code> vía
+    MCP queda prohibido: aplicaría el SQL con un timestamp de ejecución distinto del prefijo del archivo, y el
+    historial del repositorio divergiría en silencio de lo que realmente corre en producción.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>Fase 5 — escenarios de seguridad obligatorios</h2>
+  <p>La especificación de <code>seguridad</code> define una tabla de trazabilidad con cuatro escenarios que
+  el cambio no puede cerrar sin verificar. Se listan aquí como tareas explícitas, más un quinto punto que
+  el diseño marcó como riesgo a confirmar empíricamente (R5).</p>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Escenario</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-5.1</td><td>Un JWT autenticado no-admin consulta <code>producto_costos</code> y <code>proveedores</code> directamente: ambas devuelven lista vacía, nunca 403.</td><td>REQ-DM-SEG-3</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-5.2</td><td>Un UPDATE que viola el <code>WITH CHECK</code> de una política se rechaza; un UPDATE dentro de los límites permitidos, sobre la misma fila, sigue funcionando.</td><td>REQ-DM-SEG-4</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada devuelve error, sin efecto parcial.</td><td>REQ-DM-VENTA-4</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-5.4</td><td>Una llamada directa a <code>confirmar_venta</code>, sin pasar por la interfaz, pidiendo más stock del disponible, se rechaza igual que una llamada desde la aplicación; el stock no cambia.</td><td>REQ-DM-VENTA-3 / SEG-5</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-5.5</td><td>Confirmar con un JWT real de un usuario sembrado no-admin que el embedding <code>productos?select=*,producto_costos(costo)</code> degrada el anidado a lista vacía, no a un error de solicitud.</td><td>R5 / D2</td><td><span class="tag flag">flag — verify</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout oq">
+    <h4>T-5.5 — verificación empírica pendiente, no un supuesto asumido</h4>
+    <p><code>design.md</code> (línea 474) afirma este comportamiento a partir de la semántica de PostgREST,
+    pero aclara que está sin verificar contra el proyecto real. Hoy solo existe el rol <code>'admin'</code> en
+    el CHECK de <code>profiles.rol</code>, así que la prueba necesita un segundo usuario sembrado con
+    <code>rol</code> distinto de <code>'admin'</code> — una fila temporal de prueba o un reclamo de JWT
+    simulado, revertido después del test. Si la respuesta llega como 403 en lugar de lista vacía, el plan
+    alterno del diseño es separar la lectura en un endpoint RPC dedicado que ya filtre por rol.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Fase 6 — seguimiento opcional</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-6.1</td><td>Regenerar los tipos TypeScript de Supabase hacia <code>src/lib/database.types.ts</code> tras el despliegue. La tabla de archivos de <code>design.md</code> no incluye este archivo — ningún código de <code>src/</code> lo consume todavía. Se recomienda como seguimiento de bajo costo para el próximo cambio que sí toque interfaz.</td><td><span class="tag optional">opcional</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="path-note">src/lib/database.types.ts — no existe hoy; T-6.1 no es requisito para archivar este change.</p>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Tareas que requieren acción humana</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Tarea</th><th>Por qué es humana</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-4.1</td><td>El push, el PR y el merge son el único camino de despliegue válido (esquema como código); el agente de apply no puede reemplazar ese flujo con la herramienta MCP.</td></tr>
+      <tr><td class="id-col">T-5.5</td><td>Necesita un JWT real de un segundo usuario sembrado contra el proyecto ya desplegado — se resuelve empíricamente en la fase verify, igual que quedó marcado V-7 en <code>setup-stack</code>, no se da por sentado en el diseño.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>El resto de las tareas (T-1.x, T-2.x, T-3.x, T-4.2, T-5.1–T-5.4, T-6.1) son ejecutables por el agente de
+  la fase apply; T-4.2 y las de la fase 5 solo pueden correr después de que T-4.1 haya desplegado las
+  migraciones.</p>
+</section>
+
+<footer>
+  Antimahue · fase tasks del change <code>data-model</code> · 2026-07-05. Documento de revisión humana; el
+  compañero agent-optimized vive en <code>tasks.md</code> junto a este archivo.
+</footer>
+
+</div>
+</body>
+</html>

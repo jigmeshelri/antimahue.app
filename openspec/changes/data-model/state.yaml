@@ -1,0 +1,14 @@
+change:
+  name: data-model
+  status: apply
+  created_at: "2026-07-05T00:00:00Z"
+  updated_at: "2026-07-05T23:10:00Z"
+  phase_states:
+    explore: completed
+    proposal: completed
+    specs: completed
+    design: completed
+    tasks: completed
+    apply: pending
+    verify: pending
+    archive: pending
