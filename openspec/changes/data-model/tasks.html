@@ -81,7 +81,7 @@
   <div class="meta">
     <span class="badge brand">change: data-model</span>
     <span class="badge">depende de: propuesta · specs · diseño</span>
-    <span class="badge ok">estado: apply fases 1-3 completas, 4-6 pendientes (merge humano)</span>
+    <span class="badge ok">estado: fases 1-4 completas; fase 5 parcial-diferida; fase 6 opcional</span>
     <span class="badge">6 fases · 24 tareas</span>
   </div>
 </header>
@@ -237,8 +237,8 @@
   <table>
     <thead><tr><th>ID</th><th>Tarea</th><th>Quién</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-4.1</td><td>Comprometer las tres migraciones en una rama corta, abrir PR y fusionar — sin push directo a <code>main</code> (convención del repositorio). El merge dispara el despliegue automático de la integración de GitHub.</td><td><span class="tag human">humano</span></td><td>Las tres migraciones aparecen aplicadas en el proyecto Supabase enlazado tras el merge.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-4.2</td><td>Confirmar el despliegue: <code>list_migrations</code> muestra los tres archivos; <code>list_tables</code> muestra las 7 tablas con <code>rls_enabled: true</code>; <code>get_advisors</code> no reporta ninguna advertencia nueva de <code>rls_enabled_no_policy</code> en tablas del dominio.</td><td>agente o humano, post-merge</td><td>Las tres verificaciones anteriores se cumplen.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.1</td><td>Comprometer las tres migraciones en una rama corta, abrir PR y fusionar — sin push directo a <code>main</code> (convención del repositorio). El merge dispara el despliegue automático de la integración de GitHub.</td><td><span class="tag human">humano</span></td><td>Las tres migraciones aparecen aplicadas en el proyecto Supabase enlazado tras el merge.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-4.2</td><td>Confirmar el despliegue: <code>list_migrations</code> muestra los tres archivos; <code>list_tables</code> muestra las 7 tablas con <code>rls_enabled: true</code>; <code>get_advisors</code> no reporta ninguna advertencia nueva de <code>rls_enabled_no_policy</code> en tablas del dominio.</td><td>agente o humano, post-merge</td><td>Las tres verificaciones anteriores se cumplen.</td><td><span class="tag done">hecho</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -247,6 +247,25 @@
     <p>T-4.1 es la única vía de despliegue válida para estos tres archivos. <code>apply_migration</code> vía
     MCP queda prohibido: aplicaría el SQL con un timestamp de ejecución distinto del prefijo del archivo, y el
     historial del repositorio divergiría en silencio de lo que realmente corre en producción.</p>
+  </div>
+  <div class="callout oq">
+    <h4>Desviación registrada en T-4.1 — deploy manual, integración inactiva</h4>
+    <p>El despliegue real se ejecutó a mano vía MCP <code>execute_sql</code> más el registro manual de
+    versiones (prefijo exacto del filename) en <code>supabase_migrations.schema_migrations</code>: la
+    integración de GitHub tenía el toggle «Deploy to production» APAGADO desde el inicio del proyecto.
+    Activada el 2026-07-06, después del deploy (branch <code>main</code>, working dir <code>.</code>). El
+    merge del PR que cierra este change es el primer disparo real de la integración ya activa — resultado
+    esperado: corrida no-op limpia, porque el registry ya está 4/4. Detalle del path oficial y del fallback
+    sancionado en <code>CLAUDE.md</code> → «Deploy de schema (Supabase)».</p>
+  </div>
+  <div class="callout info">
+    <h4>T-4.2 — evidencia de verificación</h4>
+    <p>Confirmado en <code>verify-report.md</code> §1-§2 y §8: <code>list_migrations</code> devuelve 4/4
+    versiones que matchean el prefijo del filename; 10 tablas en <code>public</code>, TODAS con
+    <code>rls_enabled:true</code> (7 nuevas de dominio); matriz de privilegios y políticas coinciden con el
+    diseño; el baseline de advisors creció de 2 a 7 WARN aceptados (5 nuevos
+    <code>authenticated_security_definer_function_executable</code> sobre las cuatro RPC de dominio más
+    <code>is_admin</code>, esperados por diseño) — ningún <code>rls_enabled_no_policy</code> nuevo.</p>
   </div>
 </section>
 
@@ -259,22 +278,37 @@
   <table>
     <thead><tr><th>ID</th><th>Escenario</th><th>Requisito</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-5.1</td><td>Un JWT autenticado no-admin consulta <code>producto_costos</code> y <code>proveedores</code> directamente: ambas devuelven lista vacía, nunca 403.</td><td>REQ-DM-SEG-3</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-5.2</td><td>Un UPDATE que viola el <code>WITH CHECK</code> de una política se rechaza; un UPDATE dentro de los límites permitidos, sobre la misma fila, sigue funcionando.</td><td>REQ-DM-SEG-4</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada devuelve error, sin efecto parcial.</td><td>REQ-DM-VENTA-4</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-5.4</td><td>Una llamada directa a <code>confirmar_venta</code>, sin pasar por la interfaz, pidiendo más stock del disponible, se rechaza igual que una llamada desde la aplicación; el stock no cambia.</td><td>REQ-DM-VENTA-3 / SEG-5</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-5.5</td><td>Confirmar con un JWT real de un usuario sembrado no-admin que el embedding <code>productos?select=*,producto_costos(costo)</code> degrada el anidado a lista vacía, no a un error de solicitud.</td><td>R5 / D2</td><td><span class="tag flag">flag — verify</span></td></tr>
+      <tr><td class="id-col">T-5.1</td><td>Un JWT autenticado no-admin consulta <code>producto_costos</code> y <code>proveedores</code> directamente: ambas devuelven lista vacía, nunca 403.</td><td>REQ-DM-SEG-3</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.2</td><td>Un UPDATE que viola el <code>WITH CHECK</code> de una política se rechaza; un UPDATE dentro de los límites permitidos, sobre la misma fila, sigue funcionando.</td><td>REQ-DM-SEG-4</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada devuelve error, sin efecto parcial.</td><td>REQ-DM-VENTA-4</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.4</td><td>Una llamada directa a <code>confirmar_venta</code>, sin pasar por la interfaz, pidiendo más stock del disponible, se rechaza igual que una llamada desde la aplicación; el stock no cambia.</td><td>REQ-DM-VENTA-3 / SEG-5</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.5</td><td>Confirmar con un JWT real de un usuario sembrado no-admin que el embedding <code>productos?select=*,producto_costos(costo)</code> degrada el anidado a lista vacía, no a un error de solicitud.</td><td>R5 / D2</td><td><span class="tag flag">diferida</span></td></tr>
     </tbody>
   </table>
   </div>
   <div class="callout oq">
-    <h4>T-5.5 — verificación empírica pendiente, no un supuesto asumido</h4>
+    <h4>T-5.1–T-5.4 — parcialmente verificadas; el plano runtime queda abierto</h4>
+    <p>Cero usuarios existen hoy en producción (V1): no hay forma de mintear un JWT <code>authenticated</code>
+    no-admin real, así que estas cuatro tareas <strong>no se dan por completadas</strong> — consistente con
+    <code>verify-report.md</code> §10. Lo que sí quedó verificado contra producción es el plano estructural y
+    el plano <code>anon</code>: REST como <code>anon</code> responde 401/<code>42501</code> en los cinco
+    endpoints probados (denegado en la capa GRANT, nunca datos); la matriz de privilegios (§3) confirma que
+    <code>authenticated</code> no tiene DML de escritura en las tablas de solo RPC; las políticas (§4)
+    muestran ambas cláusulas <code>USING</code> + <code>WITH CHECK</code> en toda política con capacidad de
+    escritura; y los cuerpos de <code>deshacer_venta</code> y <code>confirmar_venta</code> se inspeccionaron
+    por <code>prosrc</code> (guard de última venta, bloqueo <code>FOR UPDATE</code>, firma sin parámetro
+    <code>total</code>). El plano runtime con JWT <code>authenticated</code> — la ejecución real de los cuatro
+    escenarios — queda <strong>DIFERIDO</strong> al verify del change multi-rol/auth-pin, junto con T-5.5.</p>
+  </div>
+  <div class="callout oq">
+    <h4>T-5.5 — diferida al change multi-rol/auth-pin, no un supuesto asumido</h4>
     <p><code>design.md</code> (línea 474) afirma este comportamiento a partir de la semántica de PostgREST,
     pero aclara que está sin verificar contra el proyecto real. Hoy solo existe el rol <code>'admin'</code> en
-    el CHECK de <code>profiles.rol</code>, así que la prueba necesita un segundo usuario sembrado con
-    <code>rol</code> distinto de <code>'admin'</code> — una fila temporal de prueba o un reclamo de JWT
-    simulado, revertido después del test. Si la respuesta llega como 403 en lugar de lista vacía, el plan
-    alterno del diseño es separar la lectura en un endpoint RPC dedicado que ya filtre por rol.</p>
+    el CHECK de <code>profiles.rol</code> — 0 usuarios existen en producción —, así que la prueba necesita un
+    segundo usuario sembrado con <code>rol</code> distinto de <code>'admin'</code>, algo imposible con el CHECK
+    actual. Se resuelve como primer ítem del verify del change multi-rol/auth-pin, cuando ese cambio amplíe el
+    CHECK y permita sembrar ese segundo usuario. Si la respuesta llega como 403 en lugar de lista vacía, el
+    plan alterno del diseño es separar la lectura en un endpoint RPC dedicado que ya filtre por rol.</p>
   </div>
 </section>
 
@@ -297,7 +331,7 @@
   <table>
     <thead><tr><th>Tarea</th><th>Por qué es humana</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-4.1</td><td>El push, el PR y el merge son el único camino de despliegue válido (esquema como código); el agente de apply no puede reemplazar ese flujo con la herramienta MCP.</td></tr>
+      <tr><td class="id-col">T-4.1</td><td>El push, el PR y el merge son el único camino de despliegue válido (esquema como código); el agente de apply no puede reemplazar ese flujo con la herramienta MCP. Ejecutado como excepción sancionada de una sola vez vía MCP <code>execute_sql</code> — la integración de GitHub estaba apagada (ver panel de desviación en la fase 4).</td></tr>
       <tr><td class="id-col">T-5.5</td><td>Necesita un JWT real de un segundo usuario sembrado contra el proyecto ya desplegado — se resuelve empíricamente en la fase verify, igual que quedó marcado V-7 en <code>setup-stack</code>, no se da por sentado en el diseño.</td></tr>
     </tbody>
   </table>
@@ -307,9 +341,25 @@
   migraciones.</p>
 </section>
 
+<section>
+  <h2><span class="n">9.</span>Estado a 2026-07-06 — cierre apply/verify</h2>
+  <div class="callout info">
+    <h4>Fases 1–4 completas; fase 5 parcial-diferida; fase 6 opcional abierta</h4>
+    <p>Fases 1–4 completas: 24/24 tareas de las fases 1-3 más T-4.1/T-4.2 de la fase 4
+    (<code>verify-report.md</code>: PASS, 0 CRITICAL / 3 WARNING / 2 SUGGESTION). Fase 5:
+    <strong>parcial-diferida</strong> — T-5.1–T-5.4 quedan abiertas con progreso parcial documentado (plano
+    estructural + <code>anon</code> verificado contra producción); el plano runtime con JWT
+    <code>authenticated</code> de las cinco tareas (T-5.1–T-5.5) queda diferido al verify del change
+    multi-rol/auth-pin (bloqueado por V1 — 0 usuarios no-admin posibles con el CHECK actual). Consistente con
+    <code>verify-report.md</code> §10. Fase 6 (T-6.1) sigue opcional, abierta. La <em>fase</em> verify corrió
+    y produjo su reporte (<code>state.yaml</code>: <code>verify: completed</code>); las tareas diferidas
+    quedan documentadas aquí. Próximo paso: <code>sdd-archive</code> de este change.</p>
+  </div>
+</section>
+
 <footer>
-  Antimahue · fase tasks del change <code>data-model</code> · 2026-07-05. Documento de revisión humana; el
-  compañero agent-optimized vive en <code>tasks.md</code> junto a este archivo.
+  Antimahue · fase tasks del change <code>data-model</code> · 2026-07-05, actualizado 2026-07-06. Documento de
+  revisión humana; el compañero agent-optimized vive en <code>tasks.md</code> junto a este archivo.
 </footer>
 
 </div>

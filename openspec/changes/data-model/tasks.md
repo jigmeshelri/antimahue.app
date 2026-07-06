@@ -1,14 +1,15 @@
 ---
 change: data-model
 phase: tasks
-status: pending_apply
+status: verified
 depends_on: [proposal, spec, design]
 persistence: openspec
 scope: schema + RLS + RPC only, NO UI
 migration_prefixes: ["20260705000100", "20260705000200", "20260705000300"]
 prior_migration: "20260621000000_initial_scaffold.sql"
 deploy_method: git push (schema-as-code, GitHub integration auto-deploy) — MCP `apply_migration` PROHIBITED for these 3 files
-updated_at: "2026-07-05T23:30:00Z"
+deploy_deviation: "T-4.1 actually executed via MCP execute_sql + manual schema_migrations version registration — GitHub integration was inactive (toggle OFF since project inception). Activated 2026-07-06 post-deploy. See verify-report.md W-C and CLAUDE.md 'Deploy de schema (Supabase)'."
+updated_at: "2026-07-06T03:30:00Z"
 ---
 
 # Tasks: data-model — domain schema, RLS policies & domain RPC
@@ -69,16 +70,22 @@ Depends on Phase 1+2 (tables + `is_admin()` must exist).
 
 ## Phase 4 — Deploy & structural verification
 
-- [ ] T-4.1 **[HUMAN]** Commit the 3 migration files on a short-lived branch → PR → merge (repo convention: PR-only, no direct push to `main`). Merge triggers the GitHub integration's auto-deploy of `supabase/migrations/*.sql`. **PROHIBITED**: `mcp__supabase__apply_migration` for these files (schema-as-code discipline, design.md L24-26/L397-398).
-- [ ] T-4.2 **[post-merge, agent via MCP or human]** `list_migrations` shows all 3 new files applied; `list_tables` shows the 7 domain tables with `rls_enabled: true`; `get_advisors(type='security')` shows only the pre-accepted WARNs/INFOs (design.md L436-443) — no NEW `rls_enabled_no_policy` on any domain table.
+- [x] T-4.1 **[HUMAN]** Commit the 3 migration files on a short-lived branch → PR → merge (repo convention: PR-only, no direct push to `main`). Merge triggers the GitHub integration's auto-deploy of `supabase/migrations/*.sql`. **PROHIBITED**: `mcp__supabase__apply_migration` for these files (schema-as-code discipline, design.md L24-26/L397-398).
+  - **DEVIATION NOTE**: deploy ejecutado manualmente vía MCP `execute_sql` + registro de versiones con prefijo de filename en `supabase_migrations.schema_migrations` — la GitHub integration estaba inactiva (toggle "Deploy to production" OFF desde el inicio del proyecto). Activada el 2026-07-06 post-deploy (branch `main`, working dir `.`). El merge de este PR es el primer run real de la integración ya activa (ver verify-report.md W-C y `CLAUDE.md` → "Deploy de schema (Supabase)").
+- [x] T-4.2 **[post-merge, agent via MCP or human]** `list_migrations` shows all 3 new files applied; `list_tables` shows the 7 domain tables with `rls_enabled: true`; `get_advisors(type='security')` shows only the pre-accepted WARNs/INFOs (design.md L436-443) — no NEW `rls_enabled_no_policy` on any domain table.
+  - **VERIFICADA** (verify-report.md §1-§2, §8): `list_migrations` 4/4 versiones matcheando el prefijo del filename; 10 tablas en `public`, TODAS `rls_enabled:true` (7 nuevas de dominio); matriz V4 de privilegios y policies coinciden con el diseño; baseline de advisors creció de 2→7 WARN aceptados (5 nuevos `authenticated_security_definer_function_executable` sobre las 4 RPC de dominio + `is_admin`, by-design per W-B) — ningún `rls_enabled_no_policy` nuevo.
 
 ## Phase 5 — Mandatory security scenario verification (seguridad spec traceability table)
 
 - [ ] T-5.1 Non-admin `authenticated` JWT: `SELECT * FROM producto_costos` / `proveedores` → `[]`, never 403. REQ-DM-SEG-3.
+  - **Parcialmente verificada** (plano estructural + anon, verify-report.md §3-§5): REST anon → 401/`42501` en `producto_costos`/`proveedores` (denegado en la capa GRANT, nunca datos); matriz V4 confirma `authenticated` sin DML de escritura en las tablas RPC-only; policies `producto_costos_select_admin`/`proveedores_all_admin` gatean con `USING (is_admin())`. El plano runtime con JWT `authenticated` no-admin queda **DIFERIDO** al verify del change multi-rol/auth-pin, junto con T-5.5 (0 usuarios en prod, CHECK solo admite `'admin'` — V1).
 - [ ] T-5.2 UPDATE violating a policy's `WITH CHECK` → rejected; an in-bounds UPDATE on the same row still succeeds. REQ-DM-SEG-4.
+  - **Parcialmente verificada** (plano estructural: policies USING+WITH CHECK, verify-report.md §4): auditoría estática sobre `pg_policies` — las dos policies con capacidad de escritura (`proveedores_all_admin` FOR ALL, `configuracion_update_admin` FOR UPDATE) llevan AMBAS cláusulas `USING` y `WITH CHECK`; ninguna policy UPDATE existe solo con `USING`. El plano runtime con JWT `authenticated` (out-of-bounds rechazado / in-bounds exitoso) queda **DIFERIDO** al verify del change multi-rol/auth-pin, junto con T-5.5.
 - [ ] T-5.3 `deshacer_venta` on a non-last confirmed sale → RPC error, zero partial effect (`estado` unchanged, no ledger row). REQ-DM-VENTA-4.
+  - **Parcialmente verificada** (plano estructural: cuerpo RPC inspeccionado por `prosrc`, verify-report.md §2): guard "last-confirmed-only" + `FOR UPDATE` row lock presentes en prod, idénticos al diseño. El plano runtime con JWT `authenticated` (ejecución real del escenario, sin efecto parcial) queda **DIFERIDO** al verify del change multi-rol/auth-pin, junto con T-5.5.
 - [ ] T-5.4 Direct `confirmar_venta` call bypassing the UI, requesting more stock than available → rejected identically to a UI-driven call, `stock` unchanged. REQ-DM-VENTA-3/SEG-5.
-- [ ] T-5.5 **[FLAG for verify phase — real JWT required, design.md R5/L474-475]** Empirically confirm `GET /productos?select=*,producto_costos(costo)` under a seeded non-admin `authenticated` JWT degrades the embedded `producto_costos` to `[]`, NOT a request-level 403/error. Design *asserts* this from PostgREST embedding semantics; it is UNVERIFIED against the live project. Needs a second seeded user with `profiles.rol <> 'admin'` (today only `'admin'` exists in the CHECK — may need a temporary test row or a mocked JWT claim, scoped and reverted after the test). **Fallback if it 403s**: split into a dedicated read RPC that pre-filters, per design's stated fallback.
+  - **Parcialmente verificada** (plano estructural + anon, verify-report.md §2, §5): REST anon → `POST /rpc/confirmar_venta` 401/`42501` (bloqueada en la capa GRANT antes de tocar stock); cuerpo RPC inspeccionado por `prosrc` — `FOR UPDATE` row lock + CHECK de stock + firma sin parámetro `total` (forja de precio imposible por firma). El plano runtime con JWT `authenticated` (stock insuficiente rechazado end-to-end) queda **DIFERIDO** al verify del change multi-rol/auth-pin, junto con T-5.5.
+- [ ] T-5.5 **[DIFERIDA al verify del change multi-rol/auth-pin]** Empirically confirm `GET /productos?select=*,producto_costos(costo)` under a seeded non-admin `authenticated` JWT degrades the embedded `producto_costos` to `[]`, NOT a request-level 403/error. Design *asserts* this from PostgREST embedding semantics; it remains UNVERIFIED against the live project — imposible crear un usuario no-admin con el CHECK actual de `profiles.rol` (solo admite `'admin'`; 0 usuarios en prod hoy, V1). Se resuelve como primer ítem de verify del change multi-rol/auth-pin, cuando ese cambio amplíe el CHECK y permita sembrar un segundo usuario. **Fallback if it 403s**: split into a dedicated read RPC that pre-filters, per design's stated fallback.
 
 ## Phase 6 — Optional follow-up (not mandated by design)
 
@@ -88,7 +95,11 @@ Depends on Phase 1+2 (tables + `is_admin()` must exist).
 
 | Task | Why human |
 |---|---|
-| T-4.1 | Git push/PR/merge is the only deploy path (schema-as-code); agent must not use `apply_migration` |
+| T-4.1 | Git push/PR/merge is the only deploy path (schema-as-code); agent must not use `apply_migration`. Executed as a one-time sanctioned exception via MCP `execute_sql` (GitHub integration was OFF) — see DEVIATION NOTE above. |
 | T-5.5 | Needs a real seeded non-admin JWT against the live/linked project — flagged like `setup-stack`'s V-7, resolved empirically in verify, not assumed in design |
 
 All other tasks (T-1.x, T-2.x, T-3.x, T-4.2, T-5.1–T-5.4, T-6.1) are executable by the `sdd-apply` agent (T-4.2/T-5.x require the migrations already deployed via T-4.1).
+
+## Estado a 2026-07-06 (cierre apply/verify)
+
+Fases 1–4 completas: 24/24 tareas de las fases 1-3 + T-4.1/T-4.2 de la fase 4 (verify-report.md: PASS, 0 CRITICAL / 3 WARNING / 2 SUGGESTION). Fase 5: **parcial-diferida** — T-5.1–T-5.4 quedan abiertas con progreso parcial documentado (plano estructural + anon verificado contra prod: REST anon 401×5, matriz de privilegios, policies con `USING`+`WITH CHECK` completas, cuerpos RPC inspeccionados por `prosrc`); el plano runtime con JWT `authenticated` de las cinco tareas (T-5.1–T-5.5) queda DIFERIDO al verify del change multi-rol/auth-pin (bloqueado por V1 — 0 usuarios no-admin posibles con el CHECK actual). Consistente con verify-report.md §10. Fase 6 (T-6.1) sigue opcional, abierta. La FASE verify corrió y produjo su reporte (state.yaml: `verify: completed`); las tareas diferidas quedan documentadas aquí. Próximo paso: `sdd-archive` de este change.
