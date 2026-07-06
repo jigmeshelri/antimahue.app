@@ -20,7 +20,9 @@ Comandos reales (de `package.json`):
 - `pnpm typecheck` — typecheck sin emitir.
 - `pnpm preview` — sirve el `dist/` buildeado.
 
-**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El change `setup-stack` está **cerrado y archivado** (apply 48/48 + `sdd-archive` ejecutados el 2026-06-22, ver `diario/2026-06-22.md`): vive en `openspec/changes/archive/2026-06-22-setup-stack/` y su spec consolidada quedó en `openspec/specs/setup-stack/spec.md`. Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
+**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El change `setup-stack` está **cerrado y archivado** (apply 48/48 + `sdd-archive` ejecutados el 2026-06-22, ver `diario/2026-06-22.md`): vive en `openspec/changes/archive/2026-06-22-setup-stack/` y su spec consolidada quedó en `openspec/specs/setup-stack/spec.md`.
+
+El cambio `data-model` está **LIVE en producción y archivado** (apply 48/48, verify PASS 0 CRITICAL, `sdd-archive` 2026-07-06): desplegado a `sa-east-1` con 7 tablas + 4 funciones RPC para 4 dominios (catalogo, venta, configuracion, seguridad). Vive en `openspec/changes/archive/2026-07-06-data-model/` y los specs consolidados en `openspec/specs/{catalogo,venta,configuracion,seguridad}/spec.md`. Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
 
 ## Metodología: Spec-Driven Development (SDD) vía openspec
 
@@ -38,7 +40,11 @@ Changes activos al momento de escribir esto (verificá `state.yaml` actual, esto
 | --- | --- | --- |
 | `color-palette-assistant` | proposal completo, `specs` pending | Asistente de armonía cromática que mapea teoría de color contra stock real. |
 
-(`setup-stack` ya no es un change activo: se archivó el 2026-06-22 — ver "Estado del repo" arriba. Los changes cerrados viven en `openspec/changes/archive/`.)
+Changes archivados:
+- `setup-stack` (2026-06-22) — bootstrapping del stack SPA+Supabase+CF
+- `data-model` (2026-07-06) — schema MVP: 7 tablas, 4 funciones RPC, RLS/GRANTs, live en producción
+
+Los changes cerrados viven en `openspec/changes/archive/`.
 
 La orquestación SDD del user (skills `sdd-*`, `/sdd-*`) genera artefactos en **doble formato** cuando aplica: `.html` rico para revisión humana + `.md` agent-optimized para el LLM. Ver el global CLAUDE.md del user para la convención completa.
 
