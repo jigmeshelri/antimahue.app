@@ -14,6 +14,7 @@
 
 - **SIEMPRE vía PR a `main`** — sin push directo (ruleset de GitHub: PR obligatorio, sin force-push ni borrado en `main`/`develop`).
 - Conventional commits en inglés, atómicos (single responsibility), sin atribución de IA.
+- **Deploy de schema (Supabase):** el merge a `main` dispara la GitHub integration (schema-as-code). Detalle y fallback sancionado en `CLAUDE.md` → "Convenciones y gotchas del repo".
 
 ## Seguridad
 
