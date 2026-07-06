@@ -117,3 +117,26 @@ CREATE POLICY configuracion_update_admin ON public.configuracion
 CREATE POLICY profiles_select_own ON public.profiles
   FOR SELECT TO authenticated USING (id = (select auth.uid()));
 GRANT SELECT ON public.profiles TO authenticated;
+
+-- ============================================================
+-- W1 hardening — strip residual default-privilege grants.
+-- Supabase projects ship `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT
+-- ALL ON TABLES TO anon, authenticated`, so every CREATE TABLE in the
+-- previous migration may have auto-granted INSERT/UPDATE/DELETE (and more)
+-- that the GRANTs above do NOT remove — GRANTs are additive. The design's
+-- second lock ("no client write GRANT on any sale/stock table"; "anon
+-- receives zero GRANTs on every table") must be materialized with explicit
+-- REVOKEs. Ordering matters: these run AFTER the GRANTs above, so what
+-- remains is exactly the least-privilege matrix from the design. The
+-- proveedores/configuracion write exceptions for `authenticated` granted
+-- above stay intact (design-authorized, RLS-gated to admin).
+-- ============================================================
+-- RPC-only tables: no client write path, for neither API role (W1).
+REVOKE INSERT, UPDATE, DELETE ON public.productos, public.producto_costos,
+  public.ventas, public.venta_items, public.movimientos_stock
+  FROM anon, authenticated;
+-- anon: zero grants on every domain table (design GRANT matrix). REVOKE ALL
+-- also clears default-privilege SELECT/TRUNCATE/REFERENCES/TRIGGER leftovers.
+REVOKE ALL ON public.productos, public.producto_costos, public.ventas,
+  public.venta_items, public.movimientos_stock FROM anon;
+REVOKE ALL ON public.proveedores, public.configuracion FROM anon;
