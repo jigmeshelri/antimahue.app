@@ -81,7 +81,7 @@
   <div class="meta">
     <span class="badge brand">change: data-model</span>
     <span class="badge">depende de: propuesta · specs · diseño</span>
-    <span class="badge ok">estado: apply/verify cerradas (fases 1-5); fase 6 opcional abierta</span>
+    <span class="badge ok">estado: fases 1-4 completas; fase 5 parcial-diferida; fase 6 opcional</span>
     <span class="badge">6 fases · 24 tareas</span>
   </div>
 </header>
@@ -278,25 +278,27 @@
   <table>
     <thead><tr><th>ID</th><th>Escenario</th><th>Requisito</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-5.1</td><td>Un JWT autenticado no-admin consulta <code>producto_costos</code> y <code>proveedores</code> directamente: ambas devuelven lista vacía, nunca 403.</td><td>REQ-DM-SEG-3</td><td><span class="tag done">hecho</span></td></tr>
-      <tr><td class="id-col">T-5.2</td><td>Un UPDATE que viola el <code>WITH CHECK</code> de una política se rechaza; un UPDATE dentro de los límites permitidos, sobre la misma fila, sigue funcionando.</td><td>REQ-DM-SEG-4</td><td><span class="tag done">hecho</span></td></tr>
-      <tr><td class="id-col">T-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada devuelve error, sin efecto parcial.</td><td>REQ-DM-VENTA-4</td><td><span class="tag done">hecho</span></td></tr>
-      <tr><td class="id-col">T-5.4</td><td>Una llamada directa a <code>confirmar_venta</code>, sin pasar por la interfaz, pidiendo más stock del disponible, se rechaza igual que una llamada desde la aplicación; el stock no cambia.</td><td>REQ-DM-VENTA-3 / SEG-5</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-5.1</td><td>Un JWT autenticado no-admin consulta <code>producto_costos</code> y <code>proveedores</code> directamente: ambas devuelven lista vacía, nunca 403.</td><td>REQ-DM-SEG-3</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.2</td><td>Un UPDATE que viola el <code>WITH CHECK</code> de una política se rechaza; un UPDATE dentro de los límites permitidos, sobre la misma fila, sigue funcionando.</td><td>REQ-DM-SEG-4</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada devuelve error, sin efecto parcial.</td><td>REQ-DM-VENTA-4</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
+      <tr><td class="id-col">T-5.4</td><td>Una llamada directa a <code>confirmar_venta</code>, sin pasar por la interfaz, pidiendo más stock del disponible, se rechaza igual que una llamada desde la aplicación; el stock no cambia.</td><td>REQ-DM-VENTA-3 / SEG-5</td><td><span class="tag pending">parcial — runtime diferido</span></td></tr>
       <tr><td class="id-col">T-5.5</td><td>Confirmar con un JWT real de un usuario sembrado no-admin que el embedding <code>productos?select=*,producto_costos(costo)</code> degrada el anidado a lista vacía, no a un error de solicitud.</td><td>R5 / D2</td><td><span class="tag flag">diferida</span></td></tr>
     </tbody>
   </table>
   </div>
-  <div class="callout info">
-    <h4>T-5.1–T-5.4 — evidencia de verificación contra prod</h4>
+  <div class="callout oq">
+    <h4>T-5.1–T-5.4 — parcialmente verificadas; el plano runtime queda abierto</h4>
     <p>Cero usuarios existen hoy en producción (V1): no hay forma de mintear un JWT <code>authenticated</code>
-    no-admin real. Cada tarea se cerró con la evidencia disponible más cercana, registrada en
-    <code>verify-report.md</code>: el plano <code>anon</code> vía REST responde 401/<code>42501</code> en los
-    cinco endpoints probados (nunca lista vacía por error, siempre denegado en la capa GRANT); la matriz de
-    privilegios (§3) confirma que <code>authenticated</code> no tiene DML de escritura en las tablas de solo
-    RPC; y las políticas (§4) muestran ambas cláusulas <code>USING</code> + <code>WITH CHECK</code> presentes
-    en toda política con capacidad de escritura. La corrida runtime completa con un JWT no-admin real —
-    incluido el comportamiento exacto de <code>deshacer_venta</code> y <code>confirmar_venta</code> bajo ese
-    rol — queda diferida al verify del change multi-rol/auth-pin, junto con T-5.5.</p>
+    no-admin real, así que estas cuatro tareas <strong>no se dan por completadas</strong> — consistente con
+    <code>verify-report.md</code> §10. Lo que sí quedó verificado contra producción es el plano estructural y
+    el plano <code>anon</code>: REST como <code>anon</code> responde 401/<code>42501</code> en los cinco
+    endpoints probados (denegado en la capa GRANT, nunca datos); la matriz de privilegios (§3) confirma que
+    <code>authenticated</code> no tiene DML de escritura en las tablas de solo RPC; las políticas (§4)
+    muestran ambas cláusulas <code>USING</code> + <code>WITH CHECK</code> en toda política con capacidad de
+    escritura; y los cuerpos de <code>deshacer_venta</code> y <code>confirmar_venta</code> se inspeccionaron
+    por <code>prosrc</code> (guard de última venta, bloqueo <code>FOR UPDATE</code>, firma sin parámetro
+    <code>total</code>). El plano runtime con JWT <code>authenticated</code> — la ejecución real de los cuatro
+    escenarios — queda <strong>DIFERIDO</strong> al verify del change multi-rol/auth-pin, junto con T-5.5.</p>
   </div>
   <div class="callout oq">
     <h4>T-5.5 — diferida al change multi-rol/auth-pin, no un supuesto asumido</h4>
@@ -342,12 +344,16 @@
 <section>
   <h2><span class="n">9.</span>Estado a 2026-07-06 — cierre apply/verify</h2>
   <div class="callout info">
-    <h4>Fases 1–5 cerradas, fase 6 opcional abierta</h4>
+    <h4>Fases 1–4 completas; fase 5 parcial-diferida; fase 6 opcional abierta</h4>
     <p>Fases 1–4 completas: 24/24 tareas de las fases 1-3 más T-4.1/T-4.2 de la fase 4
-    (<code>verify-report.md</code>: PASS, 0 CRITICAL / 3 WARNING / 2 SUGGESTION). Fase 5: T-5.1–T-5.4
-    completas con evidencia estructural y de plano <code>anon</code> contra producción; T-5.5 diferida al
-    verify del change multi-rol/auth-pin (bloqueada por V1 — 0 usuarios no-admin posibles con el CHECK
-    actual). Fase 6 (T-6.1) sigue opcional, abierta. Próximo paso: <code>sdd-archive</code> de este change.</p>
+    (<code>verify-report.md</code>: PASS, 0 CRITICAL / 3 WARNING / 2 SUGGESTION). Fase 5:
+    <strong>parcial-diferida</strong> — T-5.1–T-5.4 quedan abiertas con progreso parcial documentado (plano
+    estructural + <code>anon</code> verificado contra producción); el plano runtime con JWT
+    <code>authenticated</code> de las cinco tareas (T-5.1–T-5.5) queda diferido al verify del change
+    multi-rol/auth-pin (bloqueado por V1 — 0 usuarios no-admin posibles con el CHECK actual). Consistente con
+    <code>verify-report.md</code> §10. Fase 6 (T-6.1) sigue opcional, abierta. La <em>fase</em> verify corrió
+    y produjo su reporte (<code>state.yaml</code>: <code>verify: completed</code>); las tareas diferidas
+    quedan documentadas aquí. Próximo paso: <code>sdd-archive</code> de este change.</p>
   </div>
 </section>
 
