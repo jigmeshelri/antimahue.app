@@ -59,6 +59,7 @@
   .tag.def{background:var(--danger-soft);color:var(--danger)}
   .tag.admin{background:var(--admin-soft);color:var(--admin)}
   .tag.pending{background:#eee7db;color:var(--muted)}
+  .tag.done{background:var(--ok-soft);color:var(--ok)}
   .tag.human{background:var(--warn-soft);color:var(--warn)}
   .tag.flag{background:var(--danger-soft);color:var(--danger)}
   .tag.optional{background:#e7eef6;color:#3a6ea5}
@@ -80,7 +81,7 @@
   <div class="meta">
     <span class="badge brand">change: data-model</span>
     <span class="badge">depende de: propuesta · specs · diseño</span>
-    <span class="badge warn">estado: pendiente de apply</span>
+    <span class="badge ok">estado: apply fases 1-3 completas, 4-6 pendientes (merge humano)</span>
     <span class="badge">6 fases · 24 tareas</span>
   </div>
 </header>
@@ -125,19 +126,33 @@
 <section>
   <h2><span class="n">2.</span>Fase 1 — tablas del dominio</h2>
   <p>Archivo: <code>supabase/migrations/20260705000100_domain_tables.sql</code>.</p>
+
+  <div class="callout info">
+    <h4>Nota de la fase apply — conflicto spec/diseño en el tipo de dinero: resuelto</h4>
+    <p>Las tablas de requisitos de <code>specs/catalogo/spec.md</code> y <code>specs/venta/spec.md</code>
+    describían originalmente <code>precio_venta</code>, <code>costo</code>, <code>total</code> y
+    <code>precio_unitario</code> como <code>numeric</code>, mientras que <code>design.md</code> — tanto en su
+    enfoque técnico como en el DDL completo — usa <code>integer</code> CLP de forma consistente, con
+    justificación explícita (el peso chileno no tiene centavos; evita errores de redondeo en los totales). La
+    implementación sigue a <code>design.md</code> (<code>integer</code>). <strong>Resuelto en esta misma
+    rama:</strong> ambos <code>spec.md</code> y el compañero <code>specs/spec.html</code> se editaron para
+    declarar <code>integer</code> CLP con una nota de alineación de una línea, de modo que la fase verify no
+    marque un falso desajuste contra las migraciones.</p>
+  </div>
+
   <div class="tbl-scroll">
   <table>
     <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-1.1</td><td>Instalar <code>pg_trgm</code> en el esquema <code>extensions</code> (DD4).</td><td>—</td><td>La extensión vive en <code>extensions</code>, no en <code>public</code>: sin advertencia <code>extension_in_public</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.2</td><td><code>proveedores</code> + RLS activo.</td><td>REQ-DM-CAT-3</td><td>La tabla existe con <code>rowsecurity=true</code> (política se agrega en la fase 2).</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.3</td><td><code>productos</code>: columnas seguras para empleados, <code>color_hex</code> con CHECK de formato, <code>stock &gt;= 0</code>, índice GIN por nombre.</td><td>REQ-DM-CAT-1, REQ-DM-CAT-4</td><td><code>color_hex = 'blue'</code> se rechaza; color en NULL se acepta.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.4</td><td><code>producto_costos</code> 1:1, PK = FK a <code>productos.id</code>, <code>costo &gt;= 0</code>.</td><td>REQ-DM-CAT-2</td><td>Una segunda fila para el mismo <code>producto_id</code> viola la clave primaria.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.5</td><td><code>ventas</code> + índice parcial por venta confirmada.</td><td>REQ-DM-VENTA-1</td><td><code>estado</code> rechaza cualquier valor fuera de <code>confirmada</code>/<code>deshecha</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.6</td><td><code>venta_items</code>, <code>precio_unitario</code> como fotografía congelada.</td><td>REQ-DM-VENTA-1</td><td>La tabla existe con el índice por <code>venta_id</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.7</td><td><code>movimientos_stock</code>: libro tipado, <code>tipo</code> reserva ya el valor <code>compra</code> para el futuro cambio <code>dte-import</code>.</td><td>REQ-DM-VENTA-2</td><td>La tabla existe con el CHECK de tipo y el índice por producto.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.8</td><td><code>configuracion</code> singleton, fila sembrada <code>id=1</code> con <code>ON CONFLICT DO NOTHING</code>.</td><td>REQ-DM-CFG-1 / OQ-4</td><td>Una segunda fila <code>id=2</code> se rechaza; re-ejecutar la migración no duplica la semilla ni falla.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-1.9</td><td>Confirmar que las 7 tablas nuevas activan RLS en la misma sentencia de creación — ninguna queda sin RLS, ni siquiera transitoriamente dentro del archivo.</td><td>—</td><td>Revisión visual del archivo antes de comprometerlo.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.1</td><td>Instalar <code>pg_trgm</code> en el esquema <code>extensions</code> (DD4).</td><td>—</td><td>La extensión vive en <code>extensions</code>, no en <code>public</code>: sin advertencia <code>extension_in_public</code>.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.2</td><td><code>proveedores</code> + RLS activo.</td><td>REQ-DM-CAT-3</td><td>La tabla existe con <code>rowsecurity=true</code> (política se agrega en la fase 2).</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.3</td><td><code>productos</code>: columnas seguras para empleados, <code>color_hex</code> con CHECK de formato, <code>stock &gt;= 0</code>, índice GIN por nombre.</td><td>REQ-DM-CAT-1, REQ-DM-CAT-4</td><td><code>color_hex = 'blue'</code> se rechaza; color en NULL se acepta.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.4</td><td><code>producto_costos</code> 1:1, PK = FK a <code>productos.id</code>, <code>costo &gt;= 0</code>.</td><td>REQ-DM-CAT-2</td><td>Una segunda fila para el mismo <code>producto_id</code> viola la clave primaria.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.5</td><td><code>ventas</code> + índice parcial por venta confirmada.</td><td>REQ-DM-VENTA-1</td><td><code>estado</code> rechaza cualquier valor fuera de <code>confirmada</code>/<code>deshecha</code>.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.6</td><td><code>venta_items</code>, <code>precio_unitario</code> como fotografía congelada.</td><td>REQ-DM-VENTA-1</td><td>La tabla existe con el índice por <code>venta_id</code>.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.7</td><td><code>movimientos_stock</code>: libro tipado, <code>tipo</code> reserva ya el valor <code>compra</code> para el futuro cambio <code>dte-import</code>.</td><td>REQ-DM-VENTA-2</td><td>La tabla existe con el CHECK de tipo y el índice por producto.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.8</td><td><code>configuracion</code> singleton, fila sembrada <code>id=1</code> con <code>ON CONFLICT DO NOTHING</code>.</td><td>REQ-DM-CFG-1 / OQ-4</td><td>Una segunda fila <code>id=2</code> se rechaza; re-ejecutar la migración no duplica la semilla ni falla.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-1.9</td><td>Confirmar que las 7 tablas nuevas activan RLS en la misma sentencia de creación — ninguna queda sin RLS, ni siquiera transitoriamente dentro del archivo.</td><td>—</td><td>Revisión visual del archivo antes de comprometerlo.</td><td><span class="tag done">hecho</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -151,16 +166,16 @@
   <table>
     <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-2.1</td><td><code>is_admin()</code> — <span class="tag def">DEFINER</span> · <code>SET search_path=''</code> · <code>STABLE</code>; <code>REVOKE FROM PUBLIC</code> y <code>GRANT TO authenticated</code>.</td><td>REQ-DM-SEG-1</td><td>Es invocable por <code>authenticated</code>; <code>anon</code> recibe permiso denegado.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.2</td><td><code>touch_updated_at()</code> + triggers <code>BEFORE UPDATE</code> en <code>productos</code>, <code>producto_costos</code>, <code>proveedores</code>, <code>configuracion</code>; EXECUTE revocado a todos los roles de API.</td><td>DD5</td><td>Un UPDATE directo sobre cualquiera de las cuatro tablas actualiza <code>updated_at</code> solo.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.3</td><td><code>productos</code>: <code>GRANT SELECT</code>; política <code>USING (true)</code>.</td><td>REQ-DM-SEG-2</td><td><code>GET /productos</code> como autenticado devuelve 200 con filas.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.4</td><td><code>producto_costos</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING (is_admin())</code>.</td><td>REQ-DM-SEG-3 / D2</td><td>El embedding <code>productos?select=*,producto_costos(costo)</code> para no-admin degrada el anidado a lista vacía.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.5</td><td><code>proveedores</code> <span class="tag admin">solo admin</span>: CRUD completo con <code>USING(is_admin()) WITH CHECK(is_admin())</code>.</td><td>REQ-DM-SEG-2/3/4</td><td>Política de escritura con ambas cláusulas presentes.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.6</td><td><code>ventas</code> + <code>venta_items</code>: <code>GRANT SELECT</code>; política <code>USING(true)</code> en cada una.</td><td>REQ-DM-SEG-2</td><td>Lectura de ambas tablas disponible para cualquier usuario autenticado.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.7</td><td><code>movimientos_stock</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING(is_admin())</code>.</td><td>REQ-DM-SEG-2</td><td>Libro de auditoría no legible por no-admin.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.8</td><td><code>configuracion</code>: SELECT abierto a todos; UPDATE solo admin con <code>USING</code> + <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-2/4</td><td>UPDATE de un no-admin se rechaza; SELECT funciona para cualquiera.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.9</td><td><code>profiles_select_own</code>: <code>GRANT SELECT</code>; política <code>USING(id=(select auth.uid()))</code>. <strong>Cierra REQ-SETUP-7 / V-7.</strong></td><td>REQ-SETUP-7 / V-7</td><td><code>GET /profiles</code> como autenticado responde 200 — reemplaza el 401 base de <code>setup-stack</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-2.10</td><td>Auditoría estática: toda política de INSERT/UPDATE de T-2.3–T-2.9 lleva <code>USING</code> Y <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-4</td><td>Ninguna política UPDATE queda solo con <code>USING</code> en el archivo.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.1</td><td><code>is_admin()</code> — <span class="tag def">DEFINER</span> · <code>SET search_path=''</code> · <code>STABLE</code>; <code>REVOKE FROM PUBLIC</code> y <code>GRANT TO authenticated</code>.</td><td>REQ-DM-SEG-1</td><td>Es invocable por <code>authenticated</code>; <code>anon</code> recibe permiso denegado.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.2</td><td><code>touch_updated_at()</code> + triggers <code>BEFORE UPDATE</code> en <code>productos</code>, <code>producto_costos</code>, <code>proveedores</code>, <code>configuracion</code>; EXECUTE revocado a todos los roles de API.</td><td>DD5</td><td>Un UPDATE directo sobre cualquiera de las cuatro tablas actualiza <code>updated_at</code> solo.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.3</td><td><code>productos</code>: <code>GRANT SELECT</code>; política <code>USING (true)</code>.</td><td>REQ-DM-SEG-2</td><td><code>GET /productos</code> como autenticado devuelve 200 con filas.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.4</td><td><code>producto_costos</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING (is_admin())</code>.</td><td>REQ-DM-SEG-3 / D2</td><td>El embedding <code>productos?select=*,producto_costos(costo)</code> para no-admin degrada el anidado a lista vacía.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.5</td><td><code>proveedores</code> <span class="tag admin">solo admin</span>: CRUD completo con <code>USING(is_admin()) WITH CHECK(is_admin())</code>.</td><td>REQ-DM-SEG-2/3/4</td><td>Política de escritura con ambas cláusulas presentes.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.6</td><td><code>ventas</code> + <code>venta_items</code>: <code>GRANT SELECT</code>; política <code>USING(true)</code> en cada una.</td><td>REQ-DM-SEG-2</td><td>Lectura de ambas tablas disponible para cualquier usuario autenticado.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.7</td><td><code>movimientos_stock</code> <span class="tag admin">solo admin</span>: <code>GRANT SELECT</code>; política <code>USING(is_admin())</code>.</td><td>REQ-DM-SEG-2</td><td>Libro de auditoría no legible por no-admin.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.8</td><td><code>configuracion</code>: SELECT abierto a todos; UPDATE solo admin con <code>USING</code> + <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-2/4</td><td>UPDATE de un no-admin se rechaza; SELECT funciona para cualquiera.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.9</td><td><code>profiles_select_own</code>: <code>GRANT SELECT</code>; política <code>USING(id=(select auth.uid()))</code>. <strong>Cierra REQ-SETUP-7 / V-7.</strong></td><td>REQ-SETUP-7 / V-7</td><td><code>GET /profiles</code> como autenticado responde 200 — reemplaza el 401 base de <code>setup-stack</code>.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-2.10</td><td>Auditoría estática: toda política de INSERT/UPDATE de T-2.3–T-2.9 lleva <code>USING</code> Y <code>WITH CHECK</code>.</td><td>REQ-DM-SEG-4</td><td>Ninguna política UPDATE queda solo con <code>USING</code> en el archivo.</td><td><span class="tag done">hecho</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -174,11 +189,11 @@
   <table>
     <thead><tr><th>ID</th><th>RPC</th><th>Requisito</th><th>Criterio de aceptación</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="id-col">T-3.1</td><td><code>confirmar_venta(p_items, p_medio_pago)</code> <span class="tag def">DEFINER</span> — bloqueo <code>FOR UPDATE</code>, precio autoritativo del servidor, total recalculado, libro en la misma transacción.</td><td>REQ-DM-VENTA-3</td><td>Cierre atómico todo-o-nada; stock insuficiente rechazado; total forjado por el cliente ignorado.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-3.2</td><td><code>deshacer_venta(p_venta_id)</code> <span class="tag def">DEFINER</span> — verifica que sea la última venta confirmada, anula suave, inserta ledger compensatorio.</td><td>REQ-DM-VENTA-4</td><td>Deshacer la última venta funciona; deshacer una venta anterior o ya deshecha se rechaza sin efecto parcial.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-3.3</td><td><code>crear_producto(p_producto, p_costo, p_proveedor_id)</code> <span class="tag def">DEFINER</span> — verifica <code>is_admin()</code> primero, escribe ambas tablas en una transacción.</td><td>REQ-DM-CAT-5</td><td>Un costo negativo revierte toda la transacción: no queda fila huérfana en <code>productos</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-3.4</td><td><code>actualizar_producto(...)</code> <span class="tag def">DEFINER</span> — contrato decidido en esta tarea (ver panel debajo).</td><td>REQ-DM-CAT-5</td><td>Ver panel «Contrato de <code>actualizar_producto</code>».</td><td><span class="tag pending">pendiente</span></td></tr>
-      <tr><td class="id-col">T-3.5</td><td><code>REVOKE FROM PUBLIC</code> + <code>GRANT TO authenticated</code> en las cuatro RPC; <code>anon</code> queda excluido.</td><td>OQ-3</td><td>Ninguna de las cuatro RPC es invocable por <code>anon</code>.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.1</td><td><code>confirmar_venta(p_items, p_medio_pago)</code> <span class="tag def">DEFINER</span> — bloqueo <code>FOR UPDATE</code>, precio autoritativo del servidor, total recalculado, libro en la misma transacción.</td><td>REQ-DM-VENTA-3</td><td>Cierre atómico todo-o-nada; stock insuficiente rechazado; total forjado por el cliente ignorado.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-3.2</td><td><code>deshacer_venta(p_venta_id)</code> <span class="tag def">DEFINER</span> — verifica que sea la última venta confirmada, anula suave, inserta ledger compensatorio.</td><td>REQ-DM-VENTA-4</td><td>Deshacer la última venta funciona; deshacer una venta anterior o ya deshecha se rechaza sin efecto parcial.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-3.3</td><td><code>crear_producto(p_producto, p_costo, p_proveedor_id)</code> <span class="tag def">DEFINER</span> — verifica <code>is_admin()</code> primero, escribe ambas tablas en una transacción.</td><td>REQ-DM-CAT-5</td><td>Un costo negativo revierte toda la transacción: no queda fila huérfana en <code>productos</code>.</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-3.4</td><td><code>actualizar_producto(...)</code> <span class="tag def">DEFINER</span> — contrato decidido en esta tarea (ver panel debajo).</td><td>REQ-DM-CAT-5</td><td>Ver panel «Contrato de <code>actualizar_producto</code>».</td><td><span class="tag done">hecho</span></td></tr>
+      <tr><td class="id-col">T-3.5</td><td><code>REVOKE FROM PUBLIC</code> + <code>GRANT TO authenticated</code> en las cuatro RPC; <code>anon</code> queda excluido.</td><td>OQ-3</td><td>Ninguna de las cuatro RPC es invocable por <code>anon</code>.</td><td><span class="tag done">hecho</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -204,6 +219,15 @@
     <p>Criterio de aceptación: un payload <code>{"stock": 999}</code> hace que la RPC falle antes de escribir
     nada; un <code>p_stock_delta = -3</code> sobre un stock de 2 aborta por el CHECK, y ni la columna ni el
     libro quedan modificados.</p>
+    <p><strong>Implementado así</strong> (nota de la fase apply): el <code>UPDATE productos</code> usa
+    <code>CASE WHEN p_producto ? 'campo' THEN ... ELSE campo END</code> por columna — semántica PATCH vía el
+    operador de existencia <code>?</code> de jsonb: una clave ausente del payload deja la columna intacta; una
+    clave presente con <code>null</code> la limpia. El UPSERT de <code>producto_costos</code> usa
+    <code>COALESCE(p_costo, producto_costos.costo)</code> en la rama de conflicto — un <code>p_costo</code> o
+    <code>p_proveedor_id</code> nulo sobre una fila existente significa «sin cambio», no «borrar». Retorna
+    <code>void</code> (no hay id nuevo que devolver, a diferencia de <code>crear_producto</code>). Nada de esto
+    contradice spec/diseño: el diseño dejó explícitamente esta semántica de UPDATE como pregunta abierta para
+    esta fase.</p>
   </div>
 </section>
 

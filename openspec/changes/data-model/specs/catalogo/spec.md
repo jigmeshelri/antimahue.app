@@ -35,11 +35,13 @@ The system MUST create `productos` with only employee-visible columns. `costo` a
 | color_nombre | text NULL | REQ-DM-CAT-4 |
 | color_hex | text NULL | REQ-DM-CAT-4 |
 | peso_metraje | text/numeric | |
-| precio_venta | numeric | |
+| precio_venta | integer | CLP |
 | stock | int | `CHECK (stock >= 0)` |
 | stock_minimo | int NULL | override, see `configuracion` domain |
 | imagen_url | text NULL | |
 | created_at, updated_at | timestamptz | |
+
+> Amounts are integer CLP (no decimal currency in Chile) — aligned with design's money decision (Technical Approach).
 
 #### Scenario: producto created without cost columns
 - GIVEN a client inserts a row via `crear_producto`
@@ -53,7 +55,7 @@ The system MUST create `productos` with only employee-visible columns. `costo` a
 
 ### Requirement: REQ-DM-CAT-2 — `producto_costos` 1:1 admin-only table
 
-The system MUST create `producto_costos(producto_id uuid PK REFERENCES productos(id), costo numeric NOT NULL, proveedor_id uuid NULL REFERENCES proveedores(id), updated_at timestamptz)`. Read/write exposure is admin-only (enforced in REQ-DM-SEG-3).
+The system MUST create `producto_costos(producto_id uuid PK REFERENCES productos(id), costo integer NOT NULL, proveedor_id uuid NULL REFERENCES proveedores(id), updated_at timestamptz)`. `costo` is integer CLP (no decimal currency in Chile) — aligned with design's money decision. Read/write exposure is admin-only (enforced in REQ-DM-SEG-3).
 
 #### Scenario: one cost row per product
 - GIVEN `producto_costos.producto_id` is PRIMARY KEY and FK to `productos.id`

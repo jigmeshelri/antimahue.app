@@ -23,7 +23,7 @@ integrity server-side — `confirmar_venta` (atomic close) and `deshacer_venta`
 
 ### Requirement: REQ-DM-VENTA-1 — `ventas` / `venta_items`, frozen price
 
-The system MUST create `ventas(id uuid PK, actor_id uuid FK auth.users, medio_pago text CHECK, total numeric, estado text CHECK IN ('confirmada','deshecha') DEFAULT 'confirmada', created_at)` and `venta_items(id uuid PK, venta_id FK, producto_id FK, cantidad int CHECK (cantidad > 0), precio_unitario numeric)`. `precio_unitario` MUST be captured at sale time and MUST NOT change if `productos.precio_venta` changes later.
+The system MUST create `ventas(id uuid PK, actor_id uuid FK auth.users, medio_pago text CHECK, total integer, estado text CHECK IN ('confirmada','deshecha') DEFAULT 'confirmada', created_at)` and `venta_items(id uuid PK, venta_id FK, producto_id FK, cantidad int CHECK (cantidad > 0), precio_unitario integer)`. Amounts (`total`, `precio_unitario`) are integer CLP (no decimal currency in Chile) — aligned with design's money decision. `precio_unitario` MUST be captured at sale time and MUST NOT change if `productos.precio_venta` changes later.
 
 #### Scenario: ticket price stays frozen after a later price change
 - GIVEN a confirmed sale with `venta_items.precio_unitario = 1000`
