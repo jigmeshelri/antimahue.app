@@ -15,13 +15,14 @@ updated_at: "2026-07-05T23:30:00Z"
 
 All SQL bodies already exist verbatim in `design.md` — tasks reference line ranges, they do not restate DDL.
 
-> **Apply-phase note (spec/design conflict, reported per orchestrator instruction — "specs win, don't
-> improvise"):** the `specs/catalogo/spec.md` and `specs/venta/spec.md` requirement tables describe money
-> columns (`precio_venta`, `costo`, `total`, `precio_unitario`) as `numeric`, while `design.md`'s "Technical
+> **Apply-phase note (spec/design conflict — RESOLVED: specs aligned to integer CLP):** the
+> `specs/catalogo/spec.md` and `specs/venta/spec.md` requirement tables originally described money columns
+> (`precio_venta`, `costo`, `total`, `precio_unitario`) as `numeric`, while `design.md`'s "Technical
 > Approach" and its full DDL consistently use `integer` CLP with an explicit rationale (Chilean peso has no
-> cents; avoids float rounding). The implementation follows `design.md` (`integer`) — the spec's `numeric`
-> reads as an informal type hint in prose (it also calls `cantidad`/`stock` "int" elsewhere, matching
-> design), not a deliberate requirement for decimal precision. Flagging here instead of silently picking one.
+> cents; avoids float rounding). The implementation follows `design.md` (`integer`). Resolution (same
+> branch, per coordinator instruction): both spec.md files and the `specs/spec.html` companion were edited
+> to declare `integer` CLP with a one-line alignment note, so the verify phase will not flag a false
+> mismatch against the migrations.
 
 ## Phase 1 — `supabase/migrations/20260705000100_domain_tables.sql` (tables)
 

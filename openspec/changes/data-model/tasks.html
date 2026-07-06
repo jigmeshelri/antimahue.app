@@ -127,17 +127,17 @@
   <h2><span class="n">2.</span>Fase 1 — tablas del dominio</h2>
   <p>Archivo: <code>supabase/migrations/20260705000100_domain_tables.sql</code>.</p>
 
-  <div class="callout oq">
-    <h4>Nota de la fase apply — conflicto spec/diseño en el tipo de las columnas de dinero</h4>
+  <div class="callout info">
+    <h4>Nota de la fase apply — conflicto spec/diseño en el tipo de dinero: resuelto</h4>
     <p>Las tablas de requisitos de <code>specs/catalogo/spec.md</code> y <code>specs/venta/spec.md</code>
-    describen <code>precio_venta</code>, <code>costo</code>, <code>total</code> y <code>precio_unitario</code>
-    como <code>numeric</code>, mientras que <code>design.md</code> — tanto en su enfoque técnico como en el DDL
-    completo — usa <code>integer</code> CLP de forma consistente, con justificación explícita (el peso chileno
-    no tiene centavos; evita errores de redondeo en los totales). La implementación sigue a <code>design.md</code>
-    (<code>integer</code>): la palabra «numeric» en las specs se lee como una descripción informal de tipo en la
-    prosa (esas mismas specs también llaman «int» a <code>cantidad</code>/<code>stock</code>, coincidiendo con el
-    diseño), no como un requisito deliberado de precisión decimal. Se reporta acá en vez de resolverlo en
-    silencio.</p>
+    describían originalmente <code>precio_venta</code>, <code>costo</code>, <code>total</code> y
+    <code>precio_unitario</code> como <code>numeric</code>, mientras que <code>design.md</code> — tanto en su
+    enfoque técnico como en el DDL completo — usa <code>integer</code> CLP de forma consistente, con
+    justificación explícita (el peso chileno no tiene centavos; evita errores de redondeo en los totales). La
+    implementación sigue a <code>design.md</code> (<code>integer</code>). <strong>Resuelto en esta misma
+    rama:</strong> ambos <code>spec.md</code> y el compañero <code>specs/spec.html</code> se editaron para
+    declarar <code>integer</code> CLP con una nota de alineación de una línea, de modo que la fase verify no
+    marque un falso desajuste contra las migraciones.</p>
   </div>
 
   <div class="tbl-scroll">

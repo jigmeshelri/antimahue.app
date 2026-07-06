@@ -346,7 +346,8 @@
           <tr><td>sku</td><td>text</td><td>campo de código de barras (D1)</td></tr>
           <tr><td>nombre, tipo, marca, grosor</td><td>text</td><td></td></tr>
           <tr><td>color_nombre, color_hex</td><td>text, NULL</td><td>REQ-DM-CAT-4</td></tr>
-          <tr><td>precio_venta, peso_metraje</td><td>numeric</td><td></td></tr>
+          <tr><td>precio_venta</td><td>integer</td><td>CLP — moneda sin decimales; alineado con la decisión de dinero del diseño</td></tr>
+          <tr><td>peso_metraje</td><td>text/numeric</td><td></td></tr>
           <tr><td>stock</td><td>int</td><td><code>CHECK (stock >= 0)</code></td></tr>
           <tr><td>stock_minimo</td><td>int, NULL</td><td>override — ver dominio configuración</td></tr>
           <tr><td>imagen_url</td><td>text, NULL</td><td></td></tr>
@@ -375,7 +376,7 @@
       <span class="badge badge-must">MUST</span>
     </div>
     <div class="req-body">
-      <p><code>producto_costos(producto_id uuid PK/FK → productos.id, costo numeric NOT NULL, proveedor_id uuid NULL → proveedores.id, updated_at)</code>. La exposición de lectura y escritura es exclusiva para el administrador (detalle en el dominio seguridad, REQ-DM-SEG-3).</p>
+      <p><code>producto_costos(producto_id uuid PK/FK → productos.id, costo integer NOT NULL, proveedor_id uuid NULL → proveedores.id, updated_at)</code>. El <code>costo</code> es <code>integer</code> CLP (moneda sin decimales en Chile) — alineado con la decisión de dinero del diseño. La exposición de lectura y escritura es exclusiva para el administrador (detalle en el dominio seguridad, REQ-DM-SEG-3).</p>
       <div class="scenario">
         <div class="scenario-title">Escenario: un costo por producto</div>
         <div class="scenario-step"><span class="keyword">Dado</span> que <code>producto_id</code> es PK y FK a <code>productos.id</code></div>
@@ -454,7 +455,7 @@
       <span class="badge badge-must">MUST</span>
     </div>
     <div class="req-body">
-      <p><code>ventas(id, actor_id → auth.users, medio_pago text CHECK, total numeric, estado text CHECK IN ('confirmada','deshecha') DEFAULT 'confirmada', created_at)</code> y <code>venta_items(id, venta_id, producto_id, cantidad int CHECK (> 0), precio_unitario)</code>. El <code>precio_unitario</code> se toma en el momento de la venta y no cambia si después se actualiza <code>productos.precio_venta</code>.</p>
+      <p><code>ventas(id, actor_id → auth.users, medio_pago text CHECK, total integer, estado text CHECK IN ('confirmada','deshecha') DEFAULT 'confirmada', created_at)</code> y <code>venta_items(id, venta_id, producto_id, cantidad int CHECK (> 0), precio_unitario integer)</code>. Los montos (<code>total</code>, <code>precio_unitario</code>) son <code>integer</code> CLP (moneda sin decimales en Chile) — alineado con la decisión de dinero del diseño. El <code>precio_unitario</code> se toma en el momento de la venta y no cambia si después se actualiza <code>productos.precio_venta</code>.</p>
       <div class="scenario">
         <div class="scenario-title">Escenario: el precio del ticket no cambia tras una actualización posterior</div>
         <div class="scenario-step"><span class="keyword">Dado</span> una venta confirmada con <code>precio_unitario = 1000</code></div>
