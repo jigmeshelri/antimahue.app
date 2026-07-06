@@ -117,25 +117,30 @@ MVP: los 3 roles existen con autenticación simple (PIN de 4 dígitos).
   - Guardar paletas y proyectos personales en perfiles.
   - "Muro de Proyectos": un espacio donde los clientes pueden subir fotos de sus tejidos terminados, indicando el patrón que usaron y enlazando directamente los productos y colores de lanas del catálogo de Antimahue que emplearon.
 - Facturación electrónica / integración SII
+- Login social (Google) para el enroll del personal — en MVP el enroll es email+contraseña una vez por dispositivo + PIN local; se reevalúa junto al Portal Público / Comunidad Antimahue
 
-## Stack candidato (a confirmar en diseño técnico)
+## Stack (cerrado 2026-06-21)
 
-Dado el perfil (web-responsive, multi-dispositivo, hosting simple):
+- **Frontend**: SPA con Vite 6 + React 19 + Tailwind 4 + TypeScript, PWA vía `vite-plugin-pwa`; routing con React Router v7; estado con nanostores.
+- **Backend**: Supabase directo (PostgreSQL, Auth, Storage, RLS, PostgREST), región `sa-east-1` (São Paulo). Sin backend propio.
+- **Host**: Cloudflare Workers Static Assets — LIVE en `antimahue.com`.
+- **Package manager**: pnpm 11.
+- **Escaneo de códigos**: Barcode Detection API o `html5-qrcode` — a definir en el change `catalogo`.
 
-- **Frontend**: PWA con framework moderno — funciona en navegador de cualquier
-  dispositivo, se puede "instalar" como app
-- **Backend**: API con base de datos PostgreSQL. Supabase es buen candidato
-  (hosting managed, auth integrada, tier gratuito generoso)
-- **Escaneo**: Browser Barcode Detection API o librería como `html5-qrcode`
-
-Esto se define en detalle durante la fase de diseño técnico (SDD).
+La fuente de verdad técnica es `openspec/project.yaml` y el change archivado `openspec/changes/archive/2026-06-22-setup-stack/`.
 
 ## Próximos pasos
 
-1. Angélica revisa este documento → ajustamos lo que no calce
-2. Refinamos atributos de producto (los que ella realmente usa para buscar/filtrar)
-3. Definimos stack técnico final
-4. Iniciamos SDD: propuesta → diseño → specs → tareas → implementación
+Roadmap SDD aprobado (2026-07-05):
+
+1. `data-model` — schema del dominio (productos, proveedores, ventas, movimientos) + RLS por rol
+2. `auth-pin` — pantalla PIN, enroll, roles en UI
+3. `catalogo` — CRUD de productos + escáner de códigos
+4. `venta` — carrito, cobro, descuento de stock, deshacer, ticket
+5. `dashboard` — alertas de stock, valor de inventario, ventas del día
+6. `proveedores-dte` — proveedores + importación XML DTE (al final: la carga inicial del catálogo es incremental vía escáner)
+
+`color-palette-assistant` retoma su fase specs después de `catalogo`.
 
 ---
 
