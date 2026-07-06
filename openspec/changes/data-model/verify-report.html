@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informe de verificación — data-model · Antimahue</title>
+<style>
+  :root{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2; --admin:#8a4b9c; --admin-soft:#efe3f3;
+    --radius:12px; --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:940px;margin:0 auto;padding:2.4rem 1.3rem 4rem}
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:1.3rem;margin-bottom:2rem}
+  header.doc .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:600}
+  header.doc h1{font-size:1.85rem;margin:.35rem 0 .5rem;font-weight:700;line-height:1.2}
+  header.doc p.lead{margin:0;color:var(--muted);font-size:1.02rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .badge{font-size:.74rem;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:500}
+  .badge.brand{background:var(--brand-soft);border-color:#e3c3af;color:var(--brand)}
+  .badge.ok{background:var(--ok-soft);border-color:#c3ddc9;color:var(--ok)}
+  .badge.warn{background:var(--warn-soft);border-color:#e6cd8f;color:var(--warn)}
+  h2{font-size:1.28rem;margin:2.6rem 0 .9rem;padding-top:.4rem;font-weight:700;
+    border-top:1px solid var(--line)}
+  h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  h3{font-size:1.02rem;margin:1.5rem 0 .5rem;font-weight:600}
+  p{margin:.6rem 0}
+  section > p:first-of-type{margin-top:0}
+  code{font-family:var(--mono);font-size:.86em;background:#f0e7db;padding:.08em .35em;
+    border-radius:5px;color:#7a3f22;overflow-wrap:anywhere}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:var(--radius);
+    padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.5;
+    margin:1rem 0}
+  pre code{background:none;color:inherit;padding:0;font-size:1em}
+  .path-note{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+    background:#f2ebe0;border-left:3px solid var(--line);padding:.4rem .7rem;margin:.4rem 0 1rem;
+    border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem}
+  .tbl-scroll{overflow-x:auto;margin:1rem 0}
+  .tbl-scroll table{margin:0;min-width:640px}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--brand-soft);color:#7a3f22;font-weight:600;font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:nth-child(even){background:#fcf9f4}
+  .callout{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.1rem 0;border:1px solid;
+    border-left-width:5px}
+  .callout h4{margin:0 0 .4rem;font-size:.94rem;font-weight:700;display:flex;gap:.4rem;align-items:center}
+  .callout p{margin:.35rem 0}
+  .callout.oq{background:var(--warn-soft);border-color:#e6cd8f;border-left-color:var(--warn)}
+  .callout.crit{background:var(--danger-soft);border-color:#e6b3ab;border-left-color:var(--danger)}
+  .callout.info{background:var(--brand-soft);border-color:#e3c3af;border-left-color:var(--brand)}
+  .callout.pass{background:var(--ok-soft);border-color:#c3ddc9;border-left-color:var(--ok)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.14rem .5rem;border-radius:5px;
+    font-family:var(--mono)}
+  .tag.v{background:var(--ok-soft);color:var(--ok)}
+  .tag.vs{background:#e7eef6;color:#3a6ea5}
+  .tag.nvy{background:var(--warn-soft);color:var(--warn)}
+  .tag.warnt{background:var(--warn-soft);color:var(--warn)}
+  ul.clean{margin:.6rem 0;padding-left:1.2rem}
+  ul.clean li{margin:.3rem 0}
+  .kpis{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.2rem 0}
+  .kpi{flex:1 1 130px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:.9rem 1rem;text-align:center}
+  .kpi .num{font-size:1.7rem;font-weight:700;line-height:1.1}
+  .kpi .lbl{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+  .kpi.ok .num{color:var(--ok)} .kpi.warn .num{color:var(--warn)} .kpi.mut .num{color:var(--muted)}
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Antimahue · SDD · fase verify</div>
+  <h1>Informe de verificación: modelo de datos del dominio</h1>
+  <p class="lead">Contraste del esquema desplegado en producción (<code>aruteznqhdaaxxvllvzm</code>,
+  São Paulo) contra las especificaciones, el diseño y las tareas del change <code>data-model</code>.
+  Toda la evidencia proviene de inspección de solo lectura sobre el proyecto real.</p>
+  <div class="meta">
+    <span class="badge brand">change: data-model</span>
+    <span class="badge warn">veredicto: PASA CON ADVERTENCIAS</span>
+    <span class="badge ok">0 críticos</span>
+    <span class="badge">3 advertencias · 2 sugerencias</span>
+    <span class="badge">verificado: 2026-07-06</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1.</span>Resumen ejecutivo</h2>
+  <div class="kpis">
+    <div class="kpi ok"><div class="num">0</div><div class="lbl">Críticos</div></div>
+    <div class="kpi warn"><div class="num">3</div><div class="lbl">Advertencias</div></div>
+    <div class="kpi mut"><div class="num">2</div><div class="lbl">Sugerencias</div></div>
+    <div class="kpi ok"><div class="num">14/27</div><div class="lbl">Escenarios verificados</div></div>
+    <div class="kpi warn"><div class="num">10/27</div><div class="lbl">Pendientes de JWT</div></div>
+  </div>
+  <div class="callout pass">
+    <h4>Veredicto: PASA CON ADVERTENCIAS</h4>
+    <p>Las 3 migraciones están aplicadas en producción con versiones idénticas al prefijo del archivo.
+    La estructura (7 tablas, índices, CHECKs, FKs, seed), la matriz de privilegios, las 9 políticas RLS,
+    los cuerpos de las 4 RPC —con sus compuertas de autorización— y el plano REST anónimo coinciden con
+    el diseño, punto por punto. Ninguna advertencia bloquea el archivado del change.</p>
+  </div>
+  <div class="callout info">
+    <h4>Contexto del despliegue</h4>
+    <p>El auto-deploy de la integración GitHub de Supabase <strong>nunca se disparó</strong> — quedó
+    confirmado que la integración está inactiva en este proyecto (una versión previa de este informe
+    documentó el bloqueo con evidencia completa). El despliegue se completó de forma manual vía MCP,
+    como <strong>excepción puntual autorizada por el usuario</strong>. El camino de deploy durable
+    sigue siendo una decisión abierta (advertencia W-C).</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Puerta de despliegue (T-4.2)</h2>
+  <p>Las cuatro migraciones registradas en <code>schema_migrations</code>, con la versión igual al
+  prefijo del archivo — la lección del 2026-06-22 quedó aplicada:</p>
+  <pre><code>20260621000000  initial_scaffold
+20260705000100  domain_tables
+20260705000200  domain_rls
+20260705000300  domain_rpc</code></pre>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Verificación estructural</h2>
+  <ul class="clean">
+    <li><strong>10 tablas</strong> en <code>public</code>, todas con RLS activo. Las 7 del dominio
+      presentes; <code>configuracion</code> con su fila semilla
+      (<code>id=1, stock_minimo_default=5, nombre_tienda='Antimahue'</code>).</li>
+    <li><strong><code>productos</code> sin secretos</strong>: 15 columnas, sin <code>costo</code> ni
+      <code>proveedor_id</code>. Color opcional (<code>color_nombre</code>/<code>color_hex</code>
+      admiten NULL) y <code>stock_minimo</code> sin DEFAULT de columna — el umbral efectivo se
+      resuelve por COALESCE en lectura, como exige la spec.</li>
+    <li><strong>16 CHECKs</strong> presentes: <code>stock &gt;= 0</code>, regex de
+      <code>color_hex</code>, enumeraciones de <code>tipo</code>/<code>estado</code>/<code>medio_pago</code>
+      (con <code>'compra'</code> reservado en el libro de stock), singleton <code>id = 1</code>, y todos
+      los montos con no-negatividad.</li>
+    <li><strong>Dinero en <code>integer</code> CLP</strong> en las 9 columnas de monto/cantidad.</li>
+    <li><strong>Índices</strong>: GIN trigram sobre <code>productos.nombre</code> (extensión
+      <code>pg_trgm</code> instalada en el esquema <code>extensions</code>, no en <code>public</code>),
+      índice parcial de ventas confirmadas, y los tres índices de FK.</li>
+    <li><strong>FKs con la semántica del diseño</strong>: <code>producto_costos</code> PK=FK con
+      CASCADE; <code>venta_items.producto_id</code> y <code>movimientos_stock.producto_id</code> con
+      RESTRICT (no se borra un producto vendido); todos los <code>actor_id</code> con SET NULL.</li>
+    <li><strong>Funciones</strong>: las 4 RPC + <code>is_admin()</code> (SECURITY DEFINER, STABLE,
+      <code>search_path=''</code>) + <code>touch_updated_at()</code> con sus 4 triggers
+      BEFORE UPDATE.</li>
+  </ul>
+  <div class="callout pass">
+    <h4>Compuertas de autorización verificadas en los cuerpos reales</h4>
+    <p>Inspección de <code>pg_proc.prosrc</code> en producción: <code>crear_producto</code> y
+    <code>actualizar_producto</code> abren con la compuerta <code>is_admin()</code>;
+    <code>confirmar_venta</code> y <code>deshacer_venta</code> exigen sesión autenticada y toman el
+    bloqueo de fila <code>FOR UPDATE</code>; <code>actualizar_producto</code> rechaza con error duro
+    una clave <code>stock</code> en el payload. Además, <code>confirmar_venta</code> no acepta ningún
+    parámetro de total: falsificar el total desde el cliente es imposible por firma.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Matriz de privilegios real (V4)</h2>
+  <p>Consulta literal a <code>role_table_grants</code>. El endurecimiento W1 del apply resultó
+  efectivo: <code>authenticated</code> no tiene escritura DML en ninguna de las 5 tablas de escritura
+  exclusiva por RPC, y <code>anon</code> tiene <strong>cero privilegios</strong> en las 7 tablas del
+  dominio. Las dos excepciones del diseño quedaron intactas.</p>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>Tabla</th><th>anon</th><th>authenticated</th><th>Conforme</th></tr></thead>
+    <tbody>
+      <tr><td><code>productos</code>, <code>producto_costos</code>, <code>ventas</code>,
+        <code>venta_items</code>, <code>movimientos_stock</code></td>
+        <td>— (cero)</td><td>SELECT <em>+ residuo*</em></td><td>✔ sin escritura DML</td></tr>
+      <tr><td><code>proveedores</code></td><td>— (cero)</td>
+        <td>SELECT, INSERT, UPDATE, DELETE <em>+ residuo*</em></td><td>✔ excepción del diseño</td></tr>
+      <tr><td><code>configuracion</code></td><td>— (cero)</td>
+        <td>SELECT, UPDATE <em>+ residuo*</em></td><td>✔ excepción del diseño</td></tr>
+      <tr><td><code>profiles</code></td><td><em>residuo*</em></td><td>SELECT <em>+ residuo*</em></td>
+        <td>✔ sin DML de escritura</td></tr>
+      <tr><td><code>audit_log</code>, <code>auth_attempts</code></td><td><em>residuo*</em></td>
+        <td><em>residuo*</em></td><td>✔ sin SELECT ni DML</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout oq">
+    <h4>* Advertencia W-A — residuo de privilegios por defecto</h4>
+    <p>Los privilegios <code>TRUNCATE, REFERENCES, TRIGGER</code> que Supabase concede por
+    <code>ALTER DEFAULT PRIVILEGES</code> sobreviven para <code>authenticated</code> en las 10 tablas
+    y para <code>anon</code> en las 3 del andamiaje. <strong>TRUNCATE no pasa por RLS</strong> — las
+    políticas de fila solo gobiernan SELECT/INSERT/UPDATE/DELETE. Hoy no existe ruta de explotación
+    (PostgREST no expone TRUNCATE y los roles de API no ejecutan DDL), pero contradice el mínimo
+    privilegio del diseño. Recomendación: una migración futura con
+    <code>REVOKE TRUNCATE, REFERENCES, TRIGGER ... FROM anon, authenticated</code> más el ajuste de
+    los privilegios por defecto, siempre por el camino schema-as-code.</p>
+  </div>
+  <p>Privilegio EXECUTE (visto por <code>aclexplode</code>): las 4 RPC e <code>is_admin()</code>
+  ejecutables solo por <code>postgres</code> y <code>authenticated</code>; <code>anon</code> quedó
+  fuera de todas las funciones; <code>handle_new_user</code> y <code>touch_updated_at</code>
+  reservadas al owner.</p>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Políticas RLS</h2>
+  <p>Exactamente 9 políticas, todas <code>TO authenticated</code>, ninguna referencia a
+  <code>user_metadata</code>, ninguna política inesperada. Las dos únicas políticas con capacidad de
+  escritura (<code>proveedores_all_admin</code> y <code>configuracion_update_admin</code>) llevan
+  <strong>USING y WITH CHECK</strong> — no existe ninguna política UPDATE con solo USING.</p>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>Tabla</th><th>Política</th><th>Operación</th><th>Predicado</th></tr></thead>
+    <tbody>
+      <tr><td><code>productos</code></td><td>productos_select</td><td>SELECT</td><td><code>true</code></td></tr>
+      <tr><td><code>producto_costos</code></td><td>producto_costos_select_admin</td><td>SELECT</td><td><code>is_admin()</code></td></tr>
+      <tr><td><code>proveedores</code></td><td>proveedores_all_admin</td><td>ALL</td><td><code>is_admin()</code> + WITH CHECK</td></tr>
+      <tr><td><code>ventas</code> / <code>venta_items</code></td><td>*_select</td><td>SELECT</td><td><code>true</code></td></tr>
+      <tr><td><code>movimientos_stock</code></td><td>movimientos_select_admin</td><td>SELECT</td><td><code>is_admin()</code></td></tr>
+      <tr><td><code>configuracion</code></td><td>configuracion_select / _update_admin</td><td>SELECT / UPDATE</td><td><code>true</code> / <code>is_admin()</code> + WITH CHECK</td></tr>
+      <tr><td><code>profiles</code></td><td>profiles_select_own</td><td>SELECT</td><td><code>id = auth.uid()</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Con <code>profiles_select_own</code> queda <strong>cerrado estructuralmente REQ-SETUP-7 / V-7</strong>,
+  lo diferido por <code>setup-stack</code>. La respuesta 200 con sesión real queda pendiente de la
+  limitación V1 (sección 7).</p>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>Plano REST como anónimo</h2>
+  <p>Peticiones reales contra la API pública con la clave publicable, sin sesión. Todas denegadas en
+  la capa de GRANT — error de permiso, nunca datos:</p>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>Petición</th><th>HTTP</th><th>Respuesta</th></tr></thead>
+    <tbody>
+      <tr><td>GET <code>/rest/v1/productos</code></td><td><strong>401</strong></td><td><code>42501</code> permission denied for table productos</td></tr>
+      <tr><td>GET <code>/rest/v1/producto_costos</code></td><td><strong>401</strong></td><td><code>42501</code> permission denied for table producto_costos</td></tr>
+      <tr><td>POST <code>/rest/v1/rpc/confirmar_venta</code></td><td><strong>401</strong></td><td><code>42501</code> permission denied for function confirmar_venta</td></tr>
+      <tr><td>GET <code>/rest/v1/configuracion</code></td><td><strong>401</strong></td><td><code>42501</code> permission denied for table configuracion</td></tr>
+      <tr><td>GET <code>/rest/v1/profiles</code></td><td><strong>401</strong></td><td><code>42501</code> permission denied for table profiles</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Limitación conocida V1 — frontera admin/no-admin</h2>
+  <div class="callout oq">
+    <h4>No verificable hoy, por diseño del MVP</h4>
+    <p>En producción hay <strong>0 usuarios</strong> (en <code>auth.users</code> y en
+    <code>profiles</code>) y el CHECK de <code>profiles.rol</code> solo admite <code>'admin'</code>.
+    Sin usuarios no se puede emitir ningún JWT, y sin un rol no-admin no se puede probar la frontera
+    de aislamiento de costos de extremo a extremo: los escenarios «no-admin lee
+    <code>producto_costos</code> → lista vacía» y «el embed anidado degrada a <code>[]</code>, no a
+    403» (T-5.5) quedan <strong>pendientes</strong>. Se ejecutan como primer punto del verify del
+    change multi-rol/auth-pin, cuando el CHECK se ensanche. Si el embed devolviera 403, el plan de
+    contingencia del diseño es una RPC de lectura que pre-filtre.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Advisors de seguridad</h2>
+  <ul class="clean">
+    <li>Los 2 WARN preexistentes sobre <code>rls_auto_enable</code> siguen ahí — falso positivo
+      aceptado (objeto de plataforma, tipo <code>event_trigger</code>, no invocable).</li>
+    <li>El INFO de <code>profiles</code> sin política <strong>se resolvió</strong>, tal como el diseño
+      lo predijo; <code>audit_log</code> y <code>auth_attempts</code> permanecen en INFO de forma
+      intencional (negación por defecto, sin ruta de lectura).</li>
+    <li><span class="tag warnt">W-B</span> Aparecen <strong>5 WARN nuevos</strong> (lint 0029) sobre
+      las funciones DEFINER del dominio ejecutables por <code>authenticated</code>. Es exactamente la
+      arquitectura elegida (la RPC como único camino de escritura) y es segura porque las compuertas
+      internas quedaron verificadas en los cuerpos reales. Corresponde registrarlas como línea base
+      aceptada (de 2 a 7 WARN); si no, cada verify futuro las volverá a levantar.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">9.</span>Matriz de cumplimiento por requisito</h2>
+  <p>Los 4 spec del change contienen <strong>17 requisitos y 27 escenarios</strong> Given/When/Then.
+  Leyenda: <span class="tag v">V</span> verificado en producción ·
+  <span class="tag vs">V-s</span> verificado estructuralmente, runtime pendiente de JWT ·
+  <span class="tag nvy">PEND</span> no verificable aún (JWT o mutación de producción; cubierto por la
+  validación en stack local del apply, salvo T-5.5).</p>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>Requisito</th><th>Qué garantiza</th><th>Veredicto</th></tr></thead>
+    <tbody>
+      <tr><td>REQ-DM-CAT-1</td><td><code>productos</code> sin columnas de costo; stock nunca negativo</td><td><span class="tag v">V</span> 2/2 escenarios</td></tr>
+      <tr><td>REQ-DM-CAT-2</td><td><code>producto_costos</code> 1:1, secreto de admin</td><td><span class="tag v">V</span> 1/1</td></tr>
+      <tr><td>REQ-DM-CAT-3</td><td><code>proveedores</code> con datos de contacto</td><td><span class="tag v">V</span> 1/1</td></tr>
+      <tr><td>REQ-DM-CAT-4</td><td>color estructurado opcional + regex de hex</td><td><span class="tag v">V</span> 3/3</td></tr>
+      <tr><td>REQ-DM-CAT-5</td><td>RPC atómica de producto + costo</td><td><span class="tag vs">V-s</span> 1 estructural · 1 <span class="tag nvy">PEND</span></td></tr>
+      <tr><td>REQ-DM-VENTA-1</td><td>precio congelado en el ticket</td><td><span class="tag v">V</span> 1/1</td></tr>
+      <tr><td>REQ-DM-VENTA-2</td><td>libro de stock en la misma transacción</td><td><span class="tag v">V</span> 1/1</td></tr>
+      <tr><td>REQ-DM-VENTA-3</td><td>venta atómica, total del servidor, stock no negativo</td><td><span class="tag vs">V-s</span> 1 V (sin parámetro de total) · 2 <span class="tag nvy">PEND</span></td></tr>
+      <tr><td>REQ-DM-VENTA-4</td><td>deshacer solo la última venta, cancelación blanda</td><td><span class="tag vs">V-s</span> lógica verificada · 3 <span class="tag nvy">PEND</span></td></tr>
+      <tr><td>REQ-DM-SEG-1</td><td><code>is_admin()</code> sin recursión RLS</td><td><span class="tag vs">V-s</span> estructura completa</td></tr>
+      <tr><td>REQ-DM-SEG-2</td><td>RLS + GRANT en toda tabla del dominio (cierra V-7)</td><td><span class="tag vs">V-s</span> cierre estructural · 200 con JWT <span class="tag nvy">PEND</span></td></tr>
+      <tr><td>REQ-DM-SEG-3</td><td>costos aislados: lista vacía, nunca 403</td><td><span class="tag nvy">PEND</span> bloqueado por V1 (2 escenarios)</td></tr>
+      <tr><td>REQ-DM-SEG-4</td><td>toda política de escritura con USING + WITH CHECK</td><td><span class="tag vs">V-s</span> auditoría estática: PASA</td></tr>
+      <tr><td>REQ-DM-SEG-5</td><td>integridad de dinero/stock nunca en el cliente</td><td><span class="tag vs">V-s</span> plano anon verificado en runtime</td></tr>
+      <tr><td>REQ-DM-CFG-1</td><td>singleton de configuración con semilla</td><td><span class="tag v">V</span> 1/1</td></tr>
+      <tr><td>REQ-DM-CFG-2</td><td>umbral por COALESCE, sin DEFAULT congelado</td><td><span class="tag v">V</span> 2/2</td></tr>
+      <tr><td>REQ-DM-CFG-3</td><td>el override por producto tiene precedencia</td><td><span class="tag v">V</span> 1/1</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Totales</strong>: 9 requisitos verificados por completo · 8 verificados en estructura con
+  runtime pendiente · 0 fallidos. Escenarios: 14 verificados · 3 parciales · 10 pendientes de JWT.</p>
+</section>
+
+<section>
+  <h2><span class="n">10.</span>Hallazgos y recomendaciones</h2>
+  <h3>Advertencias (no bloquean el archivado)</h3>
+  <ul class="clean">
+    <li><span class="tag warnt">W-A</span> Residuo <code>TRUNCATE/REFERENCES/TRIGGER</code> de los
+      privilegios por defecto (sección 4). Corregir en una migración futura de endurecimiento.</li>
+    <li><span class="tag warnt">W-B</span> 5 WARN nuevos de advisor sobre las funciones DEFINER del
+      dominio: por diseño y seguros; registrarlos como línea base aceptada (2 → 7 WARN).</li>
+    <li><span class="tag warnt">W-C</span> Camino de deploy: la integración GitHub está inactiva y
+      nunca funcionó en este proyecto. El deploy manual de hoy fue una excepción puntual autorizada.
+      Decidir el camino durable (activar la integración o formalizar <code>supabase db push</code>)
+      antes del próximo cambio de esquema.</li>
+  </ul>
+  <h3>Sugerencias</h3>
+  <ul class="clean">
+    <li>Regenerar los tipos TypeScript de Supabase antes del primer change de UI que consuma el
+      esquema (tarea opcional T-6.1).</li>
+    <li>Incorporar los 10 escenarios pendientes al verify del change multi-rol/auth-pin, con un
+      usuario no-admin sembrado; evaluar pgTAP sobre el stack local para que la batería sea
+      repetible.</li>
+  </ul>
+</section>
+
+<footer>
+  Informe de verificación · change <code>data-model</code> · Antimahue · 2026-07-06 ·
+  evidencia recolectada con acceso de solo lectura sobre el proyecto de producción.
+  <div class="path-note">Companion agent-optimized: openspec/changes/data-model/verify-report.md</div>
+</footer>
+
+</div>
+</body>
+</html>
