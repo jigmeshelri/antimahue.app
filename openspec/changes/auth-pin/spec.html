@@ -347,12 +347,17 @@
     <div class="req-body">
       <p>Antes: acotada a exactamente una fila MVP, <code>CHECK (rol IN ('admin'))</code>. Ahora: la tabla
       acepta <code>rol IN ('admin', 'empleado')</code> — valor <code>'empleado'</code>, no el <code>'seller'</code>
-      en inglés de la propuesta original del issue, siguiendo la convención dominio-en-español/plataforma-en-inglés
+      en inglés de la propuesta original del issue, según la convención dominio-en-español/plataforma-en-inglés
       ya establecida por <code>data-model</code>. El CHECK se amplía con una migración aditiva (eliminar y
-      recrear el constraint, misma columna y mismo default). El registro creado por el disparador de
-      autorregistro sigue por defecto en <code>'admin'</code> — una fila <code>'empleado'</code> solo puede
-      nacer desde <code>enroll-empleado</code> (dominio seguridad, REQ-AP-SEG-3), nunca desde el
-      autorregistro público.</p>
+      recrear el constraint, misma columna). El disparador de autorregistro queda endurecido: deriva el rol
+      desde los metadatos de aplicación (<code>app_metadata.rol</code>), que solo puede escribir un proceso
+      con <code>service_role</code> —la vía <code>enroll-empleado</code>, nunca el cliente—, y a falta de ese
+      dato asigna el privilegio mínimo: <code>'empleado'</code>. Un autorregistro anónimo ya no puede
+      producir un perfil administrador — la fase de aplicación comprobó de forma empírica que el
+      comportamiento previo (heredar el <code>DEFAULT 'admin'</code> de la columna) era un agujero real de
+      escalada de privilegios. Consecuencia de arranque: en un entorno nuevo, la primera persona registrada
+      ya no se convierte en administradora de forma automática; aprovisionar a la primera administradora es
+      un paso manual deliberado (seed o <code>service_role</code>), no un efecto colateral del registro.</p>
       <div class="scenario">
         <div class="scenario-title">Escenario: el rol empleado ahora se acepta</div>
         <div class="scenario-step"><span class="keyword">Dado</span> el CHECK ampliado</div>
@@ -364,6 +369,18 @@
         <div class="scenario-step"><span class="keyword">Dado</span> el mismo CHECK</div>
         <div class="scenario-step"><span class="keyword">Cuando</span> se inserta un valor fuera de <code>('admin','empleado')</code></div>
         <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza por violación del constraint</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un autorregistro sin metadatos recibe el privilegio mínimo</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que el disparador se ejecuta para un registro nuevo cuyos metadatos de aplicación no traen <code>rol</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> el disparador crea la fila de perfil</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el rol es <code>'empleado'</code> — un registro anónimo jamás produce un perfil administrador</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: en un entorno nuevo no hay administradora automática</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un entorno nuevo con cero usuarios</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la primera persona se registra sin metadatos definidos por <code>service_role</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> su perfil es <code>'empleado'</code> — la primera administradora se aprovisiona con un paso deliberado (seed o <code>service_role</code>), no por orden de llegada</div>
       </div>
     </div>
   </div>
