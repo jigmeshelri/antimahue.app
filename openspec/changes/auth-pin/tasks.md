@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "9/47"
+progress: "13/47"
 updated_at: 2026-07-14
 ---
 
@@ -64,12 +64,16 @@ close for real in Phase 9.
 
 ## Phase 2 — Vault + stores + Supabase client (slice 2, DD-1, DD-7)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-2.1 | Create raw-IndexedDB vault: DB `antimahue-vault` v1, object store `profiles` keyPath `userId`; `VaultRecord` (`userId,displayName,rol,salt,iv,ciphertext,failCount,lockedUntil,pairedAt`); `putRecord/getRecord/listRecords/deleteRecord`. Zero IDB helper dependency (raw WebCrypto/IDB only). Add `fake-indexeddb` as a test-only devDependency. | `src/lib/vault.ts` | DD-1 | vitest: put→get roundtrip; `listRecords()` returns all; `deleteRecord` removes it |
-| T-2.2 | Set `auth.persistSession:false` + in-memory `storage` shim (custom `getItem`/`setItem`/`removeItem`); keep `autoRefreshToken:true`; wire `createClient<Database>()` (T-1.4 types). | `src/lib/supabase.ts` | DD-7 | no refresh token ever reaches `localStorage` |
-| T-2.3 | Extend `AuthState`: add `rol:'admin'\|'empleado'\|null`, `status:'locked'\|'unlocking'\|'unlocked'`. | `src/stores/auth.ts` | DD-7 §5 | typecheck passes |
-| T-2.4 | Rewrite backoff table to DD-2 values (1–4 retry, 5→30s, 6→2min, 7→10min, 8→1h, 9→wipe), replacing the stale 5/6/7/8+ table; fix the incorrect "mirrored to server" comment (`auth_attempts` is authenticated-only telemetry, NOT an offline gate). | `src/stores/lock.ts` | DD-2 | vitest: `isLocked()` boundary cases at fail counts 4/5/8/9; comment no longer claims server-side gating |
+**Phase 2 status: 4/4 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. See `sdd/auth-pin/apply-progress` in engram for the full verification
+output and a documented test-tooling gotcha (jsdom + fake-indexeddb cross-realm `ArrayBuffer`).
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-2.1 | Create raw-IndexedDB vault: DB `antimahue-vault` v1, object store `profiles` keyPath `userId`; `VaultRecord` (`userId,displayName,rol,salt,iv,ciphertext,failCount,lockedUntil,pairedAt`); `putRecord/getRecord/listRecords/deleteRecord`. Zero IDB helper dependency (raw WebCrypto/IDB only). Add `fake-indexeddb` as a test-only devDependency. | `src/lib/vault.ts` | DD-1 | vitest: put→get roundtrip; `listRecords()` returns all; `deleteRecord` removes it | [x] Done — `src/lib/vault.test.ts`, 7 tests (roundtrip, unknown-key undefined, empty list, multi-record list, overwrite-by-userId, targeted delete, delete-unknown no-throw) |
+| T-2.2 | Set `auth.persistSession:false` + in-memory `storage` shim (custom `getItem`/`setItem`/`removeItem`); keep `autoRefreshToken:true`; wire `createClient<Database>()` (T-1.4 types). | `src/lib/supabase.ts` | DD-7 | no refresh token ever reaches `localStorage` | [x] Done — `persistSession:false` + `Map`-backed in-memory storage shim, both defense-in-depth together; `createClient<Database>()` already wired from T-1.4 |
+| T-2.3 | Extend `AuthState`: add `rol:'admin'\|'empleado'\|null`, `status:'locked'\|'unlocking'\|'unlocked'`. | `src/stores/auth.ts` | DD-7 §5 | typecheck passes | [x] Done — `Rol` type sourced from `src/lib/vault.ts` (single definition, reused by both `VaultRecord.rol` and `AuthState.rol`); `pnpm typecheck` green |
+| T-2.4 | Rewrite backoff table to DD-2 values (1–4 retry, 5→30s, 6→2min, 7→10min, 8→1h, 9→wipe), replacing the stale 5/6/7/8+ table; fix the incorrect "mirrored to server" comment (`auth_attempts` is authenticated-only telemetry, NOT an offline gate). | `src/stores/lock.ts` | DD-2 | vitest: `isLocked()` boundary cases at fail counts 4/5/8/9; comment no longer claims server-side gating | [x] Done — `src/stores/lock.test.ts`, 10 tests covering `nextLockState` at every threshold (4 through 9, plus beyond-9 and the `now` default) and `isLocked` boundary timing; comment rewritten |
 
 ## Phase 3 — Device pairing (slice 3, DD-3)
 
@@ -178,3 +182,23 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    never updated. Recommend correcting the spec scenario text (self-signup should default to LEAST
    privilege, i.e. `'empleado'`) rather than reverting the migration.
    **RESOLVED 2026-07-14**: `specs/setup-stack/spec.md` REQ-SETUP-8 corrected to match design.md §3 (least-priv `'empleado'` default via `app_metadata.rol`, incl. the fresh-environment first-admin bootstrap nuance) and `spec.html` synced — the spec text was the defect, not the migration.
+6. **`src/main.tsx` touched during Phase 2, though absent from design.md §10's File changes table for this
+   slice** (that table only lists it under Phase 8's idle-lock wiring, T-8.2). T-2.3 extends `AuthState` with
+   two now-REQUIRED fields (`rol`, `status`) per the design's own literal TS contract (§5) — but
+   `main.tsx`'s two `$auth.set({...})` calls (session bootstrap + `onAuthStateChange`) predate those fields
+   and would fail `pnpm typecheck` (missing required properties) the instant `AuthState` gained them.
+   Resolution taken: patched both call sites minimally — `rol: null` (real resolution is REQ-AUTH-4's job,
+   Phase 4's `usePinUnlock`, not this bootstrap) and `status` derived from session presence (`session ? 'unlocked'
+   : 'locked'`), which happens to be exactly correct today since T-2.2's `persistSession:false` means
+   `getSession()` on a fresh load always resolves `session: null` → app boots to `'locked'` → `PinScreen`,
+   matching the design intent. Phase 8's idle-lock state machine supersedes this bootstrap logic once it
+   lands. Not a scope-creep feature — the minimum edit to keep the mandated literal `AuthState` contract
+   compiling.
+7. **Test-tooling gotcha, not an app bug**: `src/lib/vault.test.ts` cannot use a single `toEqual()` across a
+   whole `VaultRecord` when it contains a raw `ArrayBuffer` (the `ciphertext` field). Under vitest's `jsdom`
+   test environment, `fake-indexeddb`'s structured-clone step returns an `ArrayBuffer` from a different
+   realm than the one the test constructs; `byteLength` and byte content are BOTH correct (verified
+   explicitly), but `toEqual`'s deep-equality can't match a cross-realm `ArrayBuffer` via `instanceof` and
+   misreports a diff. Worked around by comparing binary fields as `Array.from(new Uint8Array(...))` instead
+   of the raw buffer object. A real browser has exactly one realm — this cannot occur in production; it is
+   purely an artifact of this jsdom+fake-indexeddb combination in the test runner.
