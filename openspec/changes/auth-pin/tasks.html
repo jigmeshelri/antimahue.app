@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tareas: PIN + roles admin/empleado · Antimahue</title>
+<style>
+  :root{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2; --admin:#8a4b9c; --admin-soft:#efe3f3;
+    --radius:12px; --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:980px;margin:0 auto;padding:2.4rem 1.3rem 4rem}
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:1.3rem;margin-bottom:2rem}
+  header.doc .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:600}
+  header.doc h1{font-size:1.85rem;margin:.35rem 0 .5rem;font-weight:700;line-height:1.2}
+  header.doc p.lead{margin:0;color:var(--muted);font-size:1.02rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .badge{font-size:.74rem;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:500}
+  .badge.brand{background:var(--brand-soft);border-color:#e3c3af;color:var(--brand)}
+  .badge.ok{background:var(--ok-soft);border-color:#c3ddc9;color:var(--ok)}
+  .badge.warn{background:var(--warn-soft);border-color:#e6cd8f;color:var(--warn)}
+  h2{font-size:1.28rem;margin:2.6rem 0 .9rem;padding-top:.4rem;font-weight:700;
+    border-top:1px solid var(--line)}
+  h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  h3{font-size:1.02rem;margin:1.5rem 0 .5rem;font-weight:600}
+  p{margin:.6rem 0}
+  section > p:first-of-type{margin-top:0}
+  code{font-family:var(--mono);font-size:.86em;background:#f0e7db;padding:.08em .35em;
+    border-radius:5px;color:#7a3f22;overflow-wrap:anywhere}
+  .path-note{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+    background:#f2ebe0;border-left:3px solid var(--line);padding:.4rem .7rem;margin:.4rem 0 1rem;
+    border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+  .tbl-scroll{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;width:100%;margin:0;font-size:.87rem}
+  .tbl-scroll table{min-width:680px}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--brand-soft);color:#7a3f22;font-weight:600;font-size:.8rem;
+    text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:nth-child(even){background:#fcf9f4}
+  td.id-col{font-family:var(--mono);font-weight:700;color:var(--brand);white-space:nowrap}
+  .callout{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.1rem 0;border:1px solid;
+    border-left-width:5px}
+  .callout h4{margin:0 0 .4rem;font-size:.94rem;font-weight:700;display:flex;gap:.4rem;align-items:center}
+  .callout p{margin:.35rem 0}
+  .callout.oq{background:var(--warn-soft);border-color:#e6cd8f;border-left-color:var(--warn)}
+  .callout.crit{background:var(--danger-soft);border-color:#e6b3ab;border-left-color:var(--danger)}
+  .callout.info{background:var(--brand-soft);border-color:#e3c3af;border-left-color:var(--brand)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.14rem .5rem;border-radius:5px;
+    font-family:var(--mono)}
+  .tag.def{background:var(--danger-soft);color:var(--danger)}
+  .tag.admin{background:var(--admin-soft);color:var(--admin)}
+  .tag.pending{background:#eee7db;color:var(--muted)}
+  .tag.done{background:var(--ok-soft);color:var(--ok)}
+  .tag.human{background:var(--warn-soft);color:var(--warn)}
+  .tag.flag{background:var(--danger-soft);color:var(--danger)}
+  .tag.gated{background:var(--brand-soft);color:var(--brand)}
+  ul.clean{margin:.6rem 0;padding-left:1.2rem}
+  ul.clean li{margin:.3rem 0}
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Antimahue · SDD · fase tasks</div>
+  <h1>Tareas: desbloqueo con PIN y roles admin/empleado</h1>
+  <p class="lead">Desglose ejecutable de <code>auth-pin</code>: diez fases, la primera de ellas una
+  compuerta de aplicación no negociable, seguidas de las nueve etapas del diseño en el mismo orden —
+  de menor a mayor, con la ruta diaria primero.</p>
+  <div class="meta">
+    <span class="badge brand">change: auth-pin</span>
+    <span class="badge">depende de: propuesta · specs · diseño</span>
+    <span class="badge warn">estado: recién creadas, 0/47</span>
+    <span class="badge">10 fases · 47 tareas</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1.</span>Resumen de fases</h2>
+  <p>La fase 0 es la compuerta de aplicación (<em>apply gate</em>) que la sesión de diseño dejó como
+  condición previa, no negociable: nada de lo que sigue puede empezar sin un mínimo de linter, formateador,
+  runner de tests y CI. Las fases 1 a 9 reproducen, en el mismo orden, la secuencia de nueve etapas que fijó
+  el diseño técnico — de la más pequeña a la más grande, con la ruta de uso diario primero.</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Fase</th><th>Contenido</th><th>Tareas</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Compuerta de aplicación — linter, formateador, tests, CI, tipos de Supabase</td><td>5</td></tr>
+      <tr><td>1</td><td>Migración aditiva + batería de verificación JWT multi-rol</td><td>11</td></tr>
+      <tr><td>2</td><td>Bóveda local, tiendas de estado y cliente de Supabase</td><td>4</td></tr>
+      <tr><td>3</td><td>Vinculación del dispositivo</td><td>2</td></tr>
+      <tr><td>4</td><td>Desbloqueo diario con PIN</td><td>9</td></tr>
+      <tr><td>5</td><td>Alta de personal — función de borde, alta</td><td>2</td></tr>
+      <tr><td>6</td><td>Pantalla de gestión de personal — listado + interfaz</td><td>3</td></tr>
+      <tr><td>7</td><td>Revocación</td><td>2</td></tr>
+      <tr><td>8</td><td>Bloqueo por inactividad + guardas de ruta</td><td>4</td></tr>
+      <tr><td>9</td><td>Preparación de la verificación final</td><td>5</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout crit">
+    <h4>Compuerta de aplicación — decisión de la sesión, no negociable</h4>
+    <p>El repositorio no tiene hoy linter, formateador, runner de tests ni flujo de CI: los únicos scripts
+    del proyecto son <code>dev</code>, <code>build</code>, <code>typecheck</code> y <code>preview</code>. La
+    fase 0 cierra esa brecha e incluye, además, la generación de los tipos de TypeScript de Supabase. Ninguna
+    tarea de las fases 1 a 9 empieza antes de que la fase 0 esté completa al cien por ciento.</p>
+  </div>
+
+  <div class="callout info">
+    <h4>El modelo de PIN no se reabre</h4>
+    <p>El cuerpo completo de cada archivo SQL o de TypeScript ya está escrito, literal, en
+    <code>design.md</code>. Las tareas de este documento referencian esas secciones en lugar de repetir el
+    código. El PIN nunca es una credencial: solo desbloquea localmente un token de refresco ya autorizado —
+    esa decisión viene de <code>setup-stack</code> y esta fase no la vuelve a discutir.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Fase 0 — compuerta de aplicación</h2>
+  <p>Instala el mínimo de herramientas que el repositorio no tiene todavía.</p>
+  <p class="path-note">eslint.config.js · .prettierrc · .prettierignore · vitest.config.ts ·
+  .github/workflows/ci.yml · src/lib/database.types.ts · package.json</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Verificación</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-0.1</td><td>Configuración plana de ESLint para TypeScript + React (<code>eslint</code>, <code>typescript-eslint</code>, complementos de hooks y de react-refresh); script <code>lint</code>.</td><td><code>pnpm lint</code> corre limpio sobre el esqueleto actual</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-0.2</td><td>Prettier más <code>eslint-config-prettier</code> (evita choques de estilo entre ambas herramientas); scripts <code>format</code> y <code>format:check</code>.</td><td><code>pnpm format:check</code> pasa tras una primera pasada de formato</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-0.3</td><td>Vitest como runner de tests, entorno <code>jsdom</code>; una prueba trivial de humo (<code>generateSalt()</code> devuelve 16 bytes).</td><td><code>pnpm test</code> en verde</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-0.4</td><td>Flujo de CI: checkout → pnpm vía corepack → instalación con lockfile fijo → lint → format:check → typecheck → test → build.</td><td>el flujo corre en verde antes de que llegue cualquier código de <code>auth-pin</code></td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-0.5</td><td>Generar los tipos de TypeScript de Supabase (línea base, previa a la migración) y conectar <code>createClient&lt;Database&gt;()</code>. Cierra la deuda que <code>data-model</code> dejó pendiente.</td><td>el tipo <code>Database</code> queda exportado y tipa <code>supabase.ts</code></td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Fase 1 — migración aditiva + batería de verificación JWT</h2>
+  <p>Las filas de la batería (T-1.5 a T-1.11) se registran aquí porque así las agrupa el diseño técnico en
+  su etapa 1, pero ninguna puede darse por cerrada todavía: sus actores reales —un empleado activo y uno
+  revocado— no existen hasta que las fases 5 y 7 estén construidas. El cierre real ocurre en la fase 9
+  (ver la brecha número 1, al final del documento).</p>
+  <p class="path-note">supabase/migrations/20260714000000_auth_pin_multirole.sql ·
+  src/lib/database.types.ts</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-1.1</td><td>Escribir la migración: ampliar el CHECK de <code>rol</code>, agregar <code>activo</code>, endurecer <code>handle_new_user()</code>, sumar <code>is_active()</code>, plegar <code>activo</code> dentro de <code>is_admin()</code>, condicionar las RPC de escritura y las políticas de lectura sensibles.</td><td>REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-SETUP-8</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.2</td><td>Confirmar en una rama corta, abrir PR y fusionar a <code>main</code> — convención del repositorio de nunca subir directo. El merge dispara ahora la integración de GitHub, que ya está activa (a diferencia de <code>data-model</code>, no hace falta el rodeo manual por MCP).</td><td>DD-5</td><td><span class="tag human">humano</span></td></tr>
+      <tr><td class="id-col">T-1.3</td><td>Verificación estructural tras el despliegue: la migración aparece aplicada, la columna <code>activo</code> existe, y el panel de advertencias de seguridad no muestra nada inesperado.</td><td>—</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.4</td><td>Regenerar los tipos de Supabase después de la migración — ahora incluyen <code>activo</code> y el <code>rol</code> ampliado; reemplaza la línea base de T-0.5.</td><td>—</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.5</td><td>Empleado activo consulta <code>producto_costos</code> y <code>proveedores</code>: ambas devuelven lista vacía, nunca 403.</td><td>REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 5</span></td></tr>
+      <tr><td class="id-col">T-1.6</td><td>Un UPDATE de administrador activo que viola el límite de una política se rechaza; uno dentro del límite, sobre la misma fila, sigue funcionando.</td><td>REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 5</span></td></tr>
+      <tr><td class="id-col">T-1.7</td><td><code>deshacer_venta</code> sobre una venta que no es la última confirmada: error, sin efecto parcial.</td><td>REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 5</span></td></tr>
+      <tr><td class="id-col">T-1.8</td><td><code>confirmar_venta</code> pidiendo más stock del disponible: rechazado, stock sin cambios.</td><td>REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 5</span></td></tr>
+      <tr><td class="id-col">T-1.9</td><td>Empleado activo consulta el anidado <code>productos?select=*,producto_costos(costo)</code>: el anidado degrada a lista vacía, no a un error de solicitud.</td><td>REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 5</span></td></tr>
+      <tr><td class="id-col">T-1.10</td><td>Un usuario anónimo, contra cualquier tabla o RPC del dominio, recibe 401 o el código de permiso denegado de Postgres.</td><td>REQ-AP-SEG-5</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-1.11</td><td>Un empleado con <code>activo=false</code> queda denegado en cada uno de los blancos de T-1.5 a T-1.8, incluida la simple lectura de <code>productos</code>.</td><td>REQ-AP-SEG-2, REQ-AP-SEG-5</td><td><span class="tag gated">bloqueada — necesita fase 7</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Fase 2 — bóveda local, tiendas de estado y cliente de Supabase</h2>
+  <p>El acceso a IndexedDB se resuelve con una envoltura propia, sin ninguna dependencia externa (decisión
+  de diseño DD-1) — el alcance cabe en unas cuarenta líneas y una dependencia más no se justifica bajo la
+  política de seguridad de la cadena de suministro que rige el gestor de paquetes del proyecto.</p>
+  <p class="path-note">src/lib/vault.ts · src/lib/supabase.ts · src/stores/auth.ts · src/stores/lock.ts</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-2.1</td><td>Bóveda IndexedDB cruda: base <code>antimahue-vault</code> v1, almacén <code>profiles</code> con clave <code>userId</code>; funciones de guardar, leer, listar y borrar un registro. Se agrega <code>fake-indexeddb</code> solo como dependencia de test.</td><td>DD-1</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.2</td><td>El cliente deja de persistir la sesión en <code>localStorage</code> y usa un almacenamiento en memoria propio; conserva la renovación automática del token de acceso.</td><td>DD-7</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.3</td><td>La tienda de autenticación suma el rol y el estado de bloqueo (<code>locked</code>/<code>unlocking</code>/<code>unlocked</code>).</td><td>DD-7</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-2.4</td><td>La tabla de espera progresiva se reescribe con los nuevos valores (reintento libre hasta el cuarto fallo, 30 segundos al quinto, subiendo hasta una hora al octavo, borrado local al noveno); se corrige el comentario que decía —erróneamente— que el conteo se espeja en el servidor.</td><td>DD-2</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout info">
+    <h4>Por qué el comentario del archivo de bloqueo estaba mal</h4>
+    <p>El desbloqueo diario ocurre sin conexión: el token todavía está cifrado, así que no hay sesión
+    autenticada capaz de escribir en <code>auth_attempts</code>. Esa tabla registra intentos ya
+    autenticados —telemetría—, no puede frenar un intento fuera de línea. El único freno real ahí es el
+    propio costo de PBKDF2 con 600&nbsp;000 iteraciones; el contador de intentos vive y se persiste
+    exclusivamente en la bóveda local.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Fase 3 — vinculación del dispositivo</h2>
+  <p>La ruta diaria se mantiene en dos toques: abrir la aplicación y escribir los cuatro dígitos. La
+  vinculación es el camino pesado, de una sola vez, y nunca interrumpe el uso diario.</p>
+  <p class="path-note">src/features/auth/PairDeviceScreen.tsx · src/lib/router.tsx</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-3.1</td><td>Flujo de vinculación: correo y contraseña, inicio de sesión real, la propia empleada define su PIN (dos veces), y recién ahí se cifra el token de refresco y se guarda en la bóveda.</td><td>DD-3, REQ-AUTH-1</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-3.2</td><td>Ruta directa temporal para probar esta fase de forma aislada — la fase 4 la reemplaza por el acceso «+ vincular» dentro del selector real de usuarias.</td><td>DD-3</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>Fase 4 — desbloqueo diario con PIN</h2>
+  <p>Los componentes siguen diseño atómico y replican, pieza por pieza, la pantalla 1 del prototipo de
+  entrega (tipografía DM Sans, íconos Phosphor en variante rellena).</p>
+  <p class="path-note">src/components/atoms/PinDot.tsx · src/components/atoms/PinKey.tsx ·
+  src/components/atoms/AppIcon.tsx · src/components/molecules/PinDots.tsx ·
+  src/components/molecules/PinPad.tsx · src/components/molecules/UserSelector.tsx ·
+  src/components/organisms/PinUnlockPanel.tsx · src/features/auth/usePinUnlock.ts ·
+  src/features/auth/PinScreen.tsx</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-4.1</td><td>Átomo: punto de 13×13, relleno color tierra cuando está marcado, borde claro cuando no.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.2</td><td>Átomo: tecla circular de 66×66, fondo claro, borde fino.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.3</td><td>Átomo: ícono de la aplicación, hoja de arce en degradé terracota.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.4</td><td>Molécula: fila de cuatro puntos.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.5</td><td>Molécula: teclado numérico de 3×4 con tecla de borrar y la celda vacía inferior derecha.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.6</td><td>Molécula: selector de usuarias — toma sus datos únicamente de la bóveda local, se autoselecciona si hay una sola persona registrada, y ofrece «+ vincular» cuando no hay ninguna.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.7</td><td>Organismo: panel completo de desbloqueo — ícono, título, subtítulo con la persona elegida, puntos, teclado y cuenta regresiva de bloqueo.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.8</td><td>Gancho de desbloqueo: deriva la llave desde el PIN, descifra, renueva la sesión, vuelve a cifrar el token rotado, resetea el contador de fallos y trae el rol propio antes de mostrar nada; en cada fallo aplica la espera progresiva y al noveno borra la bóveda local.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-4.9</td><td>La pantalla de PIN deja de ser un esqueleto: muestra el selector si hace falta, el panel de desbloqueo, deshabilita el teclado mientras hay bloqueo, y navega al panel principal a los 350&nbsp;ms del cuarto dígito correcto.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Fase 5 — alta de personal</h2>
+  <p>Una función de borde con privilegio de servicio, accesible solo para una administradora activa,
+  crea la cuenta de la nueva empleada.</p>
+  <p class="path-note">supabase/functions/enroll-empleado/index.ts</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-5.1</td><td>Cadena de autorización (JWT ausente o inválido → 401; no administradora o administradora inactiva → 403) más el alta: crea la cuenta con rol <code>empleado</code> y contraseña inicial fijada por la administradora, y registra un renglón de auditoría.</td><td>REQ-AP-SEG-3</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-5.2</td><td>Desplegar la función; la llave de servicio se guarda como secreto de la función, nunca dentro del código de la aplicación.</td><td>REQ-SETUP-9</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Fase 6 — pantalla de gestión de personal</h2>
+  <div class="callout oq">
+    <h4>Superficie nueva, ausente del prototipo</h4>
+    <p>Esta pantalla no forma parte de las nueve pantallas del prototipo de alta fidelidad — se está
+    inventando, no replicando (riesgo R2 de la propuesta). El lenguaje visual se deriva del resto del
+    prototipo: encabezado terracota, cuerpo color pergamino, tarjetas de lista.</p>
+  </div>
+  <p class="path-note">supabase/functions/enroll-empleado/index.ts ·
+  src/features/empleadas/EmpleadasScreen.tsx · src/lib/router.tsx</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-6.1</td><td>La función suma un listado: cruza las cuentas de autenticación con los perfiles y devuelve nombre, correo, rol, estado activo y si está bloqueada. No se amplía ninguna política de lectura de perfiles — el listado sale solo por esta función.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-6.2</td><td>Pantalla nueva: encabezado con volver, título «Vendedoras» y botón de agregar; cuerpo con tarjetas del listado (nombre, insignia de activa, interruptor de revocar); el botón de agregar abre un formulario que llama al alta de la fase 5.</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-6.3</td><td>Nueva ruta, solo para administradoras, cargada de forma diferida como el resto de las pantallas.</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">9.</span>Fase 7 — revocación</h2>
+  <p>Cierra el hueco de hasta una hora que documenta Supabase para una sesión revocada: el permiso se
+  corta en la siguiente solicitud, independientemente de cuánto le quede de vida al token de acceso.</p>
+  <p class="path-note">supabase/functions/enroll-empleado/index.ts ·
+  src/features/empleadas/EmpleadasScreen.tsx</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-7.1</td><td>La función suma revocar y restaurar: apaga o prende <code>activo</code> de inmediato y, además, bloquea o desbloquea la cuenta de forma durable; un registro de auditoría queda por cada acción. El cambio de <code>activo</code> no depende de que el bloqueo durable haya salido bien.</td><td>REQ-AP-SEG-4</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-7.2</td><td>El interruptor de revocar, en la pantalla de gestión, queda conectado a esa acción.</td><td>—</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">10.</span>Fase 8 — bloqueo por inactividad y guardas de ruta</h2>
+  <p>El bloqueo por inactividad es una medida de uso, no de seguridad: el token de acceso se borra de la
+  memoria, pero el bloque cifrado en la bóveda no se toca — no se gana ni se pierde autorización alguna al
+  activarlo.</p>
+  <p class="path-note">src/features/auth/useIdleLock.ts · src/main.tsx · src/lib/router.tsx</p>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-8.1</td><td>Detección de inactividad por reloj de pared (no por temporizador simple, que se congela cuando la aplicación queda en segundo plano): al ocultarse registra la hora, al volver a mostrarse compara contra el umbral. Umbral propuesto: 5 minutos, pendiente de confirmar con la usuaria dueña del producto.</td><td>REQ-AUTH-3, DD-9</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-8.2</td><td>El detector queda activo durante toda sesión desbloqueada; el reingreso usa el mismo desbloqueo local por PIN, sin volver a autenticarse por red.</td><td>REQ-AUTH-3</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-8.3</td><td>Guarda de sesión: redirige a la pantalla de PIN si el estado no es «desbloqueado».</td><td>DD-8</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-8.4</td><td>Guarda de administradora: aleja a una empleada de las pantallas de proveedor, importación de documentos tributarios y gestión de personal.</td><td>DD-8</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">11.</span>Fase 9 — preparación de la verificación final</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>ID</th><th>Tarea</th><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-9.1</td><td>Construir e instalar la aplicación en un teléfono real o emulado — «agregar a la pantalla de inicio».</td><td>R4</td><td><span class="tag human">humano</span></td></tr>
+      <tr><td class="id-col">T-9.2</td><td>Correr la prueba de humo de cifrado e IndexedDB dentro de la aplicación ya instalada (no en una pestaña común del navegador): generar, derivar, cifrar, guardar, recargar, leer, descifrar y comparar contra el original.</td><td>R4, DD-13</td><td><span class="tag human">humano o vía emulación</span></td></tr>
+      <tr><td class="id-col">T-9.3</td><td>Confirmar que la batería de la fase 1 (T-1.5 a T-1.11) está cerrada de verdad, ahora que las fases 5 y 7 ya proveen una empleada activa y una revocada; repetir cualquier fila que solo se hubiera podido revisar de forma estructural.</td><td>REQ-AP-SEG-5</td><td><span class="tag pending">pendiente</span></td></tr>
+      <tr><td class="id-col">T-9.4</td><td>Capturar el tráfico de red de un desbloqueo diario completo con PIN correcto: ninguna solicitud lleva el PIN ni el token en claro; la única solicitud autenticada de todo el flujo es el inicio de sesión de la vinculación, una sola vez.</td><td>REQ-AUTH-1</td><td><span class="tag human">humano</span></td></tr>
+      <tr><td class="id-col">T-9.5</td><td>Recorrer los ocho criterios de éxito de la propuesta, uno por uno, y dejar registrado si cada uno se cumple o no.</td><td>propuesta</td><td><span class="tag pending">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">12.</span>Brechas detectadas entre spec y diseño</h2>
+  <p>Cuatro puntos donde el diseño técnico no queda del todo cerrado. Se resuelven aquí de forma explícita
+  en lugar de decidirse en silencio dentro del código.</p>
+
+  <div class="callout oq">
+    <h4>1 — dónde se ubica la batería JWT en la secuencia</h4>
+    <p>El diseño agrupa, en su primera etapa, la migración con la ejecución de la batería de verificación
+    T-5.1 a T-5.5. Pero ninguna fila de esa batería puede correr de verdad sin una empleada real —y, para la
+    fila nueva, una empleada revocada—, y ninguna de las dos existe todavía en esa etapa. Se optó por dejar
+    los identificadores de tarea en la fase 1, como agrupa el diseño, marcados como bloqueados, y cerrarlos
+    de verdad recién en la fase 9. El propio documento de diseño no resuelve este orden.</p>
+  </div>
+  <div class="callout oq">
+    <h4>2 — el archivo del bloqueo por inactividad no está nombrado</h4>
+    <p>La tabla de archivos del diseño menciona el archivo de rutas para las guardas de acceso, pero no
+    nombra ningún archivo para la lógica de inactividad que exige. Se optó por un gancho nuevo junto al de
+    desbloqueo por PIN, en la misma carpeta de la funcionalidad de autenticación — no es una superficie
+    nueva, solo un detalle de implementación sin nombre en el diseño.</p>
+  </div>
+  <div class="callout oq">
+    <h4>3 — el alcance de «ocultar tarjetas de costo»</h4>
+    <p>Una de las decisiones de diseño menciona ocultar tarjetas de costo y elementos de navegación, pero la
+    propuesta deja explícitamente fuera de alcance las pantallas de catálogo, venta y panel principal —y
+    esas pantallas hoy son apenas esqueletos vacíos. Se optó por que la fase 8 implemente únicamente las
+    guardas de ruta, que es todo lo accionable hoy; ocultar tarjetas de costo dentro de esas pantallas queda
+    para el cambio que efectivamente las construya.</p>
+  </div>
+  <div class="callout oq">
+    <h4>4 — el umbral de inactividad no está confirmado</h4>
+    <p>El diseño deja el minutaje exacto como pregunta abierta y propone 5 minutos. La tarea T-8.1 usa ese
+    valor por defecto; no bloquea el resto del trabajo, pero necesita la confirmación de la usuaria dueña
+    del producto.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">13.</span>Tareas que requieren acción humana</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Tarea</th><th>Por qué es humana</th></tr></thead>
+    <tbody>
+      <tr><td class="id-col">T-1.2</td><td>El PR y el merge son el único camino de despliegue válido para el esquema — convención del repositorio de nunca subir directo a la rama principal.</td></tr>
+      <tr><td class="id-col">T-9.1</td><td>Instalar la aplicación en un teléfono —real o emulado— y agregarla a la pantalla de inicio no es algo que un agente pueda hacer por sí solo.</td></tr>
+      <tr><td class="id-col">T-9.2</td><td>La prueba de humo debe correr dentro del contexto de la aplicación ya instalada (con su propio trabajador de servicio activo), no en una pestaña común — puede emularse con herramientas de depuración de Chrome, pero el diseño marca este punto como históricamente sin verificar y prefiere un dispositivo real al menos una vez.</td></tr>
+      <tr><td class="id-col">T-9.4</td><td>La captura de tráfico de red sobre un desbloqueo real necesita inspección directa de las herramientas de desarrollador.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>El resto de las tareas son ejecutables por el agente de la fase de aplicación; las de la fase 1
+  marcadas como bloqueadas solo pueden cerrarse una vez desplegadas las fases 5 y 7.</p>
+</section>
+
+<footer>
+  Antimahue · fase tasks del change <code>auth-pin</code> · 2026-07-14. Documento de revisión humana; el
+  compañero agent-optimized vive en <code>tasks.md</code> junto a este archivo.
+</footer>
+
+</div>
+</body>
+</html>

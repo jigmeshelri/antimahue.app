@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Especificación: auth-pin — Antimahue</title>
+<style>
+  /* ─── Paleta Antimahue (Terraza) ────────────────────────────────────────── */
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle { color: #d4b89a; font-size: .9rem; margin-top: .4rem; }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-must      { background: var(--color-danger-lt);  color: var(--color-danger); border: 1px solid var(--color-danger); }
+  .badge-should    { background: var(--color-info-lt);    color: var(--color-info); border: 1px solid var(--color-info); }
+  .badge-oq        { background: #fff; color: var(--color-wood); border: 1px dashed var(--color-wood); }
+  .badge-new       { background: var(--color-terracota-lt); color: var(--color-terracotta); border: 1px solid var(--color-terracotta); }
+  .badge-mod       { background: var(--color-wood-lt); color: var(--color-wood); border: 1px solid var(--color-wood); }
+
+  .toc {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0;
+    font-size: .87rem;
+  }
+  .toc a { color: var(--color-terracotta); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.4rem 0 .5rem;
+  }
+  h4 {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 1rem 0 .3rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  p { margin-bottom: .8rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security {
+    border-color: var(--color-danger);
+    background: var(--color-danger-lt);
+  }
+  .callout-security .callout-title {
+    font-weight: 700;
+    color: var(--color-danger);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-info {
+    border-color: var(--color-info);
+    background: var(--color-info-lt);
+  }
+  .callout-info .callout-title {
+    font-weight: 700;
+    color: var(--color-info);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-note {
+    border-color: var(--color-terracotta);
+    background: var(--color-terracota-lt);
+  }
+  .callout-note .callout-title {
+    font-weight: 700;
+    color: var(--color-terracotta);
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+
+  /* ─── Bloque de requisito ────────────────────────────────────────────────── */
+  .req {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: 1.4rem 0;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+  .req-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+  .req-id {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    background: var(--color-wood-lt);
+    padding: .15em .5em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .req-title { font-weight: 600; font-size: .95rem; }
+  .req-body { padding: .85rem 1rem; }
+  .req-body > *:last-child { margin-bottom: 0; }
+
+  /* ─── Escenario ──────────────────────────────────────────────────────────── */
+  .scenario {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    margin-top: .8rem;
+    font-size: .87rem;
+  }
+  .scenario-title {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .5rem;
+  }
+  .scenario-step { margin-bottom: .25rem; }
+  .scenario-step .keyword { font-weight: 600; color: var(--color-terracotta); min-width: 3.5rem; display: inline-block; }
+
+  /* ─── Encabezado de dominio ──────────────────────────────────────────────── */
+  .domain-banner {
+    background: linear-gradient(135deg, var(--color-wood) 0%, var(--color-terracotta) 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: .6rem 1rem;
+    font-weight: 700;
+    font-size: .82rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · auth-pin</div>
+  <h1>Especificación: PIN de acceso, roles y revocación</h1>
+  <div class="subtitle">Ampliación a dos roles (administradora/empleada), enrolamiento, revocación y sesión local</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Especificación</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Depende de:</strong> <code>data-model</code> (archivado, en producción)</span>
+  <span><strong>Cierra:</strong> T-5.1–T-5.5 de <code>data-model</code></span>
+</div>
+
+<main class="main-content">
+
+  <div class="callout callout-security">
+    <div class="callout-title">Principio rector heredado</div>
+    El bundle del cliente no es confiable. El PIN nunca es una credencial: solo desbloquea localmente un
+    token de refresco ya cifrado, según la decisión D1 de <code>setup-stack</code> (no se reabre aquí). La
+    autorización real de dinero, costos y proveedores sigue viviendo en Postgres — RLS, CHECK y funciones
+    RPC —, nunca en JavaScript.
+  </div>
+
+  <div class="callout callout-note">
+    <div class="callout-title">Preguntas abiertas que el diseño resuelve (OQ)</div>
+    Esta especificación queda válida para cualquier resolución de estas preguntas; los requisitos afectados
+    llevan la insignia correspondiente.
+    <ul>
+      <li><span class="badge badge-oq">OQ-1</span> acceso a IndexedDB (WebCrypto puro vs. librería auxiliar)</li>
+      <li><span class="badge badge-oq">OQ-2</span> valores exactos de bloqueo por intentos fallidos</li>
+      <li><span class="badge badge-oq">OQ-3</span> mecánica del emparejamiento de dispositivo</li>
+      <li><span class="badge badge-oq">OQ-4</span> primitiva de creación de usuario en <code>enroll-empleado</code></li>
+    </ul>
+  </div>
+
+  <div class="toc">
+    <strong>Dominios de esta especificación:</strong>
+    <ul>
+      <li><a href="#dominio-setup-stack">Setup-stack</a> (1 requisito modificado)</li>
+      <li><a href="#dominio-seguridad">Seguridad</a> (5 requisitos nuevos)</li>
+      <li><a href="#dominio-auth">Auth / sesión</a> (4 requisitos, dominio nuevo)</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: SETUP-STACK ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-setup-stack">Dominio: setup-stack (delta)</div>
+  <p><code>profiles.rol</code> quedó acotado a un único rol administrador en el scaffold inicial. Este es el
+  primer cambio que amplía esa restricción para sostener un segundo rol real (D2, D3).</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-SETUP-8</span>
+      <span class="req-title">Tabla <code>profiles</code> — multi-rol (administradora, empleada)</span>
+      <span class="badge badge-mod">MODIFICADO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Antes: acotada a exactamente una fila MVP, <code>CHECK (rol IN ('admin'))</code>. Ahora: la tabla
+      acepta <code>rol IN ('admin', 'empleado')</code> — valor <code>'empleado'</code>, no el <code>'seller'</code>
+      en inglés de la propuesta original del issue, siguiendo la convención dominio-en-español/plataforma-en-inglés
+      ya establecida por <code>data-model</code>. El CHECK se amplía con una migración aditiva (eliminar y
+      recrear el constraint, misma columna y mismo default). El registro creado por el disparador de
+      autorregistro sigue por defecto en <code>'admin'</code> — una fila <code>'empleado'</code> solo puede
+      nacer desde <code>enroll-empleado</code> (dominio seguridad, REQ-AP-SEG-3), nunca desde el
+      autorregistro público.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el rol empleado ahora se acepta</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el CHECK ampliado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se inserta una fila con <code>rol = 'empleado'</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres la acepta</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un valor no contemplado sigue rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el mismo CHECK</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se inserta un valor fuera de <code>('admin','empleado')</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> Postgres lo rechaza por violación del constraint</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: SEGURIDAD ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-seguridad">Dominio: seguridad (delta)</div>
+  <p>Activa la política admin-only que <code>data-model</code> dejó inerte a la espera de un segundo rol
+  (D2) y resuelve sus dos flujos sin diseñar hasta ahora: enrolamiento (D4) y revocación (D5). Prefijo de ID
+  <code>REQ-AP-SEG</code>, continuando la familia <code>REQ-DM-SEG</code>.</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-1</span>
+      <span class="req-title">Columna <code>profiles.activo</code> — sustrato de la revocación</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p><code>profiles.activo boolean NOT NULL DEFAULT true</code>. Las filas existentes quedan en
+      <code>true</code> tras la migración, sin necesidad de ningún <code>UPDATE</code> explícito. Esta
+      columna es la base sobre la que actúa REQ-AP-SEG-2; por sí sola no cambia ningún comportamiento.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: los perfiles existentes quedan activos tras la migración</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> la fila previa de la administradora</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se agrega la columna <code>activo</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> se lee <code>true</code> sin ningún UPDATE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-2</span>
+      <span class="req-title">Compuerta <code>activo</code> en toda vía de autorización (D5)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Toda política RLS y toda RPC que hoy exige <code>authenticated</code> o <code>is_admin()</code>
+      —incluida la propia <code>is_admin()</code>— exige además que el perfil que llama tenga
+      <code>activo = true</code>. Un perfil con <code>activo = false</code> queda denegado desde la
+      siguiente solicitud, sin importar cuánto le quede de vigencia al access token — esto cierra la
+      ventana documentada de hasta una hora tras revocar una sesión (D5). La regla es simétrica: una
+      administradora desactivada pierde su acceso admin-only igual que una empleada desactivada pierde el
+      acceso base. Un perfil activo de cualquier rol no nota ningún cambio.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: empleada desactivada, denegada pese a un token vigente</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un perfil empleado con <code>activo = false</code> y un access token aún no vencido</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> ese token se usa para leer una tabla (<code>productos</code>) o llamar una RPC (<code>confirmar_venta</code>)</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la solicitud se deniega — RLS devuelve cero filas o la RPC lanza error — no solo se limita</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: una administradora desactivada también pierde el acceso admin-only</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un perfil con <code>rol = 'admin'</code> y <code>activo = false</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se evalúa <code>is_admin()</code> para esa persona dentro de cualquier política</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> devuelve <code>false</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-3</span>
+      <span class="req-title">Contrato de la función <code>enroll-empleado</code> (D4)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-oq">OQ-4</span>
+    </div>
+    <div class="req-body">
+      <p>Se expone <code>enroll-empleado</code> ejecutando con <code>service_role</code>, invocable solo por
+      quien esté autenticado, sea <code>is_admin()</code> y tenga <code>activo = true</code> — verificado
+      antes de cualquier escritura. Al completarse, crea el registro de autenticación (con contraseña
+      inicial definida por la administradora) y garantiza que el perfil resultante tenga
+      <code>rol = 'empleado'</code>, sin importar el valor por defecto que aplicaría el disparador de
+      autorregistro (delta setup-stack, REQ-SETUP-8) — ese disparador no debe filtrar un perfil
+      administrador para una nueva empleada. Inserta además un registro de auditoría
+      (<code>action='enroll_empleado'</code>, actor = id de la administradora, entidad = id de la nueva
+      persona). Un rechazo no deja ningún efecto secundario.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: la administradora enrola a una empleada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una administradora autenticada y activa que llama <code>enroll-empleado</code> con correo y contraseña inicial</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la función termina</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> existen los registros de autenticación y de perfil (<code>rol='empleado'</code>) para la nueva persona, y queda una entrada de auditoría</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: quien llama sin ser administradora activa es rechazado</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> quien llama no es <code>is_admin()</code>, o lo es pero con <code>activo = false</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> invoca <code>enroll-empleado</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> se rechaza y no se crea ningún registro de autenticación, perfil ni auditoría</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-4</span>
+      <span class="req-title">Acción de revocación (D5)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Revocar un perfil se ejecuta por una vía servidor con privilegio <code>service_role</code> —jamás
+      con la clave de cliente anónima o autenticada (REQ-SETUP-9)—, con la misma compuerta de
+      REQ-AP-SEG-3. Establece <code>profiles.activo = false</code> (efecto determinístico e inmediato) y
+      además invoca el baneo administrativo de larga duración sobre el registro de autenticación (defensa
+      en profundidad) — la escritura de <code>activo</code> no depende de que ese baneo tenga éxito. Inserta
+      una entrada de auditoría (<code>action='revoke_empleado'</code>).</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: empleada revocada, denegada de inmediato y baneada de forma duradera</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que la administradora revoca a una empleada activa</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la acción termina</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> <code>profiles.activo = false</code> rige de inmediato (REQ-AP-SEG-2 deniega la siguiente solicitud) y el registro de autenticación queda bloqueado para futuros inicios de sesión o refrescos</div>
+        <div class="scenario-step"><span class="keyword">Y</span> queda una entrada de auditoría de la revocación</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-5</span>
+      <span class="req-title">Matriz de verificación RLS/RPC multi-rol — cierra T-5.1–T-5.5 de <code>data-model</code></span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>La batería de verificación con JWT real que <code>data-model</code> dejó diferida se ejecuta contra
+      un perfil <code>'empleado'</code> genuino —posible recién ahora que el CHECK se amplía— más la
+      dimensión nueva de <code>activo = false</code>. Cada fila de la tabla es un caso comprobable.</p>
+      <table>
+        <thead><tr><th>Caso</th><th>Actor</th><th>Objetivo</th><th>Resultado esperado</th></tr></thead>
+        <tbody>
+          <tr><td>T-5.1</td><td>empleada activa</td><td><code>producto_costos</code>, <code>proveedores</code> (SELECT)</td><td><code>[]</code>, nunca 403</td></tr>
+          <tr><td>T-5.2</td><td>administradora activa</td><td>una política de escritura con <code>WITH CHECK</code> (<code>configuracion</code>/<code>proveedores</code>)</td><td>UPDATE fuera de rango rechazado; dentro de rango, exitoso</td></tr>
+          <tr><td>T-5.3</td><td>administradora o empleada activa</td><td><code>deshacer_venta</code> sobre una venta que no es la última</td><td>error de la RPC, sin efecto parcial</td></tr>
+          <tr><td>T-5.4</td><td>administradora o empleada activa</td><td><code>confirmar_venta</code> pidiendo más stock del disponible</td><td>rechazado, stock sin cambios</td></tr>
+          <tr><td>T-5.5</td><td>empleada activa</td><td>consulta embebida <code>productos</code>→<code>producto_costos(costo)</code></td><td>lo embebido se degrada a <code>[]</code>, sin error a nivel de solicitud</td></tr>
+          <tr><td>nuevo</td><td>anónimo</td><td>cualquier tabla o RPC de dominio</td><td>401 / permiso denegado (sin grant)</td></tr>
+          <tr><td>nuevo</td><td>empleada inactiva (<code>activo=false</code>)</td><td>todos los objetivos de T-5.1–T-5.4, incluida una simple lectura de <code>productos</code></td><td>denegado por REQ-AP-SEG-2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ DOMINIO: AUTH / SESIÓN ═══════════════════════════ -->
+  <div class="domain-banner" id="dominio-auth">Dominio: auth / sesión (nuevo)</div>
+  <p>Comportamiento de sesión del lado del cliente, construido alrededor del cifrado ya completo (D1,
+  heredado y no reabierto aquí): desbloqueo local por PIN, bloqueo progresivo por intentos fallidos,
+  autobloqueo por inactividad y cómo la aplicación resuelve su propio rol y estado activo. Territorio nuevo
+  — ningún cambio anterior definió el comportamiento de sesión del cliente. Prefijo de ID
+  <code>REQ-AUTH</code>.</p>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AUTH-1</span>
+      <span class="req-title">El desbloqueo por PIN es solo local, sin red (D1)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Desbloquear —derivar la llave AES-GCM vía PBKDF2 (SHA-256, 600.000 iteraciones) y descifrar el
+      token de refresco guardado— no genera ninguna solicitud de red. Solo el inicio de sesión único de
+      enrolamiento o emparejamiento de dispositivo (correo y contraseña, D4/OQ-3) se autentica por la red;
+      cada desbloqueo diario posterior es local.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un desbloqueo exitoso no genera tráfico de red</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un dispositivo ya emparejado (bloque cifrado y sal presentes)</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ingresa el PIN correcto</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el desbloqueo se completa sin ninguna solicitud de red, y la sesión existente se reanuda</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un PIN incorrecto se manifiesta como un fallo local de descifrado, nunca como un token</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> el mismo dispositivo emparejado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ingresa un PIN incorrecto</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el descifrado falla localmente (verificación de autenticidad AES-GCM) — ni el PIN ni el token viajan nunca por la red, y el fallo cuenta como un intento para el bloqueo (REQ-AUTH-2)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AUTH-2</span>
+      <span class="req-title">Mecanismo de bloqueo, parametrizado</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-oq">OQ-2</span>
+    </div>
+    <div class="req-body">
+      <p>Los fallos de PIN repetidos para un perfil activan un retroceso progresivo del lado del cliente,
+      reflejado también del lado del servidor mediante una entrada por intento (defensa en profundidad: aun
+      quien borre el almacenamiento local sigue enfrentando el límite del servidor). Superado un umbral de
+      fallos configurable, la aplicación exige un reingreso completo (borrando el bloque cifrado local) en
+      vez de aceptar más intentos de PIN. Los valores exactos y las duraciones quedan parametrizados —
+      los define el diseño, no esta especificación.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: fallos por debajo del umbral bloquean temporalmente</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> N fallos consecutivos de PIN por debajo del umbral configurado de reingreso completo</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se intenta de nuevo antes de que expire la ventana de retroceso</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el intento se bloquea del lado del cliente hasta que la ventana expire, sin un nuevo intento de descifrado</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: alcanzar el umbral fuerza el reingreso completo</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> que los fallos alcanzan el umbral configurado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> ocurriría el siguiente intento</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el bloque cifrado local se borra y se exige un inicio de sesión completo con correo y contraseña</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AUTH-3</span>
+      <span class="req-title">Autobloqueo por inactividad, del lado del cliente (D6)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Tras un período de inactividad configurable sin interacción, la aplicación limpia el access token
+      en memoria y exige reingresar el PIN para continuar. Es un bloqueo de experiencia de uso, no una
+      revocación: el bloque cifrado en reposo no se toca. No depende de ninguna función de sesión exclusiva
+      del plan de pago de Supabase — el proyecto está en el plan gratuito.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: la inactividad más allá del umbral fuerza el reingreso de PIN</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> ninguna interacción durante el período de inactividad configurado</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> el umbral se cumple</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el access token en memoria se limpia y se muestra la pantalla de PIN</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: reanudar tras el autobloqueo usa la misma vía local</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> la aplicación bloqueada por inactividad</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> se ingresa el PIN correcto</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la sesión se reanuda por el mismo desbloqueo local sin red que en REQ-AUTH-1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
+      <span class="req-id">REQ-AUTH-4</span>
+      <span class="req-title">Resolución del rol y del estado activo (cliente)</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+    </div>
+    <div class="req-body">
+      <p>Tras establecer una sesión (inicio de sesión nuevo o desbloqueo por PIN), la aplicación resuelve
+      <code>rol</code> y <code>activo</code> leyendo su propia fila de perfil —nunca desde un valor
+      guardado en el cliente— para cualquier decisión de autorización (un caché solo para mostrar la
+      interfaz es aceptable; el límite de autorización sigue en Postgres). Vuelve a leer en cada
+      desbloqueo, de modo que un cambio de rol o una revocación del mismo día se reflejan antes de
+      renderizar cualquier pantalla condicionada por el rol.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: el desbloqueo dispara una lectura fresca del perfil antes de renderizar</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un desbloqueo de PIN exitoso</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la aplicación se reanuda</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> consulta su propia fila de perfil antes de renderizar cualquier pantalla condicionada por el rol</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: un rol guardado del día anterior no se usa para autorizar</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> un <code>rol</code> guardado en el cliente de una sesión previa</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> la lectura fresca del perfil devuelve un valor distinto (o <code>activo=false</code>)</div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> el valor fresco prevalece en toda decisión de renderizado y de acceso</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-title">Trazabilidad — requisitos por decisión de la propuesta</div>
+    <table>
+      <thead><tr><th>Decisión</th><th>Requisitos que la materializan</th></tr></thead>
+      <tbody>
+        <tr><td>D1 — modelo de autenticación heredado, no reabierto</td><td>REQ-AUTH-1</td></tr>
+        <tr><td>D2 — activación del multi-rol</td><td>REQ-SETUP-8, REQ-AP-SEG-5</td></tr>
+        <tr><td>D3 — valor de rol <code>'empleado'</code></td><td>REQ-SETUP-8</td></tr>
+        <tr><td>D4 — enrolamiento mínimo</td><td>REQ-AP-SEG-3</td></tr>
+        <tr><td>D5 — revocación (compuerta <code>activo</code> + baneo)</td><td>REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-AP-SEG-4</td></tr>
+        <tr><td>D6 — autobloqueo por inactividad, sin plan de pago</td><td>REQ-AUTH-3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <h2>Archivos de esta especificación</h2>
+    <p>Companion agent-optimized (inglés, RFC 2119, consumido por el tooling SDD):</p>
+    <span class="path-note">openspec/changes/auth-pin/specs/setup-stack/spec.md</span>
+    <span class="path-note">openspec/changes/auth-pin/specs/seguridad/spec.md</span>
+    <span class="path-note">openspec/changes/auth-pin/specs/auth/spec.md</span>
+  </section>
+
+</main>
+</body>
+</html>

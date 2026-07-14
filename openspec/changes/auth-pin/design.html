@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diseño técnico — auth-pin · Antimahue</title>
+<style>
+  :root{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2; --admin:#8a4b9c; --admin-soft:#efe3f3;
+    --radius:12px; --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:940px;margin:0 auto;padding:2.4rem 1.3rem 4rem}
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:1.3rem;margin-bottom:2rem}
+  header.doc .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:600}
+  header.doc h1{font-size:1.85rem;margin:.35rem 0 .5rem;font-weight:700;line-height:1.2}
+  header.doc p.lead{margin:0;color:var(--muted);font-size:1.02rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .badge{font-size:.74rem;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:500}
+  .badge.brand{background:var(--brand-soft);border-color:#e3c3af;color:var(--brand)}
+  .badge.ok{background:var(--ok-soft);border-color:#c3ddc9;color:var(--ok)}
+  .badge.warn{background:var(--warn-soft);border-color:#e6cd8f;color:var(--warn)}
+  h2{font-size:1.28rem;margin:2.6rem 0 .9rem;padding-top:.4rem;font-weight:700;
+    border-top:1px solid var(--line)}
+  h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  h3{font-size:1.02rem;margin:1.5rem 0 .5rem;font-weight:600}
+  p{margin:.6rem 0}
+  section > p:first-of-type{margin-top:0}
+  code{font-family:var(--mono);font-size:.86em;background:#f0e7db;padding:.08em .35em;
+    border-radius:5px;color:#7a3f22;overflow-wrap:anywhere}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:var(--radius);
+    padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.5;
+    margin:1rem 0}
+  pre code{background:none;color:inherit;padding:0;font-size:1em}
+  pre .c{color:#9a8f80}       /* comment */
+  pre .k{color:#e39b6f}       /* keyword */
+  pre .s{color:#a9c99a}       /* string */
+  .path-note{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+    background:#f2ebe0;border-left:3px solid var(--line);padding:.4rem .7rem;margin:.4rem 0 1rem;
+    border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem}
+  .tbl-scroll{overflow-x:auto;margin:1rem 0}
+  .tbl-scroll table{margin:0;min-width:640px}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--brand-soft);color:#7a3f22;font-weight:600;font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:nth-child(even),tr:nth-child(even){background:#fcf9f4}
+  .callout{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.1rem 0;border:1px solid;
+    border-left-width:5px}
+  .callout h4{margin:0 0 .4rem;font-size:.94rem;font-weight:700;display:flex;gap:.4rem;align-items:center}
+  .callout p{margin:.35rem 0}
+  .callout.oq{background:var(--warn-soft);border-color:#e6cd8f;border-left-color:var(--warn)}
+  .callout.crit{background:var(--danger-soft);border-color:#e6b3ab;border-left-color:var(--danger)}
+  .callout.info{background:var(--brand-soft);border-color:#e3c3af;border-left-color:var(--brand)}
+  .callout.ok{background:var(--ok-soft);border-color:#c3ddc9;border-left-color:var(--ok)}
+  .decision{font-size:.9rem;margin-top:.5rem}
+  .decision b{color:var(--ink)}
+  .oq-grid{display:grid;grid-template-columns:1fr;gap:1rem;margin:1.2rem 0}
+  .oq-card{border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:var(--radius);
+    background:var(--panel);padding:1rem 1.15rem}
+  .oq-card .q{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);
+    font-weight:700}
+  .oq-card h4{margin:.2rem 0 .5rem;font-size:1.02rem}
+  .oq-card .verdict{font-size:.88rem}
+  .oq-card .verdict b{color:var(--ok)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.14rem .5rem;border-radius:5px;
+    font-family:var(--mono)}
+  .tag.def{background:var(--danger-soft);color:var(--danger)}
+  .tag.inv{background:var(--ok-soft);color:var(--ok)}
+  .tag.admin{background:var(--admin-soft);color:var(--admin)}
+  ul.clean{margin:.6rem 0;padding-left:1.2rem}
+  ul.clean li{margin:.3rem 0}
+  ol.steps{margin:.6rem 0;padding-left:1.3rem}
+  ol.steps li{margin:.35rem 0}
+  figure{margin:1.4rem 0}
+  figcaption{color:var(--muted);font-size:.82rem;text-align:center;margin-top:.4rem}
+  .svg-scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:.8rem}
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.82rem}
+  .seq-lane{fill:#fcf9f4;stroke:var(--line)}
+  .seq-head{font-size:11px;font-weight:700;fill:#2b2622;font-family:var(--sans)}
+  .seq-life{stroke:#d8ccbc;stroke-dasharray:3 4}
+  .seq-msg{stroke:#8f857a;stroke-width:1.3;fill:none}
+  .seq-lbl{font-size:10px;fill:#5c534b;font-family:var(--mono)}
+  .seq-ret{stroke:#3f7d54;stroke-width:1.2;fill:none;stroke-dasharray:4 3}
+  .seq-note{font-size:9.5px;fill:#8f857a;font-family:var(--mono)}
+  .seq-off{fill:var(--warn-soft);stroke:#e6cd8f}
+  .seq-net{fill:var(--brand-soft);stroke:#e3c3af}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Antimahue · SDD · fase design</div>
+  <h1>Diseño técnico: desbloqueo por PIN y roles admin/empleado</h1>
+  <p class="lead">La capa de interfaz y estado sobre el <code>crypto.ts</code> ya completo, el desbloqueo
+  del esquema para un segundo rol y las dos únicas piezas que faltaban por diseñar: el alta de una empleada
+  y su revocación. El PIN no es una credencial; es una llave local para un token ya autorizado.</p>
+  <div class="meta">
+    <span class="badge brand">change: auth-pin</span>
+    <span class="badge">depende de: data-model · setup-stack</span>
+    <span class="badge ok">propuesta aprobada · D1–D6</span>
+    <span class="badge warn">resuelve OQ-1 · OQ-2 · OQ-3 · OQ-4</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1.</span>Enfoque técnico</h2>
+  <p>No hay re-arquitectura. La decisión central ya estaba tomada en <code>setup-stack</code> (D1, sin
+  reabrir): el PIN nunca viaja al servidor. Un inicio de sesión real de Supabase, una sola vez por
+  empleada, deja el token de refresco cifrado en IndexedDB bajo una clave AES-GCM derivada del PIN con
+  PBKDF2. El desbloqueo diario es un descifrado local; un PIN equivocado falla en la verificación del sello
+  GCM y jamás devuelve un token. <code>crypto.ts</code> ya implementa todo esto.</p>
+
+  <div class="callout crit">
+    <h4>Principio rector — el bundle del cliente no es de confianza</h4>
+    <p>Toda regla de autorización vive en Postgres: políticas RLS, constraints y RPC <code>SECURITY
+    DEFINER</code>. El PIN solo descifra un token que Postgres ya autorizó; no concede permisos nuevos.
+    Ocultar un dato por rol en la interfaz es cosmético — el límite real es la base de datos.</p>
+  </div>
+
+  <p>El trabajo se reparte en cuatro capas:</p>
+  <ul class="clean">
+    <li><b>Base de datos</b> — una migración aditiva: ampliar el <code>CHECK</code> de rol, agregar
+      <code>profiles.activo</code>, endurecer el disparador de alta, agregar <code>is_active()</code> e
+      insertar la comprobación de actividad donde la revocación debe morder.</li>
+    <li><b>Edge</b> — una función Deno con permiso de servicio, restringida a la administradora, para crear,
+      listar y revocar empleadas.</li>
+    <li><b>Librería</b> — una bóveda sobre IndexedDB nativo, el ciclo de vida de la sesión de supabase-js y
+      la persistencia del bloqueo por intentos.</li>
+    <li><b>Interfaz</b> — la pantalla de PIN (pantalla 1 del handoff), la pantalla de emparejamiento y la
+      pantalla de gestión de empleadas, que es nueva.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Las cuatro preguntas abiertas, resueltas</h2>
+  <p>La propuesta delegó cuatro decisiones a esta fase. Cada una se resuelve con su alternativa descartada y
+  el motivo.</p>
+
+  <div class="oq-grid">
+    <div class="oq-card">
+      <div class="q">OQ-1 · acceso a IndexedDB</div>
+      <h4>Bóveda sobre IndexedDB nativo, sin dependencias</h4>
+      <p class="verdict">La bóveda guarda un registro por perfil emparejado en este teléfono, con clave por
+      <code>user_id</code>: es una superficie de un solo almacén (get/getAll/put/delete), justo el alcance
+      de <code>idb-keyval</code>, pero tan pequeña (~40 líneas) que una dependencia no se justifica bajo la
+      política de cadena de suministro de pnpm (<code>minimumReleaseAge=1440</code>, scripts de ciclo de
+      vida bloqueados). IndexedDB clona <code>ArrayBuffer</code> y <code>Uint8Array</code> de forma nativa,
+      así que el cifrado se guarda sin serializar. <b>Veredicto:</b> raw IDB con un envoltorio tipado; sin
+      agregar <code>idb-keyval</code> ni <code>idb</code>.</p>
+    </div>
+
+    <div class="oq-card">
+      <div class="q">OQ-2 · política de bloqueo por intentos</div>
+      <h4>Bloqueo del lado del cliente, persistido, con borrado terminal</h4>
+      <p class="verdict">Dos hechos fijan los números. Primero: si alguien extrae el blob, lo puede
+      atacar sin conexión; con 10.000 combinaciones el único costo real es PBKDF2 (600 000 iteraciones,
+      ~200-400 ms por intento). El bloqueo no protege un blob exfiltrado — <b>PBKDF2 es el respaldo
+      criptográfico; el bloqueo es defensa casual</b>. Segundo: el desbloqueo diario es local y sin sesión
+      autenticada, así que no puede escribir en <code>auth_attempts</code> (el cliente anónimo no tiene
+      permisos). Por eso el contador vive en el cliente y se persiste en la misma bóveda que el cifrado: no
+      se puede reiniciar sin borrar aquello que se ataca.</p>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Fallos seguidos</th><th>Consecuencia</th></tr></thead>
+          <tbody>
+            <tr><td>1–4</td><td>reintento inmediato (tolerancia al error de tecleo)</td></tr>
+            <tr><td>5</td><td>espera de 30 s</td></tr>
+            <tr><td>6</td><td>2 min</td></tr>
+            <tr><td>7</td><td>10 min</td></tr>
+            <tr><td>8</td><td>1 h</td></tr>
+            <tr><td>9</td><td><b>borrado del blob local</b> → hay que volver a emparejar</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="verdict">El borrado no es un veto permanente de la cuenta (eso es la revocación, D5): solo
+      elimina el objetivo local. En un teléfono compartido con la dueña presente es un evento raro. El
+      comentario «espejado en el servidor» que hoy trae <code>lock.ts</code> es incorrecto y se corrige:
+      <code>auth_attempts</code> registra solo eventos autenticados, como telemetría.</p>
+    </div>
+
+    <div class="oq-card">
+      <div class="q">OQ-3 · emparejamiento del dispositivo</div>
+      <h4>La contraseña la escribe la administradora una vez; la empleada elige su PIN</h4>
+      <p class="verdict">El camino diario sigue en ≤2 toques: abrir, elegir usuaria si hay más de una, teclear
+      cuatro dígitos. El emparejamiento es el único momento pesado y no aparece en el uso cotidiano. La
+      administradora escribe la contraseña de alta una sola vez, de modo que la empleada nunca la conoce ni la
+      maneja; la empleada, en cambio, elige su propio PIN (dos veces para confirmar), y la administradora no
+      lo sabe. El selector de usuarias se arma solo con los registros locales de la bóveda — no existe ni hace
+      falta un directorio de personal legible sin autenticar.</p>
+    </div>
+
+    <div class="oq-card">
+      <div class="q">OQ-4 · primitiva de alta</div>
+      <h4><code>createUser</code>, no <code>inviteUserByEmail</code></h4>
+      <p class="verdict">El personal de una tienda no siempre tiene un correo a mano, y un enlace mágico es
+      fricción en un único teléfono compartido. Además, el SMTP por defecto del plan gratuito es de prueba y
+      con un límite muy bajo: la invitación puede no llegar. <code>createUser</code> con
+      <code>email_confirm:true</code> crea la cuenta al instante, sin envío de correo y sin que la empleada
+      necesite acceder a un buzón. El correo es solo un identificador de inicio de sesión; nunca se envía nada
+      a él. <b>Veredicto:</b> la dueña provisiona la cuenta con una contraseña que ella fija.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Flujo de desbloqueo diario</h2>
+  <p>El único paso que toca la red es el intercambio del token de refresco. El descifrado es local y
+  funciona sin conexión; si el token rota, se vuelve a cifrar antes de guardarlo.</p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 900 430" width="900" role="img"
+           aria-label="Diagrama de secuencia del desbloqueo diario por PIN"
+           style="max-width:100%;height:auto">
+        <defs>
+          <marker id="am" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#8f857a"/>
+          </marker>
+          <marker id="amg" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#3f7d54"/>
+          </marker>
+        </defs>
+        <!-- lifelines -->
+        <g>
+          <rect class="seq-lane" x="20"  y="18" width="110" height="34" rx="7"/>
+          <text class="seq-head" x="75"  y="39" text-anchor="middle">Usuaria</text>
+          <line class="seq-life" x1="75"  y1="52" x2="75"  y2="392"/>
+
+          <rect class="seq-lane" x="170" y="18" width="120" height="34" rx="7"/>
+          <text class="seq-head" x="230" y="39" text-anchor="middle">PinScreen</text>
+          <line class="seq-life" x1="230" y1="52" x2="230" y2="392"/>
+
+          <rect class="seq-lane" x="330" y="18" width="120" height="34" rx="7"/>
+          <text class="seq-head" x="390" y="39" text-anchor="middle">vault (IDB)</text>
+          <line class="seq-life" x1="390" y1="52" x2="390" y2="392"/>
+
+          <rect class="seq-lane" x="490" y="18" width="120" height="34" rx="7"/>
+          <text class="seq-head" x="550" y="39" text-anchor="middle">crypto.ts</text>
+          <line class="seq-life" x1="550" y1="52" x2="550" y2="392"/>
+
+          <rect class="seq-lane" x="650" y="18" width="120" height="34" rx="7"/>
+          <text class="seq-head" x="710" y="39" text-anchor="middle">supabase-js</text>
+          <line class="seq-life" x1="710" y1="52" x2="710" y2="392"/>
+
+          <rect class="seq-lane" x="800" y="18" width="88" height="34" rx="7"/>
+          <text class="seq-head" x="844" y="39" text-anchor="middle">Supabase</text>
+          <line class="seq-life" x1="844" y1="52" x2="844" y2="392"/>
+        </g>
+
+        <!-- offline band -->
+        <rect class="seq-off" x="12" y="66" width="612" height="196" rx="8" opacity="0.5"/>
+        <text class="seq-note" x="18" y="80">sin conexión · local</text>
+        <!-- network band -->
+        <rect class="seq-net" x="636" y="66" width="256" height="196" rx="8" opacity="0.5"/>
+        <text class="seq-note" x="642" y="80">un solo viaje de red</text>
+
+        <!-- messages -->
+        <line class="seq-msg" x1="75"  y1="100" x2="228" y2="100" marker-end="url(#am)"/>
+        <text class="seq-lbl" x="80"  y="94">teclea 4 dígitos</text>
+
+        <line class="seq-msg" x1="230" y1="130" x2="388" y2="130" marker-end="url(#am)"/>
+        <text class="seq-lbl" x="235" y="124">getRecord(userId)</text>
+        <line class="seq-ret" x1="388" y1="152" x2="232" y2="152" marker-end="url(#amg)"/>
+        <text class="seq-lbl" x="235" y="168">salt · iv · ciphertext</text>
+
+        <line class="seq-msg" x1="230" y1="196" x2="548" y2="196" marker-end="url(#am)"/>
+        <text class="seq-lbl" x="235" y="190">deriveKey(pin,salt) · decryptToken</text>
+        <line class="seq-ret" x1="548" y1="218" x2="232" y2="218" marker-end="url(#amg)"/>
+        <text class="seq-lbl" x="235" y="234">refresh_token  (o falla del sello GCM → bloqueo)</text>
+
+        <line class="seq-msg" x1="230" y1="292" x2="708" y2="292" marker-end="url(#am)"/>
+        <text class="seq-lbl" x="235" y="286">refreshSession({ refresh_token })</text>
+        <line class="seq-msg" x1="710" y1="316" x2="842" y2="316" marker-end="url(#am)"/>
+        <text class="seq-lbl" x="620" y="310">POST /token</text>
+        <line class="seq-ret" x1="842" y1="338" x2="712" y2="338" marker-end="url(#amg)"/>
+        <text class="seq-lbl" x="620" y="332">sesión nueva</text>
+
+        <line class="seq-ret" x1="708" y1="360" x2="232" y2="360" marker-end="url(#amg)"/>
+        <text class="seq-lbl" x="235" y="376">access token en memoria · rol → $auth · navega a /dashboard</text>
+        <text class="seq-note" x="235" y="390">el refresh token rotado se vuelve a cifrar y se guarda en la bóveda</text>
+      </svg>
+    </div>
+    <figcaption>Desbloqueo diario. Todo lo del recuadro cálido ocurre sin conexión; solo el canje del
+    token toca la red.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Flujo de emparejamiento (una sola vez)</h2>
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 900 250" width="900" role="img"
+           aria-label="Diagrama del flujo de emparejamiento de un dispositivo"
+           style="max-width:100%;height:auto">
+        <defs>
+          <marker id="fa" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#b4552d"/>
+          </marker>
+        </defs>
+        <!-- step boxes -->
+        <g font-family="var(--sans)">
+          <rect x="16"  y="70" width="150" height="90" rx="10" fill="#f3e2d7" stroke="#e3c3af"/>
+          <text x="91"  y="98"  text-anchor="middle" font-size="12" font-weight="700" fill="#7a3f22">1 · Alta</text>
+          <text x="91"  y="118" text-anchor="middle" font-size="10.5" fill="#5c534b">admin crea la cuenta</text>
+          <text x="91"  y="133" text-anchor="middle" font-size="10.5" fill="#5c534b">(Edge · createUser)</text>
+          <text x="91"  y="148" text-anchor="middle" font-size="9.5" fill="#8f857a">rol vía app_metadata</text>
+
+          <rect x="200" y="70" width="150" height="90" rx="10" fill="#fff" stroke="#e7ddd0"/>
+          <text x="275" y="98"  text-anchor="middle" font-size="12" font-weight="700" fill="#2b2622">2 · Login</text>
+          <text x="275" y="118" text-anchor="middle" font-size="10.5" fill="#5c534b">email + contraseña</text>
+          <text x="275" y="133" text-anchor="middle" font-size="10.5" fill="#5c534b">(la admin la teclea)</text>
+          <text x="275" y="148" text-anchor="middle" font-size="9.5" fill="#8f857a">único viaje de red</text>
+
+          <rect x="384" y="70" width="150" height="90" rx="10" fill="#fff" stroke="#e7ddd0"/>
+          <text x="459" y="98"  text-anchor="middle" font-size="12" font-weight="700" fill="#2b2622">3 · PIN</text>
+          <text x="459" y="118" text-anchor="middle" font-size="10.5" fill="#5c534b">la empleada elige</text>
+          <text x="459" y="133" text-anchor="middle" font-size="10.5" fill="#5c534b">su PIN (×2)</text>
+          <text x="459" y="148" text-anchor="middle" font-size="9.5" fill="#8f857a">admin no lo conoce</text>
+
+          <rect x="568" y="70" width="150" height="90" rx="10" fill="#fff" stroke="#e7ddd0"/>
+          <text x="643" y="94"  text-anchor="middle" font-size="12" font-weight="700" fill="#2b2622">4 · Cifrado</text>
+          <text x="643" y="114" text-anchor="middle" font-size="10.5" fill="#5c534b">deriveKey · encrypt</text>
+          <text x="643" y="129" text-anchor="middle" font-size="10.5" fill="#5c534b">refresh_token</text>
+          <text x="643" y="147" text-anchor="middle" font-size="9.5" fill="#8f857a">local (WebCrypto)</text>
+
+          <rect x="752" y="70" width="132" height="90" rx="10" fill="#e3f0e6" stroke="#c3ddc9"/>
+          <text x="818" y="98"  text-anchor="middle" font-size="12" font-weight="700" fill="#2f5e3f">5 · Bóveda</text>
+          <text x="818" y="118" text-anchor="middle" font-size="10.5" fill="#3f5c4a">putRecord(IDB)</text>
+          <text x="818" y="140" text-anchor="middle" font-size="9.5" fill="#5c7a67">ya aparece en el</text>
+          <text x="818" y="152" text-anchor="middle" font-size="9.5" fill="#5c7a67">selector</text>
+        </g>
+        <!-- arrows -->
+        <line x1="166" y1="115" x2="196" y2="115" stroke="#b4552d" stroke-width="1.6" marker-end="url(#fa)"/>
+        <line x1="350" y1="115" x2="380" y2="115" stroke="#b4552d" stroke-width="1.6" marker-end="url(#fa)"/>
+        <line x1="534" y1="115" x2="564" y2="115" stroke="#b4552d" stroke-width="1.6" marker-end="url(#fa)"/>
+        <line x1="718" y1="115" x2="748" y2="115" stroke="#b4552d" stroke-width="1.6" marker-end="url(#fa)"/>
+        <text x="450" y="34" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2b2622">Emparejar una empleada en el teléfono compartido</text>
+        <text x="450" y="200" text-anchor="middle" font-size="10.5" fill="#8f857a">Del día 2 en adelante: solo PIN. Tras un borrado terminal (OQ-2), se repite este mismo flujo.</text>
+      </svg>
+    </div>
+    <figcaption>El emparejamiento concentra toda la fricción en una sola vez y deja el camino diario limpio.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Migración aditiva y reversible</h2>
+  <p>Un solo archivo, con prefijo de fecha creciente, que despliega la integración de GitHub al hacer merge
+  a <code>main</code>. Nunca se aplica por MCP.</p>
+  <p class="path-note">Archivo: supabase/migrations/20260714000000_auth_pin_multirole.sql — se aplica por push a GitHub; jamás por MCP apply_migration.</p>
+
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Cambio</th><th>Qué hace</th><th>Por qué</th></tr></thead>
+      <tbody>
+        <tr><td>Ampliar el <code>CHECK</code> de <code>rol</code></td><td><code>('admin')</code> → <code>('admin','empleado')</code></td><td>hoy el andamiaje impide insertar un segundo rol</td></tr>
+        <tr><td>Columna <code>profiles.activo</code></td><td><code>boolean NOT NULL DEFAULT true</code></td><td>puerta de revocación inmediata</td></tr>
+        <tr><td>Endurecer <code>handle_new_user()</code></td><td>lee el rol de <code>raw_app_meta_data</code> (solo escribible por servicio); el valor por defecto pasa a <code>'empleado'</code></td><td>asigna el rol de forma atómica y a prueba de manipulación; el defecto queda en el mínimo privilegio</td></tr>
+        <tr><td>Nueva <code>is_active()</code></td><td><code>SECURITY DEFINER</code>, misma higiene que <code>is_admin()</code></td><td>predicado reutilizable de actividad</td></tr>
+        <tr><td>Plegar <code>activo</code> en <code>is_admin()</code></td><td><code>… AND activo</code></td><td>una administradora revocada pierde sus poderes al instante</td></tr>
+        <tr><td>Comprobar <code>is_active()</code> en las cuatro RPC de escritura</td><td><code>IF NOT is_active() THEN RAISE 'usuario inactivo'</code></td><td>ninguna escritura de dinero o stock desde una cuenta revocada</td></tr>
+        <tr><td>Comprobar <code>is_active()</code> en las políticas <code>SELECT</code> restantes</td><td><code>USING (true)</code> → <code>USING ((select is_active()))</code></td><td>la usuaria revocada pierde <em>todo</em> acceso en la siguiente petición, no tras la hora del token</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><code><span class="c">-- endurecimiento del disparador de alta: rol desde metadatos de aplicación (a prueba de manipulación)</span>
+<span class="k">CREATE OR REPLACE FUNCTION</span> public.handle_new_user()
+  <span class="k">RETURNS</span> trigger <span class="k">LANGUAGE</span> plpgsql <span class="k">SECURITY DEFINER SET</span> search_path = <span class="s">''</span> <span class="k">AS</span> $$
+<span class="k">BEGIN</span>
+  <span class="k">INSERT INTO</span> public.profiles (id, rol)
+  <span class="k">VALUES</span> (NEW.id, <span class="k">COALESCE</span>(NEW.raw_app_meta_data-&gt;&gt;<span class="s">'rol'</span>, <span class="s">'empleado'</span>));
+  <span class="k">RETURN</span> NEW;
+<span class="k">END</span>; $$;</code></pre>
+
+  <div class="callout ok">
+    <h4>Reversibilidad</h4>
+    <p>La bajada estrecha el <code>CHECK</code> de nuevo (con la precondición de que no existan filas
+    <code>'empleado'</code>), elimina <code>activo</code>, restaura el defecto <code>'admin'</code> del
+    disparador y las políticas <code>USING (true)</code>, y borra <code>is_active()</code>. Ninguna
+    estructura de <code>data-model</code> se altera de forma destructiva.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>Función Edge de administración de empleadas</h2>
+  <p>Una función Deno con permiso de servicio, restringida a la administradora. Conserva la ruta aprobada en
+  la propuesta y, por dentro, atiende tres acciones: alta, listado y revocación.</p>
+  <p class="path-note">Ruta: supabase/functions/enroll-empleado/index.ts — la clave de servicio proviene del entorno de la función y nunca aparece bajo src/.</p>
+
+  <h3>Cadena de autorización (en orden, obligatoria)</h3>
+  <ol class="steps">
+    <li>Preflight CORS para el origen de la aplicación.</li>
+    <li>Leer el JWT de quien llama; si falta o es inválido → <b>401</b>.</li>
+    <li>Con la clave de servicio, comprobar contra <code>profiles</code> que quien llama es
+      <code>rol='admin' AND activo</code>; si no → <b>403</b>. Nunca se confía en un rol enviado por el
+      cliente.</li>
+    <li>Despachar según el método.</li>
+  </ol>
+
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Método</th><th>Acción</th><th>Efecto</th><th>Errores</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST</code></td><td>alta</td><td><code>createUser</code> con <code>email_confirm:true</code>, <code>app_metadata.rol='empleado'</code> y <code>display_name</code>; el disparador escribe el perfil; se registra en <code>audit_log</code></td><td>409 correo repetido · 422 contraseña débil</td></tr>
+        <tr><td><code>GET</code></td><td>listado</td><td><code>listUsers()</code> ∩ <code>profiles</code> → nombre, correo, rol, estado — el padrón para la pantalla de gestión</td><td>—</td></tr>
+        <tr><td><code>PATCH</code></td><td>revocar / restaurar</td><td><code>UPDATE profiles SET activo</code>; al revocar, además <code>updateUserById(…, {ban_duration:'876000h'})</code>; se registra en <code>audit_log</code></td><td>404 usuaria desconocida</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>La respuesta nunca incluye la contraseña ni ningún token. El giro de <code>activo</code> (puerta
+  inmediata) y el bloqueo por <code>ban_duration</code> (durable) se hacen en el mismo viaje, de modo que
+  se cierra a la vez la ventana de la hora del access token y el refresco.</p>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Arquitectura de sesión en la SPA</h2>
+  <p>El cliente de supabase-js se configura con <code>persistSession:false</code> y un almacenamiento en
+  memoria, para que la librería nunca escriba el token de refresco en texto plano en
+  <code>localStorage</code> — el comportamiento por defecto anularía el cifrado del modelo D5.
+  <code>autoRefreshToken:true</code> mantiene el access token vivo en memoria mientras la sesión está
+  abierta.</p>
+  <p class="path-note">Cliente compartido: src/lib/supabase.ts — persistSession:false + storage en memoria.</p>
+
+  <p>El desbloqueo descifra el token de refresco y llama a
+  <code>refreshSession({ refresh_token })</code>. Como Supabase rota el token de refresco, el nuevo se
+  vuelve a cifrar con la misma clave y se guarda; de lo contrario el siguiente desbloqueo usaría un token
+  caducado. Un token rotado o marcado como reutilizado lleva a repetir el emparejamiento.</p>
+
+  <div class="callout info">
+    <h4>Ocultar por rol es solo experiencia de uso, no seguridad</h4>
+    <p>Las guardas de ruta, las tarjetas de costo escondidas y los ítems de menú ocultos son cosméticos. Una
+    empleada que llegara a <code>/proveedor</code> igual recibe <code>[]</code> de la RLS: no se filtra
+    nada. El límite es Postgres, siempre.</p>
+  </div>
+
+  <h3>Bloqueo por inactividad (D6) y realidades de PWA</h3>
+  <p>Tras unos minutos de inactividad se limpia el access token en memoria y se vuelve a pedir el PIN. El
+  blob cifrado permanece en reposo, así que no se gana ni se pierde autorización. El temporizador se apoya
+  en la diferencia de reloj de pared: al pasar a segundo plano se anota <code>Date.now()</code>; al volver
+  al primer plano, si el tiempo transcurrido supera el umbral, se bloquea. No se confía en
+  <code>setTimeout</code> a secas, porque una PWA en segundo plano lo estrangula o lo congela; también se
+  contemplan <code>pagehide</code>, <code>freeze</code> y el regreso desde la caché de retroceso.</p>
+
+  <pre><code><span class="c">// src/stores/auth.ts — extensión</span>
+<span class="k">interface</span> AuthState {
+  session: Session|<span class="k">null</span>; user: User|<span class="k">null</span>;
+  rol: <span class="s">'admin'</span>|<span class="s">'empleado'</span>|<span class="k">null</span>;
+  status: <span class="s">'locked'</span>|<span class="s">'unlocking'</span>|<span class="s">'unlocked'</span>;
+  loading: <span class="k">boolean</span>;
+}</code></pre>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Pantalla de PIN y emparejamiento (diseño atómico)</h2>
+  <p>La pantalla 1 del handoff se descompone en átomos, moléculas y un organismo, con los tokens «Terraza»,
+  DM Sans y los íconos Phosphor en su variante rellena.</p>
+
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Capa</th><th>Componente</th><th>Especificación del handoff</th></tr></thead>
+      <tbody>
+        <tr><td>átomo</td><td><code>PinDot</code></td><td>13×13; lleno <code>#8B5E3C</code> / vacío borde <code>#D9C3A0</code>; llenado 150 ms</td></tr>
+        <tr><td>átomo</td><td><code>PinKey</code></td><td>círculo 66×66; fondo <code>#FDFAF4</code>; borde <code>1px #D9C3A0</code>; 22px/500</td></tr>
+        <tr><td>átomo</td><td><code>AppIcon</code></td><td>hoja de maple 70×70 en SVG; gradiente <code>#C84030→#8A2010</code></td></tr>
+        <tr><td>molécula</td><td><code>PinDots</code></td><td>fila de cuatro <code>PinDot</code></td></tr>
+        <tr><td>molécula</td><td><code>PinPad</code></td><td>rejilla 3×4 + <code>Backspace</code> + celda vacía [9,0]</td></tr>
+        <tr><td>molécula</td><td><code>UserSelector</code></td><td>usuarias desde la bóveda local; autoselección si hay una; «+ vincular»</td></tr>
+        <tr><td>organismo</td><td><code>PinUnlockPanel</code></td><td>ícono + título + subtítulo + «INGRESA TU PIN» + puntos + teclado + cuenta atrás del bloqueo</td></tr>
+        <tr><td>feature</td><td><code>PinScreen.tsx</code></td><td>contenedor; máquina de estados <code>usePinUnlock</code></td></tr>
+        <tr><td>feature</td><td><code>PairDeviceScreen.tsx</code></td><td>login → elegir PIN ×2 → cifrar → bóveda</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout oq">
+    <h4>Aclaración sobre el prototipo</h4>
+    <p>El handoff dice «todo PIN de 4 dígitos funciona en el MVP»: eso es un relleno del prototipo. La puerta
+    real es el éxito del descifrado GCM — un PIN equivocado nunca avanza.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">9.</span>Pantalla de gestión de empleadas — superficie nueva</h2>
+  <div class="callout crit">
+    <h4>Para revisión de la usuaria</h4>
+    <p>Esta pantalla <b>no está en el handoff de nueve pantallas</b>: se está inventando, no replicando
+    (riesgo R2). El lenguaje visual se deriva del handoff — cabecera terracota, fondo pergamino, lista de
+    tarjetas, DM Sans, íconos Phosphor rellenos.</p>
+  </div>
+  <p>Ruta <code>/empleadas</code>, solo administradora. La cabecera lleva volver, «Vendedoras» y «+». El
+  cuerpo muestra tarjetas del padrón — nombre, distintivo de <code>activo</code> y un interruptor de
+  revocación — que provienen del <code>GET</code> de la función Edge. El «+» abre un formulario en línea
+  (nombre, correo, contraseña) que llama al <code>POST</code>; el interruptor llama al <code>PATCH</code>.
+  El padrón viene de la función con permiso de servicio, así que no hace falta ampliar la lectura de
+  <code>profiles</code> ni agregar una columna de nombre.</p>
+</section>
+
+<section>
+  <h2><span class="n">10.</span>Secuenciación: lo más pequeño primero</h2>
+  <p>El orden ataca el riesgo de sobrealcance (R1): las piezas nuevas y pesadas (alta, gestión, revocación)
+  llegan <em>después</em> de que el camino diario ya funciona. Si hubiera que recortar, el desbloqueo diario
+  igual queda entregado.</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Rebanada</th><th>Se prueba de forma independiente</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Migración + batería JWT diferida (T-5.1…T-5.5)</td><td>despliega por GitHub; se verifica con SQL</td></tr>
+        <tr><td>2</td><td>Bóveda + extensión de stores + <code>persistSession:false</code></td><td>librería pura, con pruebas unitarias</td></tr>
+        <tr><td>3</td><td><code>PairDeviceScreen</code> (crea el primer blob: empareja Angélica)</td><td>rebanada vertical: login real → PIN → bóveda</td></tr>
+        <tr><td>4</td><td>Átomos/moléculas del PIN + <code>usePinUnlock</code> + <code>PinScreen</code> real</td><td>el desbloqueo diario funciona</td></tr>
+        <tr><td>5</td><td>Función Edge <code>POST</code> (alta)</td><td>la admin crea una empleada</td></tr>
+        <tr><td>6</td><td>Pantalla <code>/empleadas</code> (listado + formulario)</td><td>interfaz nueva</td></tr>
+        <tr><td>7</td><td>Revocación (<code>PATCH</code>: activo + ban)</td><td>bloqueo de empleada despedida</td></tr>
+        <tr><td>8</td><td>Bloqueo por inactividad + guardas + ocultación por rol</td><td>pulido de experiencia</td></tr>
+        <tr><td>9</td><td>Verificación</td><td>humo en PWA + baterías JWT y de revocación</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout oq">
+    <h4>Puerta de apply (de la propuesta)</h4>
+    <p>El apply está bloqueado hasta que exista una cadena de herramientas mínima (linter, formateador,
+    corredor de pruebas y CI) y se hayan generado los tipos con <code>supabase gen types typescript</code>.
+    Las fases de planificación avanzan; el apply espera.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">11.</span>Estrategia de verificación</h2>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Capa</th><th>Prueba</th><th>Cómo</th></tr></thead>
+      <tbody>
+        <tr><td>PWA (R4)</td><td>ida y vuelta de WebCrypto/IndexedDB <b>dentro de la PWA instalada</b> (modo autónomo, con service worker)</td><td>página de arnés: generar sal → derivar → cifrar → guardar → recargar → leer → descifrar → verificar; comprobar que <code>crypto.subtle</code> existe en el contexto autónomo</td></tr>
+        <tr><td>JWT T-5.1</td><td>empleada → <code>producto_costos</code> devuelve <code>[]</code> por RLS, no 403</td><td>supabase-js con una sesión real de empleada</td></tr>
+        <tr><td>JWT T-5.2</td><td>empleada → <code>proveedores</code> devuelve <code>[]</code></td><td>ídem</td></tr>
+        <tr><td>JWT T-5.3</td><td>empleada → <code>confirmar_venta</code> tiene éxito (vender es compartido)</td><td>ídem</td></tr>
+        <tr><td>JWT T-5.4</td><td>empleada → <code>crear_producto</code> lanza «solo admin»</td><td>ídem</td></tr>
+        <tr><td>JWT T-5.5</td><td>administradora → ve y escribe todo lo sensible</td><td>sesión de administradora</td></tr>
+        <tr><td>Revocación (nueva)</td><td>empleada con <code>activo=false</code> → <code>confirmar_venta</code> lanza «usuario inactivo»; <code>productos</code> devuelve <code>[]</code>; administradora revocada → <code>is_admin()</code> falso</td><td>girar <code>activo</code> y repetir</td></tr>
+        <tr><td>Red</td><td>la petición de desbloqueo no muestra ni el PIN ni ningún token</td><td>traza de red en devtools</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  Antimahue · SDD fase design · change <b>auth-pin</b> · 2026-07-14 · resuelve OQ-1…OQ-4, arrastra D1–D6 sin
+  reabrir · artefacto compañero: <code>design.md</code> (optimizado para agente).
+</footer>
+
+</div>
+</body>
+</html>
