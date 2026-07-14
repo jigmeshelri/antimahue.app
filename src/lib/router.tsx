@@ -6,6 +6,9 @@
  *
  * Route map (9 handoff screens, design.md component architecture):
  *   /           → PinScreen      (auth gate — always first)
+ *   /pair       → PairDeviceScreen (TEMP, T-3.2 — standalone testability for
+ *                 device pairing; superseded by the "+ vincular" affordance
+ *                 wired into UserSelector in Phase 4, T-4.6)
  *   /dashboard  → DashboardScreen
  *   /venta      → SaleScreen
  *   /venta/:id/ticket → TicketView
@@ -20,6 +23,7 @@ import { lazy } from 'react'
 
 // Lazy imports — each feature slice is a separate chunk in the build.
 const PinScreen = lazy(() => import('@/features/auth/PinScreen'))
+const PairDeviceScreen = lazy(() => import('@/features/auth/PairDeviceScreen'))
 const DashboardScreen = lazy(() => import('@/features/dashboard/DashboardScreen'))
 const SaleScreen = lazy(() => import('@/features/venta/SaleScreen'))
 const TicketView = lazy(() => import('@/features/venta/TicketView'))
@@ -33,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <PinScreen />,
+  },
+  {
+    path: '/pair',
+    element: <PairDeviceScreen />,
   },
   {
     path: '/dashboard',
