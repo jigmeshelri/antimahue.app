@@ -2,8 +2,13 @@ name: CI
 
 # T-0.4 (Phase 0 apply gate) — repo convention is PR-only against main
 # (CLAUDE.md), so this is the gate every future auth-pin PR must pass.
+# `push` on main covers issue #2's criterion ("build + lint en push a main")
+# AND the ruleset's admin-bypass hole: a direct push to main (bypass is
+# "always" for admins) would otherwise never run CI.
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 concurrency:
