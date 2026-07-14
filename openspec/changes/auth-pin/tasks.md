@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "6/47"
+progress: "9/47"
 updated_at: 2026-07-14
 ---
 
@@ -45,9 +45,9 @@ close for real in Phase 9.
 | ID | Task | Files | Refs | Verification | Status |
 |---|---|---|---|---|---|
 | T-1.1 | Write the additive migration: widen `rol` CHECK, add `activo`, harden `handle_new_user()`, add `is_active()`, fold `activo` into `is_admin()`, gate write RPCs + SELECT policies (design.md §3, all 7 items verbatim). | `supabase/migrations/20260714000000_auth_pin_multirole.sql` | REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-SETUP-8, DD-5 | file is valid SQL; date prefix > `20260705000300` (last existing) | [x] Done — verified against a disposable local stack (`supabase start`, all 5 migrations applied clean), then `supabase stop`. See apply-progress for the full empirical check (self-signup default, revoke-empleado/-admin, anon denial). |
-| T-1.2 | **[HUMAN]** Commit on short branch → PR → merge to `main` (repo PR-only convention). Merge triggers the now-ACTIVE GitHub schema integration (no MCP `execute_sql` fallback needed, unlike `data-model`). | — | DD-5 | migration applied automatically post-merge | [ ] Pending — human/orchestrator action, out of this agent's scope (no commits) |
-| T-1.3 | Post-deploy structural verify: `list_migrations` shows the new file; `list_tables` shows `profiles.activo`; `get_advisors(type='security')` shows no new unexpected WARN. | — | — | 3 checks pass | [ ] Pending — requires T-1.2 (prod deploy) first |
-| T-1.4 | Regenerate Supabase TS types post-migration (now includes `profiles.activo` + widened `rol` union) — supersedes T-0.5's baseline. | `src/lib/database.types.ts` | — | `profiles.Row` includes `activo: boolean`, `rol: 'admin'\|'empleado'` | [ ] Pending — requires T-1.2 (prod deploy) first; regenerating now against pre-migration prod would reproduce the stale baseline |
+| T-1.2 | **[HUMAN]** Commit on short branch → PR → merge to `main` (repo PR-only convention). Merge triggers the now-ACTIVE GitHub schema integration (no MCP `execute_sql` fallback needed, unlike `data-model`). | — | DD-5 | migration applied automatically post-merge | [x] Done — PR #28 merged; GitHub integration applied `20260714000000_auth_pin_multirole` automatically (~90s) |
+| T-1.3 | Post-deploy structural verify: `list_migrations` shows the new file; `list_tables` shows `profiles.activo`; `get_advisors(type='security')` shows no new unexpected WARN. | — | — | 3 checks pass | [x] Done (orchestrator) — `list_migrations` matches repo 1:1; `profiles.activo` + widened CHECK confirmed live; advisors delta 9→10 is exactly the expected `is_active()` SECURITY DEFINER WARN (zero CRITICAL) |
+| T-1.4 | Regenerate Supabase TS types post-migration (now includes `profiles.activo` + widened `rol` union) — supersedes T-0.5's baseline. | `src/lib/database.types.ts` | — | `profiles.Row` includes `activo: boolean`, `rol: 'admin'\|'empleado'` | [x] Done — regenerated from live prod (same CLI command as T-0.5); diff is exactly header + `activo` in Row/Insert/Update + `is_active` in Functions, rest byte-identical. Note: `rol` types as `string`, NOT a union — CHECK constraints never surface as unions in generated types (this row's original "widened `rol` union" wording was optimistic; the T-0.5 header already documented the real behavior). All 5 gates green post-regen. |
 | T-1.5 | Battery row SEG-5.1 (spec's own label: T-5.1): active empleado → `producto_costos`/`proveedores` SELECT → `[]`, never 403. | — | REQ-AP-SEG-5 | PASS once empleado exists (Phase 5) | [ ] Scaffolded (skipped) — `src/lib/authPinRlsBattery.test.ts`; blocked on Phase 5, closes for real at T-9.3 |
 | T-1.6 | Battery row SEG-5.2 (T-5.2): active admin `WITH CHECK` boundary — out-of-bounds UPDATE rejected, in-bounds succeeds. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
 | T-1.7 | Battery row SEG-5.3 (T-5.3): `deshacer_venta` on a non-last confirmed sale → RPC error, zero partial effect. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
