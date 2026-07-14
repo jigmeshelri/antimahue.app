@@ -1,15 +1,15 @@
 /**
- * Supabase generated TS types — T-0.5 (Phase 0 apply gate).
+ * Supabase generated TS types — T-1.4 (auth-pin Phase 1, post-migration regen).
  *
  * Generated with:
  *   supabase gen types typescript --project-id aruteznqhdaaxxvllvzm --schema public
  *
- * Pre-migration baseline (data-model schema, live in sa-east-1). `profiles.rol`
- * is a plain `string` here (CHECK constraint, not a Postgres enum) — this file
- * gets regenerated once the auth-pin migration lands (T-1.1/T-1.4), at which
- * point `profiles.activo` appears and `rol` still types as `string` (CHECK
- * constraints never surface as unions in generated types; the app-level
- * `"admin" | "empleado"` narrowing lives in application code, not here).
+ * Post-migration snapshot (20260714000000_auth_pin_multirole live in
+ * sa-east-1): `profiles.activo: boolean` now present in Row/Insert/Update,
+ * `is_active` in Functions. `profiles.rol` still types as plain `string` —
+ * the CHECK constraint (`'admin' | 'empleado'`) never surfaces as a union in
+ * generated types; app-level narrowing lives in application code, not here.
+ * Supersedes the T-0.5 pre-migration baseline.
  *
  * DO NOT hand-edit. Excluded from ESLint/Prettier (generated code).
  */
@@ -231,16 +231,19 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activo: boolean
           created_at: string
           id: string
           rol: string
         }
         Insert: {
+          activo?: boolean
           created_at?: string
           id: string
           rol?: string
         }
         Update: {
+          activo?: boolean
           created_at?: string
           id?: string
           rol?: string
@@ -364,6 +367,7 @@ export type Database = {
         Returns: string
       }
       deshacer_venta: { Args: { p_venta_id: string }; Returns: undefined }
+      is_active: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
