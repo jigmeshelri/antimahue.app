@@ -1,0 +1,63 @@
+name: CI
+
+# T-0.4 (Phase 0 apply gate) — repo convention is PR-only against main
+# (CLAUDE.md), so this is the gate every future auth-pin PR must pass.
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        # Corepack reads package.json's "packageManager" field (pnpm@11.1.2)
+        # and pins the exact pnpm version on first invocation below — no
+        # separate pnpm install/version step needed.
+        run: corepack enable
+
+      - name: Get pnpm store directory
+        id: pnpm-cache-dir
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache-dir.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        # --frozen-lockfile: CI must never resolve/update the lockfile, only
+        # reproduce it exactly. pnpm-workspace.yaml's strictDepBuilds/allowBuilds
+        # and .npmrc's minimumReleaseAge apply here exactly as they do locally —
+        # this step must work WITH that policy, not bypass it.
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

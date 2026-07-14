@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "0/47"
+progress: "5/47"
 updated_at: 2026-07-14
 ---
 
@@ -23,13 +23,18 @@ added on top, per the session decision recorded in `proposal.md` (Dependencies s
 Repo has zero linter/formatter/test runner/CI today (`package.json` scripts are only `dev`/`build`/
 `typecheck`/`preview`). This phase must close before Phase 1 starts.
 
-| ID | Task | Files | Verification |
-|---|---|---|---|
-| T-0.1 | Add ESLint flat config for TS+React (`eslint`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `globals`); add `"lint": "eslint ."` script. | `eslint.config.js`, `package.json` | `pnpm lint` runs clean on current `src/` skeleton |
-| T-0.2 | Add Prettier (`prettier`, `eslint-config-prettier` to disable conflicting ESLint style rules); add `"format"`/`"format:check"` scripts. | `.prettierrc`, `.prettierignore`, `package.json` | `pnpm format:check` passes after one formatting pass |
-| T-0.3 | Add Vitest as test runner (`vitest`, `jsdom` env); add `"test": "vitest run"` script; one trivial smoke spec. | `vitest.config.ts` (or `vite.config.ts` `test` block), `src/lib/crypto.test.ts` (asserts `generateSalt()` returns 16 bytes) | `pnpm test` green |
-| T-0.4 | Add CI workflow: checkout → corepack pnpm → `pnpm install --frozen-lockfile` → lint → format:check → typecheck → test → build. | `.github/workflows/ci.yml` | workflow green on a throwaway PR before any auth-pin code lands |
-| T-0.5 | Generate Supabase TS types (pre-migration baseline); wire `createClient<Database>()`. Closes `data-model` T-6.1 debt. | `src/lib/database.types.ts`, `src/lib/supabase.ts` | `Database` type exported; `supabase.ts` typechecks against it |
+| ID | Task | Files | Verification | Status |
+|---|---|---|---|---|
+| T-0.1 | Add ESLint flat config for TS+React (`eslint`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `globals`); add `"lint": "eslint ."` script. | `eslint.config.js`, `package.json` | `pnpm lint` runs clean on current `src/` skeleton | [x] Done |
+| T-0.2 | Add Prettier (`prettier`, `eslint-config-prettier` to disable conflicting ESLint style rules); add `"format"`/`"format:check"` scripts. | `.prettierrc`, `.prettierignore`, `package.json` | `pnpm format:check` passes after one formatting pass | [x] Done |
+| T-0.3 | Add Vitest as test runner (`vitest`, `jsdom` env); add `"test": "vitest run"` script; one trivial smoke spec. | `vitest.config.ts` (or `vite.config.ts` `test` block), `src/lib/crypto.test.ts` (asserts `generateSalt()` returns 16 bytes) | `pnpm test` green | [x] Done |
+| T-0.4 | Add CI workflow: checkout → corepack pnpm → `pnpm install --frozen-lockfile` → lint → format:check → typecheck → test → build. | `.github/workflows/ci.yml` | workflow green on a throwaway PR before any auth-pin code lands | [x] Done — workflow written and each step verified locally; the "throwaway PR" green run itself still needs the actual PR (orchestrator/human, since this agent does not commit/push) |
+| T-0.5 | Generate Supabase TS types (pre-migration baseline); wire `createClient<Database>()`. Closes `data-model` T-6.1 debt. | `src/lib/database.types.ts`, `src/lib/supabase.ts` | `Database` type exported; `supabase.ts` typechecks against it | [x] Done |
+
+**Phase 0 status: 5/5 complete.** All four local gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. Remaining before Phase 1 can truly start per the apply gate: T-0.4's "green
+on a throwaway PR" needs an actual PR run on GitHub Actions (this agent works on `chore/toolchain-gate` and
+does not commit/push — see `sdd/auth-pin/apply-progress` in engram for full verification output).
 
 ## Phase 1 — Migration + REQ-AP-SEG-5 JWT battery (slice 1, DD-5, DD-12)
 
