@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "13/47"
+progress: "15/47"
 updated_at: 2026-07-14
 ---
 
@@ -77,10 +77,14 @@ output and a documented test-tooling gotcha (jsdom + fake-indexeddb cross-realm 
 
 ## Phase 3 — Device pairing (slice 3, DD-3)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-3.1 | Build pairing flow: email+password → `signInWithPassword()` → employee sets own 4-digit PIN (entered twice) → `generateSalt`+`deriveKey`+`encryptToken(session.refresh_token)`+`putRecord({...pairedAt:Date.now()})`. | `src/features/auth/PairDeviceScreen.tsx` | DD-3, REQ-AUTH-1 | after pairing, `listRecords()` has exactly one record; no plaintext password/token ever passed to `putRecord` |
-| T-3.2 | Temporary direct route for this slice's standalone testability (e.g. `/pair`) — superseded by the "+ vincular" affordance wired into `UserSelector` in Phase 4 (T-4.6). | `src/lib/router.tsx` | DD-3 | navigating to the temp route renders `PairDeviceScreen` |
+**Phase 3 status: 2/2 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. See `sdd/auth-pin/apply-progress` in engram for the full verification
+output and Gap 8 (`rol` sourcing deviation from design.md's literal DD-3 step 4 pseudocode).
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-3.1 | Build pairing flow: email+password → `signInWithPassword()` → employee sets own 4-digit PIN (entered twice) → `generateSalt`+`deriveKey`+`encryptToken(session.refresh_token)`+`putRecord({...pairedAt:Date.now()})`. | `src/features/auth/PairDeviceScreen.tsx` | DD-3, REQ-AUTH-1 | after pairing, `listRecords()` has exactly one record; no plaintext password/token ever passed to `putRecord` | [x] Done — orchestration extracted into `src/features/auth/pairDevice.ts` (`signInForPairing` + `completePairing`) so it's unit-testable without a rendering harness; `PairDeviceScreen.tsx` is a thin two-step form container. `src/features/auth/pairDevice.test.ts` (9 tests) mocks ONLY `supabase.auth.signInWithPassword`; `@/lib/crypto` and `@/lib/vault` run for real (fake-indexeddb) — one test does a full roundtrip: pair → `listRecords()` has exactly 1 record → decrypt the persisted ciphertext with the same PIN → recovers the original refresh token. A second test asserts the serialized record contains neither the PIN nor the refresh token as plaintext. Password is cleared from component state in a `finally` block immediately after `signInWithPassword` resolves (success or failure); PIN + session cleared in a `finally` block immediately after `completePairing` resolves. |
+| T-3.2 | Temporary direct route for this slice's standalone testability (e.g. `/pair`) — superseded by the "+ vincular" affordance wired into `UserSelector` in Phase 4 (T-4.6). | `src/lib/router.tsx` | DD-3 | navigating to the temp route renders `PairDeviceScreen` | [x] Done — `/pair` route added (lazy-loaded, same pattern as the other 9 routes) |
 
 ## Phase 4 — Daily PIN unlock (slice 4, DD-2, DD-7, DD-10)
 
@@ -202,3 +206,22 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    misreports a diff. Worked around by comparing binary fields as `Array.from(new Uint8Array(...))` instead
    of the raw buffer object. A real browser has exactly one realm — this cannot occur in production; it is
    purely an artifact of this jsdom+fake-indexeddb combination in the test runner.
+8. **T-3.1's `rol` sourcing deviates from design.md §2 DD-3 step 4's literal pseudocode** (which lists
+   exactly 4 steps — `generateSalt`→`deriveKey`→`encryptToken`→`putRecord` — with no extra network fetch
+   between login and vault write). `completePairing` (`src/features/auth/pairDevice.ts`) reads `rol` from
+   `session.user.app_metadata.rol` (JWT-embedded, service-role-only settable via `handle_new_user()`/
+   `enroll-empleado`) rather than adding a `profiles` SELECT, keeping the sequence literally 4 steps as
+   written. This is NOT a full REQ-AUTH-4 implementation: REQ-AUTH-4 requires resolving `rol`/`activo` from
+   a FRESH `profiles` read "after establishing a session (fresh login or PIN unlock)" — pairing IS a fresh
+   login, so read strictly, T-3.1 only partially satisfies it. Resolution taken: the vault's `rol` field is
+   a UI-shaping hint only (Phase 4 T-4.6's PIN-selector avatar/label) — DD-8 keeps RLS/RPC as the sole
+   authorization boundary regardless of what this hint says, so a stale/JWT-cached value here has no
+   security consequence. `PairDeviceScreen` deliberately does NOT write to `$auth.rol` either (left `null`,
+   matching `main.tsx`'s existing bootstrap) — REQ-AUTH-4's fresh-read is Phase 4's `usePinUnlock`'s own
+   claimed responsibility per its task description ("fetch own `profiles` row → `rol` into `$auth`
+   (REQ-AUTH-4)"), not pairing's. Residual edge case, not addressed here: immediately after pairing (before
+   the employee's first Phase-4 PIN unlock), `$auth.rol` stays `null` — if Phase 8's `RequireAdmin` guard
+   existed today, a freshly-paired ADMIN could be redirected away from admin-only routes until their next
+   unlock. Phase 8 doesn't exist yet, so this has zero live consequence now; flagging for whoever builds
+   Phase 8 to confirm `usePinUnlock` actually runs (or an equivalent `profiles` read fires) right after
+   pairing completes, not only on subsequent unlocks.
