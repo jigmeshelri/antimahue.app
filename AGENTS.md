@@ -28,5 +28,5 @@
 ## Setup
 
 - ✅ Git (`main`), remote: `git@github.com:jigmeshelri/antimahue.app.git`
-- ✅ Engram project: `inaction:antimahue.app` (namespace `inaction:` separa proyectos personales de neosoltec)
+- ✅ Engram project: `antimahue.app` (clave plana derivada del git remote — consolidada el 2026-07-14, ver `diario/2026-07-14.md`)
 - ✅ Stack cerrado y deployado: Vite 6 + React 19 + Tailwind 4 + TS + PWA / Supabase / Cloudflare Workers Static Assets (ver `CLAUDE.md`).
