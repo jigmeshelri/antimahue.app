@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "5/47"
+progress: "6/47"
 updated_at: 2026-07-14
 ---
 
@@ -42,19 +42,19 @@ Battery tasks (T-1.5–T-1.11) are tracked here per `design.md` §8 slice 1's gr
 (`'empleado'` row, revoked `'empleado'` row) don't exist until Phase 5 and Phase 7 ship — see **Gaps**. They
 close for real in Phase 9.
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-1.1 | Write the additive migration: widen `rol` CHECK, add `activo`, harden `handle_new_user()`, add `is_active()`, fold `activo` into `is_admin()`, gate write RPCs + SELECT policies (design.md §3, all 7 items verbatim). | `supabase/migrations/20260714000000_auth_pin_multirole.sql` | REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-SETUP-8, DD-5 | file is valid SQL; date prefix > `20260705000300` (last existing) |
-| T-1.2 | **[HUMAN]** Commit on short branch → PR → merge to `main` (repo PR-only convention). Merge triggers the now-ACTIVE GitHub schema integration (no MCP `execute_sql` fallback needed, unlike `data-model`). | — | DD-5 | migration applied automatically post-merge |
-| T-1.3 | Post-deploy structural verify: `list_migrations` shows the new file; `list_tables` shows `profiles.activo`; `get_advisors(type='security')` shows no new unexpected WARN. | — | — | 3 checks pass |
-| T-1.4 | Regenerate Supabase TS types post-migration (now includes `profiles.activo` + widened `rol` union) — supersedes T-0.5's baseline. | `src/lib/database.types.ts` | — | `profiles.Row` includes `activo: boolean`, `rol: 'admin'\|'empleado'` |
-| T-1.5 | Battery row SEG-5.1 (spec's own label: T-5.1): active empleado → `producto_costos`/`proveedores` SELECT → `[]`, never 403. | — | REQ-AP-SEG-5 | PASS once empleado exists (Phase 5) |
-| T-1.6 | Battery row SEG-5.2 (T-5.2): active admin `WITH CHECK` boundary — out-of-bounds UPDATE rejected, in-bounds succeeds. | — | REQ-AP-SEG-5 | PASS |
-| T-1.7 | Battery row SEG-5.3 (T-5.3): `deshacer_venta` on a non-last confirmed sale → RPC error, zero partial effect. | — | REQ-AP-SEG-5 | PASS |
-| T-1.8 | Battery row SEG-5.4 (T-5.4): `confirmar_venta` over available stock → rejected, stock unchanged. | — | REQ-AP-SEG-5 | PASS |
-| T-1.9 | Battery row SEG-5.5 (T-5.5): active empleado embed `productos?select=*,producto_costos(costo)` degrades to `[]`, not a request-level error. | — | REQ-AP-SEG-5 | PASS |
-| T-1.10 | Battery row SEG-5.6 (spec's "new" row): anon → any domain table/RPC → `401`/`42501`. | — | REQ-AP-SEG-5 | PASS |
-| T-1.11 | Battery row SEG-5.7 (spec's other "new" row): inactive empleado (`activo=false`) → denied on every SEG-5.1–SEG-5.4 target, incl. plain `productos` SELECT. | — | REQ-AP-SEG-2, REQ-AP-SEG-5 | PASS once Phase 7 (revocation) ships |
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-1.1 | Write the additive migration: widen `rol` CHECK, add `activo`, harden `handle_new_user()`, add `is_active()`, fold `activo` into `is_admin()`, gate write RPCs + SELECT policies (design.md §3, all 7 items verbatim). | `supabase/migrations/20260714000000_auth_pin_multirole.sql` | REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-SETUP-8, DD-5 | file is valid SQL; date prefix > `20260705000300` (last existing) | [x] Done — verified against a disposable local stack (`supabase start`, all 5 migrations applied clean), then `supabase stop`. See apply-progress for the full empirical check (self-signup default, revoke-empleado/-admin, anon denial). |
+| T-1.2 | **[HUMAN]** Commit on short branch → PR → merge to `main` (repo PR-only convention). Merge triggers the now-ACTIVE GitHub schema integration (no MCP `execute_sql` fallback needed, unlike `data-model`). | — | DD-5 | migration applied automatically post-merge | [ ] Pending — human/orchestrator action, out of this agent's scope (no commits) |
+| T-1.3 | Post-deploy structural verify: `list_migrations` shows the new file; `list_tables` shows `profiles.activo`; `get_advisors(type='security')` shows no new unexpected WARN. | — | — | 3 checks pass | [ ] Pending — requires T-1.2 (prod deploy) first |
+| T-1.4 | Regenerate Supabase TS types post-migration (now includes `profiles.activo` + widened `rol` union) — supersedes T-0.5's baseline. | `src/lib/database.types.ts` | — | `profiles.Row` includes `activo: boolean`, `rol: 'admin'\|'empleado'` | [ ] Pending — requires T-1.2 (prod deploy) first; regenerating now against pre-migration prod would reproduce the stale baseline |
+| T-1.5 | Battery row SEG-5.1 (spec's own label: T-5.1): active empleado → `producto_costos`/`proveedores` SELECT → `[]`, never 403. | — | REQ-AP-SEG-5 | PASS once empleado exists (Phase 5) | [ ] Scaffolded (skipped) — `src/lib/authPinRlsBattery.test.ts`; blocked on Phase 5, closes for real at T-9.3 |
+| T-1.6 | Battery row SEG-5.2 (T-5.2): active admin `WITH CHECK` boundary — out-of-bounds UPDATE rejected, in-bounds succeeds. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
+| T-1.7 | Battery row SEG-5.3 (T-5.3): `deshacer_venta` on a non-last confirmed sale → RPC error, zero partial effect. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
+| T-1.8 | Battery row SEG-5.4 (T-5.4): `confirmar_venta` over available stock → rejected, stock unchanged. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
+| T-1.9 | Battery row SEG-5.5 (T-5.5): active empleado embed `productos?select=*,producto_costos(costo)` degrades to `[]`, not a request-level error. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; blocked on Phase 5 |
+| T-1.10 | Battery row SEG-5.6 (spec's "new" row): anon → any domain table/RPC → `401`/`42501`. | — | REQ-AP-SEG-5 | PASS | [ ] Scaffolded (skipped) — same file; not actor-blocked, but deferred to the single Phase 9 (T-9.3) verify pass |
+| T-1.11 | Battery row SEG-5.7 (spec's other "new" row): inactive empleado (`activo=false`) → denied on every SEG-5.1–SEG-5.4 target, incl. plain `productos` SELECT. | — | REQ-AP-SEG-2, REQ-AP-SEG-5 | PASS once Phase 7 (revocation) ships | [ ] Scaffolded (skipped) — same file; blocked on Phase 7 |
 
 > **ID note**: `SEG-5.n` is this document's own disambiguated numbering for `REQ-AP-SEG-5`'s matrix rows.
 > The spec itself labels these rows `T-5.1..T-5.5` (inherited verbatim from `data-model`'s own Phase-5
@@ -157,3 +157,24 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    builds those screens.
 4. **Idle threshold value**: design.md's Open Questions section leaves the exact idle-lock minutes
    unconfirmed, proposing 5 min. T-8.1 carries that default; not a blocker, flagged for user confirmation.
+5. **`handle_new_user()` self-signup default — design.md CONTRADICTS this same change's own spec text**
+   (discovered while implementing T-1.1, confirmed against a disposable local Supabase stack). `design.md`
+   §3 item 3 flips the trigger's fallback role from `'admin'` to `'empleado'`
+   (`COALESCE(NEW.raw_app_meta_data->>'rol', 'empleado')`) — explicitly called "least-priv default" in its
+   own prose. But `specs/setup-stack/spec.md`'s REQ-SETUP-8 (this same change's delta) literally requires
+   the opposite: *"The default for new rows MUST remain 'admin' only for the signup trigger path"*, with a
+   scenario asserting *"self-signup still defaults to admin, never empleado."* These cannot both be true;
+   T-1.1 was written to satisfy design.md §3 verbatim, so it necessarily fails that spec scenario as
+   literally worded. Resolution taken: implemented design.md's flip, because it closes a real, currently-
+   live privilege-escalation hole — `supabase/config.toml`'s `auth.enable_signup = true` (CLI default,
+   nothing in this repo's history disables it) means public self-signup via the anon key has been reachable
+   since `setup-stack`, and the PRE-migration trigger (`INSERT INTO profiles (id) VALUES (NEW.id)`, no
+   explicit `rol`) relies purely on the column `DEFAULT 'admin'` — i.e. today, in production, ANY anonymous
+   caller invoking `signUp()` becomes a full admin. Verified empirically on a local stack: inserting a bare
+   `auth.users` row with empty `raw_app_meta_data` now yields `profiles.rol = 'empleado'`; an explicit
+   `app_metadata.rol = 'admin'` still yields `'admin'` (only a service_role caller — `enroll-empleado`, never
+   present on the client — can set that). Not silently resolved: this is a genuine spec bug, most likely
+   because REQ-SETUP-8's scenario text was carried forward from before design.md's security hardening and
+   never updated. Recommend correcting the spec scenario text (self-signup should default to LEAST
+   privilege, i.e. `'empleado'`) rather than reverting the migration.
+   **RESOLVED 2026-07-14**: `specs/setup-stack/spec.md` REQ-SETUP-8 corrected to match design.md §3 (least-priv `'empleado'` default via `app_metadata.rol`, incl. the fresh-environment first-admin bootstrap nuance) and `spec.html` synced — the spec text was the defect, not the migration.
