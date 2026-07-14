@@ -17,8 +17,8 @@ import { atom } from 'nanostores'
 
 export interface LockState {
   failCount: number
-  lockedUntil: number | null  // Unix ms timestamp; null = not locked
-  requiresRelogin: boolean    // true when failCount >= 8
+  lockedUntil: number | null // Unix ms timestamp; null = not locked
+  requiresRelogin: boolean // true when failCount >= 8
 }
 
 export const $lock = atom<LockState>({

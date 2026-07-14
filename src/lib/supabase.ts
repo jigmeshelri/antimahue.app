@@ -14,6 +14,7 @@
  *   directly after decryption.
  */
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from './database.types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string
@@ -27,7 +28,9 @@ if (!supabaseUrl || !supabasePublishableKey) {
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+// <Database> (T-0.5) types every table/RPC call against the live schema.
+// Regenerated at T-1.4 once the auth-pin migration adds `profiles.activo`.
+export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
