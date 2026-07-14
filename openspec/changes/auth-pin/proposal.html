@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta: Autenticación con PIN y roles — Antimahue</title>
+<style>
+  :root {
+    --color-bg:         #faf7f2;
+    --color-surface:    #ffffff;
+    --color-surface-alt:#f4efe6;
+    --color-border:     #d9ccb8;
+    --color-terracotta: #b5512b;
+    --color-terracota-lt:#f0e0d6;
+    --color-wood:       #7a4e2d;
+    --color-wood-lt:    #e8d9c4;
+    --color-text:       #2c1e12;
+    --color-text-muted: #6b5744;
+    --color-accent:     #c0694a;
+    --color-danger:     #9b2335;
+    --color-danger-lt:  #fce8eb;
+    --color-success:    #3a6e45;
+    --color-success-lt: #e3f0e7;
+    --color-info:       #2d5a8e;
+    --color-info-lt:    #e3ecf8;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --radius: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  .page-header {
+    background: var(--color-wood);
+    color: #fff;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 4px solid var(--color-terracotta);
+  }
+  .page-header .label {
+    font-size: 0.72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .35rem;
+  }
+  .page-header h1 { font-size: 1.65rem; font-weight: 700; }
+  .page-header .subtitle {
+    color: #d4b89a;
+    font-size: .9rem;
+    margin-top: .4rem;
+  }
+
+  .meta-bar {
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    padding: .65rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 2rem;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+  }
+  .meta-bar strong { color: var(--color-text); }
+
+  .badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .badge-completed { background: var(--color-success-lt); color: var(--color-success); }
+  .badge-security  { background: var(--color-danger-lt);  color: var(--color-danger); }
+  .badge-info      { background: var(--color-info-lt);    color: var(--color-info); }
+  .badge-pending   { background: var(--color-wood-lt);    color: var(--color-wood); }
+
+  .main-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 4rem;
+  }
+
+  section { margin-top: 2.5rem; }
+  section:first-child { margin-top: 1.5rem; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-wood);
+    border-bottom: 2px solid var(--color-wood-lt);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-terracotta);
+    margin: 1.2rem 0 .5rem;
+  }
+  h4 {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 1rem 0 .4rem;
+  }
+
+  p { margin-bottom: .8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+  li { margin-bottom: .3rem; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: .85rem 1.1rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.2rem 0;
+    font-size: .93rem;
+  }
+  .callout-security { border-color: var(--color-danger); background: var(--color-danger-lt); }
+  .callout-info { border-color: var(--color-info); background: var(--color-info-lt); }
+  .callout-note { border-color: var(--color-terracotta); background: var(--color-terracota-lt); }
+  .callout-warn { border-color: var(--color-accent); background: #f7ede3; }
+  .callout .callout-title {
+    font-weight: 700;
+    margin-bottom: .4rem;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-security .callout-title { color: var(--color-danger); }
+  .callout-info .callout-title { color: var(--color-info); }
+  .callout-note .callout-title { color: var(--color-terracotta); }
+  .callout-warn .callout-title { color: var(--color-accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin: 1rem 0;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  thead th {
+    background: var(--color-wood);
+    color: #fff;
+    text-align: left;
+    padding: .6rem .85rem;
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .03em;
+  }
+  tbody tr:nth-child(even) { background: var(--color-surface-alt); }
+  tbody td {
+    padding: .55rem .85rem;
+    border-top: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  pre {
+    background: #1e1611;
+    color: #e8d9c4;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    margin: .8rem 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: .85em;
+    background: var(--color-surface-alt);
+    padding: .1em .35em;
+    border-radius: 3px;
+    color: var(--color-terracotta);
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin: .8rem 0;
+    background: var(--color-surface);
+  }
+  summary {
+    padding: .7rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-wood);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::after { content: '▸'; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  details > *:not(summary) { padding: 0 1rem 1rem; }
+
+  .decision {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-terracotta);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .decision .d-id {
+    display: inline-block;
+    background: var(--color-terracotta);
+    color: #fff;
+    font-weight: 700;
+    font-size: .72rem;
+    padding: .12em .55em;
+    border-radius: 4px;
+    letter-spacing: .04em;
+    margin-right: .5rem;
+    vertical-align: middle;
+  }
+  .decision h3 { display: inline; color: var(--color-wood); margin: 0; font-size: 1rem; }
+  .decision .d-body { margin-top: .7rem; }
+  .decision .d-line { margin-bottom: .45rem; }
+  .decision .d-line .tag {
+    display: inline-block;
+    min-width: 6.5rem;
+    font-weight: 700;
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--color-text-muted);
+  }
+  .decision .tag-choice { color: var(--color-success); }
+  .decision .tag-reject { color: var(--color-danger); }
+
+  .path-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    margin-top: .2rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="label">Antimahue · SDD · auth-pin</div>
+  <h1>Propuesta: autenticación con PIN y roles admin / empleado</h1>
+  <div class="subtitle">Desbloquear el segundo rol, construir la pantalla de PIN sobre la criptografía ya escrita, y diseñar los dos flujos que faltan: alta y baja de empleados</div>
+</header>
+
+<div class="meta-bar">
+  <span><strong>Fase:</strong> Propuesta</span>
+  <span><strong>Estado:</strong> <span class="badge badge-completed">Completada</span></span>
+  <span><strong>Actualizado:</strong> 2026-07-14</span>
+  <span><strong>Depende de:</strong> data-model · setup-stack</span>
+  <span><strong>Issue:</strong> #3</span>
+</div>
+
+<main class="main-content">
+
+  <section>
+    <h2>1. Contexto e intención</h2>
+    <p>El issue #3 pide login con PIN de 4 dígitos y dos roles: la administradora (Angélica) ve todo; la vendedora solo vende, sin acceso a costos ni proveedores. La parte más difícil ya está decidida. El cambio <code>setup-stack</code>, en su decisión D5 (marcada como crítica para la seguridad, elegida el 2026-06-21), resolvió cómo se apoya un PIN de 4 dígitos sobre la autenticación de Supabase: <strong>el PIN nunca es una credencial y nunca viaja al servidor</strong>.</p>
+
+    <div class="callout callout-security">
+      <div class="callout-title">El modelo heredado en una frase</div>
+      Login real de Supabase una sola vez por persona (correo + contraseña) → el <em>refresh token</em> queda cifrado en reposo dentro de IndexedDB, bajo una clave AES-GCM-256 derivada con PBKDF2 del PIN (600 000 iteraciones, SHA-256). El «desbloqueo» diario es un intento de descifrado local: un PIN equivocado se manifiesta como un fallo del sello de autenticación de GCM, nunca como un token. El <em>access token</em> vive solo en memoria.
+    </div>
+
+    <p>La criptografía de ese modelo ya está implementada de punta a punta en el módulo de cifrado de la app; la pantalla de PIN es hoy un esqueleto de una línea.</p>
+    <p class="path-note">Criptografía completa (deriveKey, generateSalt, encryptToken, decryptToken) — src/lib/crypto.ts · Pantalla esqueleto — src/features/auth/PinScreen.tsx</p>
+
+    <p>Por eso este cambio <strong>no es una re-arquitectura</strong>. Es cuatro cosas: (1) desbloquear el esquema para que exista un segundo rol; (2) construir la interfaz y el estado alrededor de la criptografía ya escrita; (3) diseñar los dos flujos que hoy bloquean un sistema multi-rol funcional y no están diseñados en ninguna parte —el <strong>alta</strong> y la <strong>baja</strong> de empleados—; y (4) ejecutar la batería de verificación del JWT en tiempo de ejecución (T-5.1 a T-5.5) que <code>data-model</code> dejó a cargo de este cambio.</p>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">Aviso de alcance — esto es más que «una pantalla de PIN»</div>
+      Ampliar el CHECK de <code>profiles.rol</code>, activar la RLS multi-rol, una función Edge de alta con service_role, una compuerta <code>activo</code> para la baja, una pantalla nueva de gestión de empleados (que <strong>no está en el set de 9 pantallas del handoff de diseño</strong>) y la batería de verificación diferida: en conjunto es un cambio <strong>grande</strong>. La propuesta mantiene cada pieza en su mínimo y señala qué se inventa y qué se replica (riesgos R1 y R2).
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">Intención superada</div>
+      El texto del propio issue #3 («PIN almacenado como hash… localStorage», rol «seller») es anterior al diseño de seguridad SDD. Se trata como intención superada, no como especificación literal (ver D1 y D3).
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Alcance</h2>
+
+    <h3>Dentro del alcance</h3>
+    <ul>
+      <li><strong>Desbloqueo del esquema:</strong> ampliar el CHECK de <code>profiles.rol</code> de <code>('admin')</code> a <code>('admin','empleado')</code>; agregar <code>profiles.activo boolean NOT NULL DEFAULT true</code> como compuerta de baja. Nueva migración versionada.</li>
+      <li><strong>Activación multi-rol:</strong> la capa RLS/RPC solo-admin que <code>data-model</code> ya dejó escrita entra en vigencia para un segundo rol real, sin retrabajo. Se agrega el chequeo de <code>activo</code> donde la baja debe morder de inmediato.</li>
+      <li><strong>Interfaz y estado del desbloqueo por PIN</strong> alrededor del módulo de cifrado (que se reutiliza, no se edita): la pantalla de PIN real, los átomos del teclado y los puntos, el selector de usuario, el hook de desbloqueo y el store de bloqueo respaldado por <code>auth_attempts</code>, más la capa de almacenamiento en IndexedDB para el blob cifrado y la sal de cada perfil.</li>
+      <li><strong>Selector de usuario local:</strong> la lista de la pantalla de PIN se arma <em>solo</em> desde IndexedDB (qué perfiles tienen un blob dado de alta en este navegador). No hace falta un directorio de personal legible por anónimos —que además hoy no existe, porque la RLS de <code>profiles</code> es de fila propia.</li>
+      <li><strong>Alta de empleados</strong> (D4, en su versión mínima): función Edge <code>enroll-empleado</code> solo para admin (corre con service_role, protegida por <code>is_admin()</code>) que crea la fila en <code>auth.users</code> y en <code>profiles</code>; emparejamiento del dispositivo por única vez (la empleada entra con correo + contraseña una sola vez y fija su PIN). Pantalla mínima de gestión de empleados.</li>
+      <li><strong>Baja de empleados</strong> (D5): compuerta <code>activo</code> en RLS/RPC más el bloqueo duro con <code>ban_duration</code> desde la API de administración.</li>
+      <li><strong>Verificación:</strong> ejecutar la batería T-5.1 a T-5.5 del JWT que <code>data-model</code> difirió.</li>
+    </ul>
+
+    <h3>Fuera del alcance</h3>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Se deja fuera</th><th>Motivo y destino</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Alta por invitación de correo o alta masiva</td>
+          <td>Una tienda con un solo teléfono compartido no necesita invitaciones por correo. Crear el usuario con una contraseña inicial que fija la administradora encaja mejor con el modelo de dispositivo compartido (D4).</td>
+        </tr>
+        <tr>
+          <td>Recuperación de contraseña, verificación de correo, MFA, «recordar este dispositivo» más allá del blob cifrado</td>
+          <td>No son necesarios para el MVP de dos personas. El único secreto persistido es el blob del <em>refresh token</em>.</td>
+        </tr>
+        <tr>
+          <td>Funciones de sesión del plan Pro de Supabase (expiración por inactividad nativa, límite temporal, sesión única)</td>
+          <td>El proyecto está en plan <strong>gratuito</strong> (verificado el 2026-07-14). El auto-bloqueo por inactividad se resuelve en el cliente (D6).</td>
+        </tr>
+        <tr>
+          <td>Pantallas más allá del PIN y del formulario mínimo de gestión de empleados</td>
+          <td>Catálogo, venta y dashboard son cambios posteriores.</td>
+        </tr>
+        <tr>
+          <td>Reabrir el modelo criptográfico D5</td>
+          <td>Se arrastra tal cual (D1). No se vuelve a discutir.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Decisiones</h2>
+    <p>Seis decisiones, cada una con identificador estable (D1 a D6). El análisis completo de alternativas vive en la exploración; aquí quedan la elección y el porqué.</p>
+
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Decisión</th><th>Elegido</th><th>Descartado</th></tr></thead>
+      <tbody>
+        <tr><td>D1</td><td>Modelo de autenticación</td><td>Arrastrar el D5 de setup-stack: el PIN nunca es credencial; desbloquea un token cifrado localmente. No se reabre</td><td>Re-arquitectura: PIN como contraseña / hash en el servidor vía Edge / login anónimo</td></tr>
+        <tr><td>D2</td><td>Alcance de la habilitación multi-rol</td><td>Incluirla en auth-pin: ampliar el CHECK y activar la RLS/RPC solo-admin ya escrita</td><td>Diferirla a un cambio multi-rol posterior</td></tr>
+        <tr><td>D3</td><td>Valor del segundo rol</td><td><code>'empleado'</code> (dominio en español, según D1 de data-model)</td><td><code>'seller'</code> (texto en inglés del issue #3)</td></tr>
+        <tr><td>D4</td><td>Alta de empleados</td><td>Dentro del alcance, en su versión mínima: función Edge solo-admin + emparejamiento del dispositivo por única vez</td><td>Diferirla (deja el multi-rol inservible); flujo completo de invitación por correo o masivo</td></tr>
+        <tr><td>D5</td><td>Baja de empleados</td><td>Dentro del alcance: compuerta <code>profiles.activo</code> en RLS/RPC + bloqueo duro con <code>ban_duration</code></td><td>Riesgo aceptado (ventana de ≤1 h); confiar solo en la revocación del refresh token</td></tr>
+        <tr><td>D6</td><td>Control de sesión e inactividad</td><td>Auto-bloqueo por inactividad en el cliente; cero dependencia de las funciones de sesión del plan Pro</td><td>Asumir expiración/límite/sesión-única nativos (son del plan Pro; el proyecto es gratuito)</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D1</span><h3>Modelo de autenticación: arrastrar el D5 de setup-stack, sin reabrirlo</h3>
+      <div class="d-body">
+        <p>El D5 de setup-stack ya respondió la pregunta de fondo: cómo mapear un PIN de 4 dígitos sobre la autenticación de Supabase. La exploración pesó cuatro candidatos.</p>
+        <div class="d-line"><span class="tag tag-reject">Descartado (a)</span> PIN como contraseña con <code>signInWithPassword</code> en cada desbloqueo: el PIN cruza la red en cada intento y exige red cada vez —malo con el wifi irregular de la tienda—; es un antipatrón.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado (b)</span> Función Edge que valida un hash PBKDF2 en el servidor: la mayor cantidad de piezas móviles, sigue exigiendo red en cada desbloqueo y duplica lo que (d) ya resuelve.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado (c)</span> Login anónimo: un callejón sin salida. La identidad anónima se destruye al cerrar sesión, limpiar datos o cambiar de dispositivo, así que no permite dar de baja a una empleada real y concreta.</div>
+        <div class="d-line"><span class="tag tag-choice">Elegido (d)</span> Login real una sola vez y PIN que desbloquea un <em>refresh token</em> cifrado localmente. El módulo de cifrado ya lo implementa. El PIN es una llave de desbloqueo local, no una frontera de autorización: solo descifra un token ya autorizado. La frontera real sigue siendo la RLS/RPC de Postgres.</div>
+        <div class="d-line"><span class="tag">Regla</span> No se vuelve a discutir el D5. Lo que queda es interfaz, estado y los dos flujos sin diseñar.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D2</span><h3>Incluir la habilitación multi-rol en este cambio</h3>
+      <div class="d-body">
+        <p><code>data-model</code> dejó escritas —a propósito— <code>is_admin()</code> y las políticas solo-admin sobre <code>producto_costos</code> y <code>proveedores</code>, que están <strong>inertes mientras solo exista el rol <code>'admin'</code></strong> (su riesgo R3: «se activan el día que se agregue <code>'empleado'</code>, sin retrabajo»). El andamiaje bloquea de forma literal un segundo rol: el CHECK del scaffold solo admite <code>'admin'</code>.</p>
+        <p class="path-note">CHECK que hoy solo admite 'admin' — supabase/migrations/20260621000000_initial_scaffold.sql</p>
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> Incluir en auth-pin la ampliación del CHECK y la activación de la RLS multi-rol. El motivo es directo: <strong>un PIN con un solo rol posible no tiene valor de producto</strong>. Todo el sentido del issue #3 es «la empleada vende pero no ve costos».</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> Separar el CHECK en otro cambio entregaría una pantalla de PIN incapaz de demostrar la propiedad de seguridad que justifica su existencia. El costo de incluirlo es un ALTER aditivo; el beneficio, un sistema multi-rol coherente y verificable.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D3</span><h3>El valor del segundo rol es <code>'empleado'</code></h3>
+      <div class="d-body">
+        <p>El D1 de <code>data-model</code> fijó la convención: dominio en español, plataforma en inglés. <code>profiles.rol</code> es un concepto de dominio —es un rol del comercio minorista chileno— y la prosa de <code>data-model</code> llama a la persona «vendedora».</p>
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> El valor del CHECK es <code>'empleado'</code>.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> El <code>'seller'</code> del issue #3 es una denominación en inglés, inconsistente con el vocabulario del esquema.</div>
+        <div class="d-line"><span class="tag">Matiz</span> La etiqueta visible en la interfaz puede seguir diciendo «Vendedora»: el valor del CHECK y el rótulo de la interfaz son cosas distintas.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D4</span><h3>Alta de empleados: dentro del alcance, en su versión mínima</h3>
+      <div class="d-body">
+        <p>Hoy no existe ningún camino de alta. El trigger <code>handle_new_user()</code> se dispara ante cualquier inserción en <code>auth.users</code>, lo cual está bien para una única administradora que se registró sola, pero sería un alta pública indebida para las empleadas. Sin un flujo de alta nadie puede crear una segunda fila en <code>auth.users</code>: el sistema multi-rol queda inservible y el criterio de aceptación del issue #3 —«Login muestra lista de usuarios registrados»— es imposible de cumplir.</p>
+        <div class="d-line"><span class="tag tag-choice">Servidor</span> Una función Edge <code>enroll-empleado</code>, solo para admin (corre con service_role, protegida por <code>is_admin()</code>), llama a <code>auth.admin.createUser()</code> para crear la fila de la empleada con <code>rol='empleado'</code> y una contraseña inicial que fija la administradora.</div>
+        <p class="path-note">Función Edge de alta — supabase/functions/enroll-empleado/</p>
+        <div class="d-line"><span class="tag tag-choice">Cliente</span> La empleada entra una sola vez con correo + contraseña en el teléfono compartido y fija un PIN de 4 dígitos; ese emparejamiento cifra el <em>refresh token</em> en IndexedDB. Es el login real por única vez que exige el D1. Los días siguientes solo hay desbloqueo por PIN.</div>
+        <div class="d-line"><span class="tag">Interfaz</span> Una pantalla mínima de gestión de empleados (lista más un formulario de «agregar empleada»). Esta pantalla <strong>no está en el set de 9 pantallas del handoff</strong>: se inventa, no se replica (riesgo R2).</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> Diferir el alta rompe la funcionalidad. La invitación por correo exige que la empleada tenga acceso a un buzón —fricción en una tienda de un solo teléfono.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D5</span><h3>Baja de empleados: compuerta <code>activo</code> más bloqueo duro</h3>
+      <div class="d-body">
+        <p>Verificado contra la documentación vigente de Supabase (2026-07-14): revocar una sesión revoca el <em>refresh token</em>, pero «los <em>access tokens</em> de sesiones revocadas siguen siendo válidos hasta su expiración» (por defecto, ≤1 h). Para una tienda que resguarda dinero y datos de proveedores, que una empleada despedida conserve hasta una hora de acceso es inaceptable bajo el principio rector de seguridad.</p>
+        <div class="d-line"><span class="tag tag-choice">Compuerta inmediata</span> Nueva columna <code>profiles.activo boolean NOT NULL DEFAULT true</code>, chequeada dentro de las políticas RLS y las RPC que deben morder (SELECT sobre tablas sensibles, <code>confirmar_venta</code>, etc.). Una empleada dada de baja falla en la <strong>siguiente</strong> petición, sin importar cuán fresco esté el JWT.</div>
+        <div class="d-line"><span class="tag tag-choice">Bloqueo duro</span> La administradora dispara <code>auth.admin.updateUserById(id, {ban_duration:'876000h'})</code> (documentado como «bloquear 100 años») para trabar la fila en <code>auth.users</code> y cortar el refresco.</div>
+        <div class="d-line"><span class="tag tag-reject">Descartado</span> Aceptar la ventana de ≤1 h. La compuerta <code>activo</code> es barata —una columna y unos predicados— y la cierra de forma determinista.</div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="d-id">D6</span><h3>Sin funciones de sesión del plan Pro; bloqueo por inactividad en el cliente</h3>
+      <div class="d-body">
+        <p>El plan del proyecto es <strong>gratuito</strong> (organización «Segudora Org», verificado por MCP el 2026-07-14). Los controles de sesión nativos de Supabase —expiración por inactividad, límite temporal, sesión única— están reservados al plan Pro y, por lo tanto, no están disponibles. El diseño no debe asumirlos.</p>
+        <div class="d-line"><span class="tag tag-choice">Elegido</span> Cualquier «volver a pedir el PIN tras N minutos inactiva» se resuelve en el cliente: un temporizador local borra el <em>access token</em> de memoria y fuerza a reingresar el PIN.</div>
+        <div class="d-line"><span class="tag">Por qué es barato</span> Es un bloqueo de experiencia, no una frontera de seguridad. El blob del <em>refresh token</em> sigue cifrado en reposo en cualquier caso, así que no se pierde ni se gana autorización. Funciona sin red y sin depender del plan.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Áreas afectadas</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Área</th><th>Impacto</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Migraciones SQL</td><td>Nuevo</td><td>Ampliar el CHECK de <code>profiles.rol</code> a <code>('admin','empleado')</code>; agregar <code>profiles.activo</code>; sumar el predicado <code>activo</code> a la RLS/RPC donde muerde la baja.</td></tr>
+        <tr><td>Función Edge de alta</td><td>Nuevo</td><td>service_role, protegida por admin, crea la fila de la empleada en <code>auth.users</code> y <code>profiles</code>.</td></tr>
+        <tr><td>Pantalla de PIN</td><td>Modifica</td><td>De esqueleto a contenedor real: flujo de desbloqueo, selector de usuario desde los blobs locales de IndexedDB.</td></tr>
+        <tr><td>Átomos y moléculas del PIN</td><td>Nuevo</td><td>Teclado, puntos y la molécula del selector de usuario.</td></tr>
+        <tr><td>Módulo de cifrado</td><td>Reutiliza (sin editar)</td><td>Ya está completo: PBKDF2 600k más AES-GCM-256.</td></tr>
+        <tr><td>Capa de almacenamiento en IndexedDB</td><td>Nuevo</td><td>Persistir el blob del <em>refresh token</em> cifrado y la sal por perfil dado de alta (WebCrypto/IndexedDB directo o un ayudante verificado — OQ-1).</td></tr>
+        <tr><td>Store de autenticación</td><td>Modifica</td><td>Agregar estado de bloqueo y de alta (hoy solo sesión/usuario/carga).</td></tr>
+        <tr><td>Store de bloqueo</td><td>Nuevo</td><td>Límite de intentos por usuario; <code>auth_attempts</code> ya tiene forma multi-usuario.</td></tr>
+        <tr><td>Pantalla de gestión de empleados</td><td>Nuevo</td><td>Interfaz nueva, ausente del set de 9 pantallas del handoff.</td></tr>
+        <tr><td>Batería de verificación del JWT (T-5.1 a T-5.5)</td><td>Ejecuta</td><td>Diferida desde <code>data-model</code>; se corre en la fase de verificación de este cambio.</td></tr>
+        <tr><td>Configuración del proyecto</td><td>Modifica</td><td>Se agrega <code>auth-pin</code> a los cambios activos.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="path-note">Cifrado — src/lib/crypto.ts · Pantalla de PIN — src/features/auth/PinScreen.tsx · Store de auth — src/stores/auth.ts · Función Edge — supabase/functions/enroll-empleado/ · Config del proyecto — openspec/project.yaml</p>
+  </section>
+
+  <section>
+    <h2>5. Riesgos</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Riesgo</th><th>Probabilidad</th><th>Mitigación</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Desborde de alcance: CHECK + activación RLS + alta + baja + interfaz + batería de verificación excede con mucho «una pantalla de PIN»; el cambio queda sobredimensionado</td><td>Alta</td><td>Cada entregable se mantiene en su mínimo obligatorio; se difieren invitación por correo y alta masiva; la fase de diseño lo secuencia en tareas chicas.</td></tr>
+        <tr><td>R2</td><td>El flujo de alta y la pantalla de gestión son nuevos, ausentes del handoff (no hay referencia de diseño que replicar)</td><td>Alta</td><td>El diseño produce la especificación de la pantalla; se limita a un formulario. Se señala de forma explícita que esta interfaz se inventa.</td></tr>
+        <tr><td>R3</td><td>Ventana de baja: sin la compuerta <code>activo</code>, una empleada despedida conserva hasta ≤1 h de acceso a costos, proveedores y ventas</td><td>Media (impacto alto)</td><td>La compuerta <code>activo</code> del D5 muerde en la siguiente petición; <code>ban_duration</code> corta el refresco.</td></tr>
+        <tr><td>R4</td><td>El módulo de cifrado nunca se probó dentro de la PWA instalada (contexto de service worker) — el estado de la tarea 7.10 de setup-stack se desconoce</td><td>Media</td><td>La verificación debe correr esa prueba de humo en el contexto de la PWA antes de confiar en el camino de desbloqueo.</td></tr>
+        <tr><td>R5</td><td>Sumar una dependencia de IndexedDB choca con pnpm seguro por defecto (<code>minimumReleaseAge=1440</code>) y con la postura ante ataques de cadena de suministro</td><td>Baja</td><td>OQ-1: preferir WebCrypto/IndexedDB directo (cero dependencias), salvo que el diseño justifique un ayudante verificado con más de 24 h de antigüedad.</td></tr>
+        <tr><td>R6</td><td>Ampliar el CHECK y agregar una columna es un cambio de esquema sobre una base de datos en producción (<code>data-model</code> está en vivo)</td><td>Baja</td><td>ALTER aditivo (recrear el CHECK para sumar un valor; columna nulable con default); migración de bajada reversible; despliegue por la integración de esquema de GitHub.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. Plan de reversión</h2>
+    <p>Todas las migraciones son aditivas: ampliar el CHECK, agregar <code>activo</code> (por defecto <code>true</code>) y sumar la función Edge. La migración de bajada vuelve a estrechar el CHECK a <code>('admin')</code> —seguro solo si no hay filas con <code>'empleado'</code>, precondición que se documenta—, elimina <code>profiles.activo</code> y quita <code>enroll-empleado</code>. La interfaz son archivos nuevos que se borran. No se altera de forma destructiva nada de la infraestructura previa: ni las columnas base de <code>profiles</code>, ni la semántica de <code>is_admin()</code>, ni las tablas de <code>data-model</code>.</p>
+  </section>
+
+  <section>
+    <h2>7. Dependencias y compuerta de aplicación</h2>
+    <ul>
+      <li><strong><code>data-model</code></strong> (archivado, en producción) — aporta <code>profiles</code>, <code>is_admin()</code>, <code>auth_attempts</code> y la capa RLS/RPC que este cambio activa para el segundo rol.</li>
+      <li><strong><code>setup-stack</code></strong> (archivado) — aporta el modelo criptográfico D5, el módulo de cifrado completo, el esqueleto de la pantalla de PIN y el átomo base del store de autenticación.</li>
+      <li><strong>Plan de Supabase = gratuito</strong> (verificado el 2026-07-14): sin funciones de sesión Pro (D6).</li>
+    </ul>
+    <div class="callout callout-info">
+      <div class="callout-title">Compuerta de aplicación — decisión de la sesión</div>
+      La fase de aplicación está <strong>bloqueada</strong> hasta que existan (a) un toolchain mínimo —linter, formateador, ejecutor de tests y CI— y (b) los tipos TypeScript de Supabase generados (<code>supabase gen types typescript</code>). Las fases de planificación (spec, diseño, tareas) avanzan ahora; la aplicación espera a que esa compuerta esté satisfecha.
+    </div>
+  </section>
+
+  <section>
+    <h2>8. Criterios de éxito</h2>
+    <ul>
+      <li><code>profiles.rol</code> acepta <code>'empleado'</code>; existe una fila de empleada que se autentica por desbloqueo de PIN.</li>
+      <li>Una empleada no puede leer <code>producto_costos</code> ni <code>proveedores</code>: la RLS solo-admin de <code>data-model</code>, inerte hasta hoy, ahora muerde para un segundo rol real.</li>
+      <li>La administradora puede dar de alta a una empleada (crear <code>auth.users</code> y <code>profiles</code>) sin ningún alta pública.</li>
+      <li>La administradora puede dar de baja a una empleada; la persona dada de baja pierde el acceso en la siguiente petición (compuerta <code>activo</code>), no tras ≤1 h.</li>
+      <li>El PIN nunca viaja al servidor: una traza de red no muestra ni el PIN ni un token en ninguna petición de desbloqueo (solo el login por única vez de correo + contraseña autentica por la red).</li>
+      <li>Un PIN equivocado se manifiesta como un fallo de descifrado local con retroceso por bloqueo — nunca como un token.</li>
+      <li>La batería de verificación del JWT T-5.1 a T-5.5, ejecutada y en verde.</li>
+      <li>No hay lógica de autorización en <code>src/</code>: cada regla es una política, un constraint o una RPC de Postgres.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>9. Preguntas abiertas para el diseño</h2>
+    <ul>
+      <li><strong>OQ-1</strong> — Acceso a IndexedDB: WebCrypto/IndexedDB directo (cero dependencias, preferido bajo pnpm seguro por defecto) frente a un ayudante verificado (<code>idb-keyval</code>, con más de 24 h de antigüedad por <code>minimumReleaseAge</code>). Lo decide el diseño.</li>
+      <li><strong>OQ-2</strong> — Números de la política de bloqueo: intentos máximos antes del retroceso, curva del retroceso y duración del bloqueo, respaldados por <code>auth_attempts</code>. La spec o el diseño fijan los valores exactos.</li>
+      <li><strong>OQ-3</strong> — Experiencia del emparejamiento del dispositivo: la empleada fija su propio PIN en el primer login de correo + contraseña sobre el teléfono compartido (recomendado), o la administradora fija un PIN temporal. Lo decide el diseño.</li>
+      <li><strong>OQ-4</strong> — Primitiva de <code>enroll-empleado</code>: <code>auth.admin.createUser()</code> (inmediata, la administradora fija la contraseña inicial — recomendada para una tienda de un solo teléfono) frente a <code>inviteUserByEmail()</code> (exige buzón de la empleada). Lo confirma el diseño.</li>
+    </ul>
+  </section>
+
+</main>
+</body>
+</html>
