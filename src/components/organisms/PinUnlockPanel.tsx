@@ -76,7 +76,7 @@ export default function PinUnlockPanel({
       </div>
       {countdownText ? (
         <p role="alert" className="mb-3 min-h-[16px] text-[12px] font-medium text-error">
-          Bloqueado. Probá de nuevo en {countdownText}.
+          Bloqueado. Intenta de nuevo en {countdownText}.
         </p>
       ) : (
         <p role="alert" className="mb-3 min-h-[16px] text-[12px] font-medium text-error">

@@ -54,5 +54,16 @@ export default tseslint.config(
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    // Entry point, not a component module: `main.tsx` has ZERO exports by
+    // design (it's the bootstrap script `index.html` loads directly), so
+    // fast-refresh boundaries are meaningless here regardless of what's
+    // declared locally (the Phase 8 `AppShell` wrapper, T-8.2). Scoped to
+    // this one file, same precedent as `router.tsx` above.
+    files: ['src/main.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   eslintConfigPrettier
 )

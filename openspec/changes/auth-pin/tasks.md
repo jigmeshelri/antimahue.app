@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "31/47"
+progress: "35/47"
 updated_at: 2026-07-14
 ---
 
@@ -190,12 +190,28 @@ command-by-command evidence and Gaps 12/13 below.
 DD-8's "hidden cost/margin cards" applies to shared shell/nav elements only — catálogo/dashboard screen
 bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet); see **Gaps**.
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-8.1 | Wall-clock idle detection: `visibilitychange`→hidden records `Date.now()`; →visible, if `now-hidden>threshold` set `$auth.status='locked'` immediately; foreground `setInterval` covers active use; handle `pagehide`/`freeze`/bfcache. MUST NOT rely on `setTimeout` alone. Default threshold 5 min (residual open question from design.md — confirm with user). | `src/features/auth/useIdleLock.ts` | REQ-AUTH-3, DD-9 | fake-timer test: hidden 6min→visible locks; hidden 2min→visible stays unlocked |
-| T-8.2 | Wire `useIdleLock` into the app shell for the lifetime of an unlocked session; re-unlock via the same `usePinUnlock` local-decrypt path (no re-auth over the wire). | `src/main.tsx` (or root layout) | REQ-AUTH-3 | idle-lock shows `PinScreen`; correct PIN resumes without a `signInWithPassword` call |
-| T-8.3 | `<RequireSession>` guard: redirect to `/` when `$auth.status !== 'unlocked'`. | `src/lib/router.tsx` | DD-8 | navigating to `/dashboard` while locked redirects to `/` |
-| T-8.4 | `<RequireAdmin>` guard: redirect `empleado` away from `/proveedor`, `/dte`, `/empleadas`. | `src/lib/router.tsx` | DD-8 | empleado session hitting `/empleadas` redirects away; RLS still returns `[]` if reached anyway (cross-check SEG-5.1/SEG-5.7, tasks T-1.5/T-1.11) |
+**Phase 8 status: 4/4 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. Idle-elapsed math and both guard decision functions are pure and fully
+unit-tested with an injected clock (`idleLock.test.ts`, 15 cases; `routeGuards.test.ts`, 8 cases) — no real
+wall-clock sleeps, matching this apply's own brief. The two React wiring layers (`useIdleLock.ts`'s DOM
+listeners, `RequireSession`/`RequireAdmin`'s JSX) are NOT unit-tested directly (no React Testing Library in
+this repo, same precedent already established for `usePinUnlock.ts`/`PinScreen.tsx`) — residual
+manual/browser verification, folded into T-9.1/T-9.4. Two polish defects fixed in the same pass (both
+explicitly flagged in this apply's brief, see `sdd/auth-pin/apply-progress` in engram for the full list):
+(1) a rioplatense-voseo sweep across every user-facing PIN/pairing string (`«Probá»`→`«Intenta»`,
+`«Ingresá»`→`«Ingresa»`, `«Elegí»`→`«Elige»`, `«Confirmá»`→`«Confirma»`, `«Volvé»`→`«Vuelve»`,
+`«Esperá»`→`«Espera»`, `«Consultá»`→`«Consulta»`, `«podés»`→`«puedes»`) — `empleadasApi.ts`'s existing
+formal-usted copy (Phase 6/7) was already voseo-free and is left untouched, a different but equally valid
+neutral register; (2) DM Sans self-hosted under `public/fonts/` (Latin-subset woff2, weights 400/500/700,
+plus its `OFL.txt` license) — closes the Phase 4 follow-up note, needed ZERO CSP change (`font-src 'self'`
+already covers same-origin files).
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-8.1 | Wall-clock idle detection: `visibilitychange`→hidden records `Date.now()`; →visible, if `now-hidden>threshold` set `$auth.status='locked'` immediately; foreground `setInterval` covers active use; handle `pagehide`/`freeze`/bfcache. MUST NOT rely on `setTimeout` alone. Default threshold 5 min (residual open question from design.md — confirm with user). | `src/features/auth/useIdleLock.ts` | REQ-AUTH-3, DD-9 | fake-timer test: hidden 6min→visible locks; hidden 2min→visible stays unlocked | [x] Done — pure decision math extracted to `src/features/auth/idleLock.ts` (`createIdleTracker`/`recordActivity`/`recordHidden`/`evaluateResume`/`evaluateForegroundTick`, mirroring the `pinUnlock.ts` split), 15 tests in `idleLock.test.ts` with an injected `now` (incl. the exact 6min-locks/2min-stays-unlocked cases the task itself specifies, plus an exact-threshold boundary and a `hiddenAt===null` never-locks case). `useIdleLock.ts` wires activity events (`pointerdown`/`keydown`/`touchstart`/`wheel`) + `visibilitychange` + `pagehide`/`pageshow` + `freeze`/`resume` (Page Lifecycle API, Chromium-only, inert elsewhere) + a 15s foreground interval. 5-minute default kept (design.md's own proposed value; no user pushback surfaced during this apply) |
+| T-8.2 | Wire `useIdleLock` into the app shell for the lifetime of an unlocked session; re-unlock via the same `usePinUnlock` local-decrypt path (no re-auth over the wire). | `src/main.tsx` (or root layout) | REQ-AUTH-3 | idle-lock shows `PinScreen`; correct PIN resumes without a `signInWithPassword` call | [x] Done — `src/main.tsx` gained a thin `AppShell` wrapper (`useIdleLock()` then `<RouterProvider>`) mounted ABOVE the router so idle-tracking survives every route, not just `/`; re-unlock is automatically the existing zero-network `PinScreen`/`usePinUnlock` path — no new re-auth code needed, `useIdleLock` only ever flips `$auth.status` |
+| T-8.3 | `<RequireSession>` guard: redirect to `/` when `$auth.status !== 'unlocked'`. | `src/lib/router.tsx` | DD-8 | navigating to `/dashboard` while locked redirects to `/` | [x] Done — decision logic extracted to `src/lib/routeGuards.ts` (`decideSessionGuard`), unit-tested in `routeGuards.test.ts`; `<RequireSession>` in `router.tsx` renders `<Navigate to="/" state={{from}}>`, threading the attempted path through so `PinScreen` can resume it post-unlock (closes the cold-load/deep-link Gap note below) instead of always hardcoding `/dashboard`. Wraps `/dashboard`, `/venta`, `/venta/:id/ticket`, `/escaner`, `/catalogo`, `/catalogo/:id` |
+| T-8.4 | `<RequireAdmin>` guard: redirect `empleado` away from `/proveedor`, `/dte`, `/empleadas`. | `src/lib/router.tsx` | DD-8 | empleado session hitting `/empleadas` redirects away; RLS still returns `[]` if reached anyway (cross-check SEG-5.1/SEG-5.7, tasks T-1.5/T-1.11) | [x] Done — `decideAdminGuard` (`routeGuards.ts`) composes the session check first (redirect to `/` with `from` if not unlocked) then the role check (redirect to `/dashboard` if `rol!=='admin'`), so `<RequireAdmin>` alone suffices at each callsite — no separate `<RequireSession>` nesting needed. Wraps `/proveedor`, `/dte`, `/empleadas`; `EmpleadasScreen`'s own pre-existing in-component admin gate (Phase 6) is left in place as defense-in-depth, per this apply's brief |
 
 ## Phase 9 — Verify prep (slice 9, DD-13, R4)
 
@@ -293,6 +309,18 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    itself (freshly-paired user's `$auth.rol` is `null` until their FIRST unlock) is UNCHANGED by this phase
    — still correctly flagged for whoever builds Phase 8's `RequireAdmin` guard, since Phase 8 remains out of
    scope here.
+   **RESOLVED 2026-07-14 (Phase 8)**: confirmed no live issue, by inspection of the actual pairing→unlock
+   control flow rather than by changing it. `completePairing` (`pairDevice.ts`) never sets `$auth.status` at
+   all — it only writes the vault record — so after pairing succeeds, `PairDeviceScreen`'s own "success" step
+   routes back to `/` (`PinScreen`), and `$auth.status` is still whatever `main.tsx`'s bootstrap left it as
+   (`'locked'`, since `persistSession:false` means a fresh load never restores a session). `decideAdminGuard`
+   (`src/lib/routeGuards.ts`) checks `status==='unlocked'` BEFORE ever looking at `rol` — so a freshly-paired
+   admin whose `$auth.rol` is still `null` is redirected to the PIN screen by the SESSION check, never
+   reaches the role check with a `null` rol in the first place. The theoretical gap only existed if pairing
+   could somehow land a user directly on an admin-only route with `status` already `'unlocked'` and `rol`
+   still `null` — Phase 8's own guard test suite (`routeGuards.test.ts`) has an explicit case for exactly this
+   shape (`should_redirect_an_unlocked_null_rol_session_to_the_dashboard_not_allow_it`) as a regression net,
+   even though the current pairing flow never produces it.
 9. **design.md §4's literal "With SERVICE_ROLE, SELECT rol, activo FROM profiles WHERE id = <caller>" is
    unimplementable as written on this project** (discovered while implementing T-5.1, confirmed against a
    disposable local stack). `supabase/config.toml` documents `auto_expose_new_tables` defaulting to OFF
