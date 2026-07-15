@@ -93,7 +93,7 @@ export async function attemptUnlock(userId: string, pin: string): Promise<Unlock
   }
   if (isLocked(currentLock)) {
     $lock.set(currentLock)
-    throw new PinUnlockError('Esperá antes de volver a intentar.', 'locked')
+    throw new PinUnlockError('Espera antes de volver a intentar.', 'locked')
   }
 
   let refreshToken: string
@@ -106,7 +106,7 @@ export async function attemptUnlock(userId: string, pin: string): Promise<Unlock
     $lock.set(next)
     if (next.requiresRelogin) {
       await deleteRecord(userId)
-      throw new PinUnlockError('Demasiados intentos. Volvé a vincular este dispositivo.', 'wiped')
+      throw new PinUnlockError('Demasiados intentos. Vuelve a vincular este dispositivo.', 'wiped')
     }
     await putRecord({ ...record, failCount: next.failCount, lockedUntil: next.lockedUntil })
     throw new PinUnlockError('PIN incorrecto.', 'wrong-pin')
@@ -122,7 +122,7 @@ export async function attemptUnlock(userId: string, pin: string): Promise<Unlock
     await deleteRecord(userId)
     $lock.set({ ...NEUTRAL_LOCK, requiresRelogin: true })
     throw new PinUnlockError(
-      'La sesión venció. Volvé a vincular este dispositivo.',
+      'La sesión venció. Vuelve a vincular este dispositivo.',
       'session-invalid'
     )
   }
@@ -145,7 +145,7 @@ export async function attemptUnlock(userId: string, pin: string): Promise<Unlock
     .single()
 
   if (profileError || !profile || !isRol(profile.rol)) {
-    throw new PinUnlockError('No se pudo confirmar tu perfil. Probá de nuevo.', 'session-invalid')
+    throw new PinUnlockError('No se pudo confirmar tu perfil. Intenta de nuevo.', 'session-invalid')
   }
 
   if (!profile.activo) {
@@ -157,7 +157,7 @@ export async function attemptUnlock(userId: string, pin: string): Promise<Unlock
     // boundary (DD-8), this merely stops the UI from admitting a revoked
     // user for the remainder of this tab's lifetime.
     $auth.set({ session: null, user: null, rol: null, status: 'locked', loading: false })
-    throw new PinUnlockError('Tu acceso fue desactivado. Consultá con Angélica.', 'inactive')
+    throw new PinUnlockError('Tu acceso fue desactivado. Consulta con Angélica.', 'inactive')
   }
 
   $auth.set({ ...$auth.get(), rol: profile.rol, status: 'unlocked' })

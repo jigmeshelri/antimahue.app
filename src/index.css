@@ -14,15 +14,44 @@
  * namespaces so every value below also becomes a utility class for free
  * (`--color-corteza` → `bg-corteza` / `text-corteza` / `border-corteza`).
  *
- * Font note (deviation, see apply-progress): the handoff specifies DM Sans
- * via a Google Fonts <link>. This repo's CSP (`public/_headers`) is
- * `font-src 'self'` / `default-src 'self'` — fetching fonts.googleapis.com
- * would be silently blocked in production. Self-hosting the DM Sans files
- * is left as follow-up work; the stack below degrades to the system
- * sans-serif stack, matching the fallback already used by
- * `PairDeviceScreen.tsx`'s inline style.
+ * Font note (Phase 8 polish, closes the Phase 4 follow-up): the handoff
+ * specifies DM Sans via a Google Fonts <link>. This repo's CSP
+ * (`public/_headers`) is `font-src 'self'` / `default-src 'self'` —
+ * fetching fonts.googleapis.com would be silently blocked in production, so
+ * Phase 4 shipped with a system-font fallback instead. This phase
+ * self-hosts DM Sans (regular/medium/bold, Latin subset — covers Spanish
+ * diacritics: á é í ó ú ñ ü ¿ ¡, all within U+0000-00FF) under
+ * `public/fonts/`, served same-origin, so `font-src 'self'` already allows
+ * it with ZERO CSP change (the governing security posture stays untouched).
+ * `font-display: swap` avoids a flash of invisible text; the same
+ * ui-sans-serif/system-ui stack remains as the fallback while the woff2
+ * downloads or on the rare font-load failure.
  */
 @import 'tailwindcss';
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/dm-sans-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/dm-sans-700.woff2') format('woff2');
+}
 
 @theme {
   /* Marca / identidad */
@@ -68,7 +97,7 @@
   --color-terracota-alert-border: rgba(200, 74, 58, 0.18);
   --color-error: #a33a2a;
 
-  /* Tipografía — DM Sans not self-hosted yet (see header note); system fallback */
+  /* Tipografía — DM Sans self-hosted (see header note); system fallback stays for load-time/failure */
   --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 
   /* Radios */

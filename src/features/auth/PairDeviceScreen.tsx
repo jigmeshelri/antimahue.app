@@ -136,7 +136,7 @@ export default function PairDeviceScreen() {
       setSession(nextSession)
       setStep('pin')
     } catch (err) {
-      setError(err instanceof PairingError ? err.message : 'No se pudo conectar. Probá de nuevo.')
+      setError(err instanceof PairingError ? err.message : 'No se pudo conectar. Intenta de nuevo.')
     } finally {
       // The password is never needed again past this call — clear it
       // immediately regardless of the outcome.
@@ -159,7 +159,7 @@ export default function PairDeviceScreen() {
       return
     }
     if (!session) {
-      setError('La sesión expiró. Volvé a ingresar tu contraseña.')
+      setError('La sesión expiró. Vuelve a ingresar tu contraseña.')
       setStep('credentials')
       return
     }
@@ -190,7 +190,7 @@ export default function PairDeviceScreen() {
         {step === 'credentials' && (
           <form onSubmit={handleCredentialsSubmit}>
             <h1 style={titleStyle}>Vincular dispositivo</h1>
-            <p style={subtitleStyle}>Ingresá con la cuenta que te creó Angélica.</p>
+            <p style={subtitleStyle}>Ingresa con la cuenta que te creó Angélica.</p>
             {error && <p style={errorStyle}>{error}</p>}
             <label style={labelStyle} htmlFor="pair-email">
               Email
@@ -224,10 +224,8 @@ export default function PairDeviceScreen() {
 
         {step === 'pin' && (
           <form onSubmit={handlePinSubmit}>
-            <h1 style={titleStyle}>Elegí tu PIN</h1>
-            <p style={subtitleStyle}>
-              4 dígitos que vas a usar todos los días. Nadie más lo va a saber.
-            </p>
+            <h1 style={titleStyle}>Elige tu PIN</h1>
+            <p style={subtitleStyle}>4 dígitos que usarás todos los días. Nadie más lo sabrá.</p>
             {error && <p style={errorStyle}>{error}</p>}
             <label style={labelStyle} htmlFor="pair-pin">
               PIN
@@ -244,7 +242,7 @@ export default function PairDeviceScreen() {
               style={inputStyle}
             />
             <label style={labelStyle} htmlFor="pair-pin-confirm">
-              Confirmá tu PIN
+              Confirma tu PIN
             </label>
             <input
               id="pair-pin-confirm"
@@ -267,7 +265,7 @@ export default function PairDeviceScreen() {
           <div>
             <h1 style={titleStyle}>¡Listo!</h1>
             <p style={subtitleStyle}>
-              Este dispositivo quedó vinculado. Desde ahora podés entrar solo con tu PIN.
+              Este dispositivo quedó vinculado. Desde ahora puedes entrar solo con tu PIN.
             </p>
             <a
               href="/"

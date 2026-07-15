@@ -80,7 +80,7 @@ export function usePinUnlock({
           setErrorMessage(err.message)
           if (err.kind === 'wiped') onWiped?.()
         } else {
-          setErrorMessage('No se pudo desbloquear. Probá de nuevo.')
+          setErrorMessage('No se pudo desbloquear. Intenta de nuevo.')
         }
       } finally {
         submittingRef.current = false

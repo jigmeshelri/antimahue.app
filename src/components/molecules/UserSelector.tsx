@@ -35,7 +35,7 @@ export default function UserSelector({ records, onSelect }: UserSelectorProps) {
   return (
     <div className="flex w-full max-w-[320px] flex-col gap-[14px]">
       {records.length > 0 && (
-        <ul className="flex flex-col gap-[8px]" aria-label="Elegí tu usuario">
+        <ul className="flex flex-col gap-[8px]" aria-label="Elige tu usuario">
           {records.map((record) => (
             <li key={record.userId}>
               <button

@@ -7,16 +7,29 @@
  * this device), `PinUnlockPanel` once a single profile is selected — either
  * chosen by the employee or auto-selected when it's the only one paired
  * (handoff-mandated ≤2-tap daily path).
+ *
+ * Post-unlock destination (Phase 8, T-8.3): `<RequireSession>`/
+ * `<RequireAdmin>` (`src/lib/router.tsx`) redirect here with
+ * `location.state.from` set to whatever route the user was actually trying
+ * to reach — a cold reload on `/empleadas`, an idle-lock while on `/venta`,
+ * etc. On a successful unlock, resume THAT route instead of always landing
+ * on `/dashboard`. Falls back to `/dashboard` when there is no `from` (the
+ * everyday case: opening the app fresh).
  */
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import PinUnlockPanel from '@/components/organisms/PinUnlockPanel'
 import UserSelector from '@/components/molecules/UserSelector'
 import { listRecords, type VaultRecord } from '@/lib/vault'
 import { usePinUnlock } from './usePinUnlock'
 
+interface PinScreenLocationState {
+  from?: string
+}
+
 export default function PinScreen() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [records, setRecords] = useState<VaultRecord[] | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
@@ -34,7 +47,10 @@ export default function PinScreen() {
 
   const { filledCount, errorMessage, pressDigit, pressBackspace } = usePinUnlock({
     userId: selectedUserId,
-    onUnlocked: () => navigate('/dashboard'),
+    onUnlocked: () => {
+      const from = (location.state as PinScreenLocationState | null)?.from
+      navigate(from ?? '/dashboard', { replace: true })
+    },
     onWiped: () => navigate('/pair'),
   })
 
