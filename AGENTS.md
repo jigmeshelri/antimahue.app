@@ -8,7 +8,10 @@
 - `pnpm build` — typecheck + bundle (build-gate).
 - `pnpm typecheck` — typecheck sin emitir.
 - `pnpm preview` — sirve el `dist/` buildeado.
-- **NO existe `pnpm test`** — la suite de tests es trabajo futuro; no inventarlo.
+- `pnpm lint` — ESLint.
+- `pnpm format` / `pnpm format:check` — Prettier (escribe / solo chequea).
+- `pnpm test` — Vitest. `76 passed | 7 skipped` por default (CI parity); los skips son la batería RLS multi-rol, local-only — `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza contra un stack Supabase local → 83/83.
+- CI (`.github/workflows/ci.yml`, GitHub Actions) corre lint + format:check + typecheck + test + build en cada PR contra `main` y en push a `main`.
 
 ## Workflow git
 
