@@ -1,0 +1,31 @@
+-- Migration: 20260715000000_enroll_empleado_grants
+-- Change: auth-pin (Phase 5, T-5.1/T-5.2)
+-- Satisfies: REQ-AP-SEG-3 (audit_log write on successful enrollment)
+--
+-- Additive, reversible grant-only migration. Discovered while implementing
+-- `supabase/functions/enroll-empleado/index.ts`: this project's Data API has
+-- `auto_expose_new_tables` OFF (the current Supabase cloud default, per
+-- `supabase/config.toml`'s comment on that key) — new tables get ZERO grants
+-- to ANY Data API role, including `service_role`, until explicitly GRANTed.
+-- Verified empirically against a disposable local stack:
+--   \dp public.audit_log  →  service_role=Dxtm/postgres  (TRUNCATE/REFERENCES/
+--   TRIGGER/MAINTAIN only — no SELECT/INSERT/UPDATE/DELETE at all).
+-- `enroll-empleado` runs with `service_role` and MUST insert one `audit_log`
+-- row per successful enrollment (REQ-AP-SEG-3, "MUST insert one audit_log
+-- row"). Without this GRANT, that insert fails with Postgres 42501
+-- (permission denied for table audit_log) on every single call — i.e. the
+-- function could never satisfy its own spec as literally written, on a
+-- project provisioned under the current cloud default.
+--
+-- Scope kept deliberately minimal (least-privilege, matches this project's
+-- existing per-phase-additive-migration pattern): ONLY `INSERT` — the
+-- function's own code (`index.ts`) does `adminClient.from('audit_log')
+-- .insert(...)` with NO `.select()` chained, so PostgREST issues the write
+-- with `Prefer: return=minimal` and never needs `SELECT` back. No `profiles`
+-- grant is added here: the function's admin/active check went through
+-- `is_admin()` (a SECURITY DEFINER RPC already `GRANT`ed to `authenticated`,
+-- see `20260705000200_domain_rls.sql`) invoked AS THE CALLER via their own
+-- JWT — not a direct `service_role` table read — so it needs no new grant.
+--
+-- Down migration: `REVOKE INSERT ON public.audit_log FROM service_role;`
+GRANT INSERT ON public.audit_log TO service_role;

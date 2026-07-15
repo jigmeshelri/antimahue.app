@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "24/47"
+progress: "26/47"
 updated_at: 2026-07-14
 ---
 
@@ -107,10 +107,24 @@ the `@phosphor-icons/react` dependency addition (design-system-mandated icon set
 
 ## Phase 5 — Employee enrollment: POST (slice 5, DD-4, DD-6)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-5.1 | CORS preflight + JWT auth chain (missing/invalid→401; not admin/inactive→403) + `POST`: `admin.createUser({email,password,email_confirm:true,app_metadata:{rol:'empleado'},user_metadata:{display_name}})` + `audit_log` insert (`action='enroll_empleado'`). | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-3, DD-4, DD-6 | 409 duplicate email; 422 weak password; response has NO password/token; non-admin/inactive-admin → 403, zero side effects |
-| T-5.2 | Deploy the Edge Function; set `SUPABASE_SERVICE_ROLE_KEY` as a function secret (never under `src/`). | — | REQ-SETUP-9 | function reachable; key absent from `src/` |
+**Phase 5 status: 2/2 complete (agent-side).** All five gates (`pnpm lint`, `pnpm format:check`,
+`pnpm typecheck`, `pnpm test`, `pnpm build`) pass — `supabase/functions/**` is excluded from the
+Node/TS toolchain (Deno code, see Gap 9). Full local-stack E2E verified against a disposable
+`supabase start` + `supabase functions serve` run (all 5 containers, then `supabase stop`): active
+admin → 200 + `auth.users`/`profiles`(`rol='empleado'`,`activo=true`)/`audit_log` rows; active
+empleado → 403; revoked admin (`activo=false`) → 403; anon (no header) → 401; anon-key-as-bearer →
+401; duplicate email → 409; weak password / bad email shape → 422; malformed JSON → 400; CORS
+`OPTIONS` → 200; audit_log-insert-failure compensation (deleteUser rollback) → 500, verified by
+deliberately revoking the grant mid-test and confirming zero orphaned `auth.users` row. See
+`sdd/auth-pin/apply-progress` in engram for the full command-by-command evidence and Gap 9/10.
+T-5.2's literal "deploy the Edge Function" + "set `SUPABASE_SERVICE_ROLE_KEY` as a function secret"
+are **orchestrator actions** (this agent doesn't deploy to prod) — see Gap 10 for why the secret
+half is likely a no-op on this project.
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-5.1 | CORS preflight + JWT auth chain (missing/invalid→401; not admin/inactive→403) + `POST`: `admin.createUser({email,password,email_confirm:true,app_metadata:{rol:'empleado'},user_metadata:{display_name}})` + `audit_log` insert (`action='enroll_empleado'`). | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-3, DD-4, DD-6 | 409 duplicate email; 422 weak password; response has NO password/token; non-admin/inactive-admin → 403, zero side effects | [x] Done — see Gap 9 for a design.md §4 deviation (is_admin() RPC instead of a direct service-role `profiles` read) and the companion grant migration it required |
+| T-5.2 | Deploy the Edge Function; set `SUPABASE_SERVICE_ROLE_KEY` as a function secret (never under `src/`). | — | REQ-SETUP-9 | function reachable; key absent from `src/` | [x] Done (agent-side) — function authored + fully verified end-to-end against a disposable local stack; `SUPABASE_SERVICE_ROLE_KEY` never appears under `src/` (confirmed: it's a Deno-only reference in `supabase/functions/enroll-empleado/index.ts`). **[HUMAN/ORCHESTRATOR]** residual: actual prod deploy (GitHub integration vs `deploy_edge_function` MCP fallback) — see Gap 10 for why the secret itself is likely already auto-injected, needing no manual `secrets set` |
 
 ## Phase 6 — Employee management screen: GET + UI (slice 6, DD-11)
 
@@ -237,3 +251,38 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    itself (freshly-paired user's `$auth.rol` is `null` until their FIRST unlock) is UNCHANGED by this phase
    — still correctly flagged for whoever builds Phase 8's `RequireAdmin` guard, since Phase 8 remains out of
    scope here.
+9. **design.md §4's literal "With SERVICE_ROLE, SELECT rol, activo FROM profiles WHERE id = <caller>" is
+   unimplementable as written on this project** (discovered while implementing T-5.1, confirmed against a
+   disposable local stack). `supabase/config.toml` documents `auto_expose_new_tables` defaulting to OFF
+   (current Supabase cloud default: new tables get ZERO Data API grants to ANY role, including
+   `service_role`, until explicitly `GRANT`ed) — verified empirically: `\dp public.profiles` shows
+   `service_role=Dxtm/postgres` (TRUNCATE/REFERENCES/TRIGGER/MAINTAIN only, no SELECT). A literal
+   service-role `.from('profiles').select(...)` 42501s on every single call; this was never caught by the
+   Phase 1 JWT battery (T-1.5–T-1.11) because those tests exercise the `authenticated` role via RLS, never
+   `service_role` via direct PostgREST access. Resolution taken: `enroll-empleado`
+   (`supabase/functions/enroll-empleado/index.ts`) checks admin/active status by calling `public.is_admin()`
+   — a SECURITY DEFINER RPC already `GRANT`ed to `authenticated` (`20260705000200_domain_rls.sql`) that
+   already ANDs `activo` (Phase 1's `20260714000000...sql` item 5) — via a client scoped with the CALLER'S
+   OWN JWT (not service_role). This satisfies the exact same "rol='admin' AND activo" predicate with zero
+   new grants, and is arguably MORE aligned with this codebase's own established pattern (DD-8: RLS/RPC is
+   the sole authorization boundary) than the literal pseudocode. Not silently resolved: design.md §4 should
+   be corrected to reference `is_admin()` rather than a direct service-role table read, for whoever builds
+   Phase 6 (T-6.1's `GET` roster join literally needs `profiles` data too, and will hit this SAME grant gap
+   if implemented as a direct service-role `.from('profiles')` read — Phase 6 either needs its own grant
+   migration or a similar SECURITY DEFINER RPC route).
+10. **The mandatory `audit_log` insert (REQ-AP-SEG-3) hit the identical grant gap as Gap 9** — `service_role`
+   also had zero grants on `audit_log` (confirmed via the same `\dp` check: `service_role=Dxtm/postgres`,
+   no INSERT). Unlike Gap 9, there is no SECURITY DEFINER RPC to route around this — the audit trail is a
+   plain table write with no existing wrapper function — so this one genuinely needed a new migration.
+   Added `supabase/migrations/20260715000000_enroll_empleado_grants.sql`: `GRANT INSERT ON public.audit_log
+   TO service_role;` (INSERT only — the function's own `.insert()` call has no `.select()` chained, so
+   PostgREST never requests `SELECT` back). Verified empirically both ways on the local stack: with the
+   grant, enrollment succeeds and the audit row lands; with the grant deliberately revoked mid-test, the
+   function's own compensation logic (`admin.deleteUser()` rollback on audit-insert failure, disclosed in
+   `index.ts`'s file-header comment) fired correctly — zero orphaned `auth.users` row, 500 returned. This
+   migration is a REQUIRED companion to the `enroll-empleado` function deploy, not an optional cleanup —
+   without it, T-5.1's own spec requirement (REQ-AP-SEG-3's "MUST insert one audit_log row") fails on every
+   call in prod exactly as it did locally before the grant existed. Flagged for the orchestrator's deploy
+   step (same GitHub-integration path as `20260714000000_auth_pin_multirole.sql`, per this repo's schema
+   deploy convention) and for whoever builds Phase 6/7 (their own writes to `audit_log`, if any beyond what
+   this migration already covers, may need their own additive grants too).
