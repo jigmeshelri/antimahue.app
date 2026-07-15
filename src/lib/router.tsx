@@ -17,6 +17,11 @@
  *   /catalogo/:id → ProductDetailScreen
  *   /proveedor  → SupplierScreen
  *   /dte        → DteImportScreen
+ *   /empleadas  → EmpleadasScreen (NET-NEW, Phase 6 T-6.3, DD-11 — admin-only
+ *                 employee-management screen, absent from the 9-screen
+ *                 hi-fi handoff; `<RequireAdmin>` route-level enforcement
+ *                 lands in Phase 8, out of scope here — see EmpleadasScreen's
+ *                 own in-component admin gate in the meantime)
  */
 import { createBrowserRouter } from 'react-router'
 import { lazy } from 'react'
@@ -32,6 +37,7 @@ const CatalogScreen = lazy(() => import('@/features/catalogo/CatalogScreen'))
 const ProductDetailScreen = lazy(() => import('@/features/catalogo/ProductDetailScreen'))
 const SupplierScreen = lazy(() => import('@/features/proveedor/SupplierScreen'))
 const DteImportScreen = lazy(() => import('@/features/dte/DteImportScreen'))
+const EmpleadasScreen = lazy(() => import('@/features/empleadas/EmpleadasScreen'))
 
 export const router = createBrowserRouter([
   {
@@ -73,5 +79,9 @@ export const router = createBrowserRouter([
   {
     path: '/dte',
     element: <DteImportScreen />,
+  },
+  {
+    path: '/empleadas',
+    element: <EmpleadasScreen />,
   },
 ])

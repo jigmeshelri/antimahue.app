@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "26/47"
+progress: "29/47"
 updated_at: 2026-07-14
 ---
 
@@ -130,11 +130,29 @@ half is likely a no-op on this project.
 
 > **FLAG**: net-new surface, absent from the 9-screen hi-fi handoff (Risk R2, `proposal.md`).
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-6.1 | Add `GET` (list): `admin.listUsers()` ∩ `profiles` → `[{id,email,displayName,rol,activo,banned}]`. No broad `profiles` SELECT policy added — roster is Edge-Function-only. | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-3 | roster reflects real `auth.users`+`profiles` join |
-| T-6.2 | Terracota header (back + "Vendedoras" + "+"); body = roster cards (displayName + `activo` badge + revoke/restore toggle stub) from `GET`; "+" → inline form (nombre, email, password) → `POST` (Phase 5). | `src/features/empleadas/EmpleadasScreen.tsx` | DD-11 | roster renders from real `GET`; add-employee form succeeds, new row appears after refetch |
-| T-6.3 | Add `/empleadas` route (lazy-loaded, admin-only, matching the existing 9-route pattern). | `src/lib/router.tsx` | DD-11 | route resolves to `EmpleadasScreen` |
+**Phase 6 status: 3/3 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. Gap 9's own forward-flag for this phase ("Phase 6 either needs its own
+grant migration or a similar SECURITY DEFINER RPC route") is RESOLVED via a new migration,
+`supabase/migrations/20260716000000_listar_perfiles_rpc.sql` (`listar_perfiles()`, `is_admin()`-gated
+SECURITY DEFINER RPC) — see that migration's own header and Gap 9's note below for the full reasoning.
+Full local-stack E2E verified against a disposable `supabase db reset` + `supabase functions serve` run
+(3 synthetic actors — active admin, active empleado, revoked admin — plus anon): GET as active admin →
+200 + correct 3/4-row roster (id/email/displayName/rol/activo/banned, joining `admin.listUsers()` with
+`listar_perfiles()`); GET as active empleado → 403; GET as revoked admin → 403; GET with no
+Authorization header → 401; GET with the anon key as bearer → 401; direct `listar_perfiles()` RPC call
+(bypassing the Edge Function) as empleado/revoked-admin → empty set (never an exception, matching this
+codebase's own read-denial idiom); as anon role → `42501 permission denied for function
+listar_perfiles` (EXECUTE never granted to `anon`). POST (Phase 5) regression-checked in the same run:
+still 200, `audit_log` row still written, new row visible in a follow-up GET. See `sdd/auth-pin/apply-
+progress` in engram and Gap 11 below for a real (if currently benign) defect discovered ONLY by this
+empirical run: `handle_new_user()`'s role sourcing cannot actually produce an admin profile via
+`admin.createUser()` today.
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-6.1 | Add `GET` (list): `admin.listUsers()` ∩ `profiles` → `[{id,email,displayName,rol,activo,banned}]`. No broad `profiles` SELECT policy added — roster is Edge-Function-only. | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-3 | roster reflects real `auth.users`+`profiles` join | [x] Done — `profiles` data sourced via a NEW `listar_perfiles()` SECURITY DEFINER RPC (Gap 9 resolution for this phase, see migration `20260716000000_listar_perfiles_rpc.sql`), not a direct service-role table read (would have 42501'd, identically to Gap 9's POST-path discovery) |
+| T-6.2 | Terracota header (back + "Vendedoras" + "+"); body = roster cards (displayName + `activo` badge + revoke/restore toggle stub) from `GET`; "+" → inline form (nombre, email, password) → `POST` (Phase 5). | `src/features/empleadas/EmpleadasScreen.tsx` | DD-11 | roster renders from real `GET`; add-employee form succeeds, new row appears after refetch | [x] Done — pure network/parsing logic extracted to `src/features/empleadas/empleadasApi.ts` (`fetchRoster`/`enrollEmpleado`, mirroring the `pairDevice.ts`/`pinUnlock.ts` split), unit-tested in `empleadasApi.test.ts` (9 cases: success roster, 401/403/409/422 error-surface mapping, non-JSON error body fallback, non-array response guard, POST body/ack shape) mocking ONLY `supabase.functions.invoke`. Component-level walkthrough not yet done inside an actual browser (no React Testing Library in this repo — same residual-verification status T-4.9 flagged for `PinScreen.tsx`); the GET/POST contract itself IS verified end-to-end (see the Phase 6 status note above). Copy written in neutral/Chilean Spanish, no voseo (per the flagged Phase 4 "Probá" defect — not repeated here). Revoke/restore toggle rendered as a disabled stub per this row's own spec, wired for real in Phase 7 (T-7.2) |
+| T-6.3 | Add `/empleadas` route (lazy-loaded, admin-only, matching the existing 9-route pattern). | `src/lib/router.tsx` | DD-11 | route resolves to `EmpleadasScreen` | [x] Done — `<RequireAdmin>` route-level guard is still Phase 8 (out of scope); `EmpleadasScreen` itself gates on `$auth.rol === 'admin'` in the meantime (never fetches/renders roster data otherwise), per this apply's brief ("don't render cost/roster data without an admin session state") |
 
 ## Phase 7 — Revocation (slice 7, D5, DD-6)
 
@@ -270,6 +288,18 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    Phase 6 (T-6.1's `GET` roster join literally needs `profiles` data too, and will hit this SAME grant gap
    if implemented as a direct service-role `.from('profiles')` read — Phase 6 either needs its own grant
    migration or a similar SECURITY DEFINER RPC route).
+   **RESOLVED 2026-07-14 (Phase 6)**: exactly the forward-flagged case — T-6.1's `GET` roster handler hit
+   the identical 42501 on a direct service-role `profiles` read. Resolution chosen, precedent-consistent
+   AND respecting DD-11's own explicit decision ("no `profiles` read-policy widening, no `nombre` column"
+   — a broad admin-read RLS policy on `profiles` was the REJECTED alternative in that same decision row):
+   a new SECURITY DEFINER RPC, `listar_perfiles()` (`supabase/migrations/20260716000000_listar_perfiles_rpc.sql`),
+   gated by `is_admin()` INSIDE its own body (defense-in-depth — it is `authenticated`-EXECUTE-granted, so
+   callable directly from the browser console, bypassing the Edge Function's own auth chain entirely),
+   invoked via the caller's own JWT (same `callerClient` the POST path already uses for `is_admin()`).
+   Degrades to an empty set for a non-admin `authenticated` caller (matches this codebase's own read-denial
+   idiom — `producto_costos_select_admin` et al. — never an exception); `anon` gets a harder `42501`
+   because EXECUTE is never granted to it. Verified empirically on a disposable local stack for all 4 actor
+   types (see the Phase 6 status note above for the full command-by-command result).
 10. **The mandatory `audit_log` insert (REQ-AP-SEG-3) hit the identical grant gap as Gap 9** — `service_role`
    also had zero grants on `audit_log` (confirmed via the same `\dp` check: `service_role=Dxtm/postgres`,
    no INSERT). Unlike Gap 9, there is no SECURITY DEFINER RPC to route around this — the audit trail is a
@@ -286,3 +316,34 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    step (same GitHub-integration path as `20260714000000_auth_pin_multirole.sql`, per this repo's schema
    deploy convention) and for whoever builds Phase 6/7 (their own writes to `audit_log`, if any beyond what
    this migration already covers, may need their own additive grants too).
+11. **NEW, discovered while empirically verifying T-6.1 (not by design/spec review — this is a runtime
+   discovery about `admin.createUser()`'s real behavior, not a design/spec text mismatch like Gaps 1-10):
+   `handle_new_user()` (`20260714000000_auth_pin_multirole.sql` item 3) is `AFTER INSERT ON auth.users`
+   ONLY, but `supabase.auth.admin.createUser({..., app_metadata: {...}})` does NOT set `raw_app_meta_data`
+   as part of that INSERT — GoTrue performs an initial INSERT (default/provider-only metadata), then a
+   SEPARATE, immediately-following UPDATE that actually writes the custom `app_metadata` fields. Verified
+   empirically on a disposable local stack: created 2 users via the real Admin API with
+   `app_metadata:{rol:'admin'}` — `auth.users.raw_app_meta_data` correctly shows `{"rol":"admin",...}`
+   post-creation, `auth.users.created_at <> updated_at` (≈13ms apart, confirming a 2-step write), YET
+   `public.profiles.rol` came out `'empleado'` for BOTH — the trigger's `COALESCE(NEW.raw_app_meta_data->>
+   'rol', 'empleado')` read the metadata AS IT STOOD AT INSERT TIME (before GoTrue's follow-up UPDATE ever
+   ran), so it never sees a caller-supplied `rol` at all and always falls through to the `'empleado'`
+   default — regardless of what `app_metadata` was actually requested. Practical impact TODAY: currently
+   benign/masked, not actively exploited — `enroll-empleado`'s only `admin.createUser()` call
+   (`supabase/functions/enroll-empleado/index.ts`) hardcodes `app_metadata:{rol:'empleado'}`, which
+   coincides with the trigger's own fallback, so Phase 5/6's actual enrollment behavior is correct BY
+   ACCIDENT, not by the mechanism working as designed. Real consequence: **this project currently has NO
+   working code path that can provision a second `'admin'` profile via `admin.createUser()`** — any future
+   flow attempting that (there is none today; Phase 6/7 only ever create/revoke `'empleado'` rows) would
+   silently receive an `'empleado'` profile instead, a silent-downgrade correctness bug (safe direction —
+   under-privilege, not escalation — but still wrong and worth fixing before it's ever relied on). This also
+   means Gap 5's own verification claim ("an explicit `app_metadata.rol = 'admin'` still yields `'admin'`")
+   was likely validated via a raw SQL `INSERT INTO auth.users` (single-step, metadata present atomically at
+   INSERT time) rather than the real `admin.createUser()` API path (two-step) — the two are NOT equivalent
+   for trigger-timing purposes, and Gap 5's claim does not hold against the real Admin API. NOT fixed in
+   this apply: `handle_new_user()` was already deployed to prod in Phase 1 (out of Phase 6's scope to
+   re-touch), and no in-scope flow is currently affected. Recommended fix for whoever picks this up: add a
+   companion `AFTER UPDATE OF raw_app_meta_data ON auth.users FOR EACH ROW WHEN (OLD.raw_app_meta_data IS
+   DISTINCT FROM NEW.raw_app_meta_data) EXECUTE FUNCTION public.sync_profile_rol()` (re-derive/UPSERT
+   `profiles.rol` from the post-update value) as a new additive migration, OR confirm whether a future
+   "provision a second admin" flow is even needed before spending effort on it.
