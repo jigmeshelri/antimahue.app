@@ -1,6 +1,6 @@
 /**
- * Organism UI components — placeholder barrel.
- * Components: AppShell, NavBar, ProductGrid, TicketLines
- * Implemented in future UI change.
+ * Organism UI components — barrel.
+ * Implemented: PinUnlockPanel (Phase 4, T-4.7).
+ * Still placeholders for a future UI change: AppShell, NavBar, ProductGrid, TicketLines.
  */
-export {}
+export { default as PinUnlockPanel } from './PinUnlockPanel'

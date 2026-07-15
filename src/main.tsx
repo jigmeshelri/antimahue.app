@@ -22,6 +22,7 @@ import { RouterProvider } from 'react-router'
 import { router } from '@/lib/router'
 import { supabase } from '@/lib/supabase'
 import { $auth } from '@/stores/auth'
+import '@/index.css'
 
 // Bootstrap Supabase session listener.
 // Must be called before rendering so the auth state is populated on first render.

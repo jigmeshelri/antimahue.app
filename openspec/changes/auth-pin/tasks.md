@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "15/47"
+progress: "24/47"
 updated_at: 2026-07-14
 ---
 
@@ -88,17 +88,22 @@ output and Gap 8 (`rol` sourcing deviation from design.md's literal DD-3 step 4 
 
 ## Phase 4 — Daily PIN unlock (slice 4, DD-2, DD-7, DD-10)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-4.1 | Atom: 13×13 dot, filled `#8B5E3C` / empty border `#D9C3A0`, 150ms fill transition. | `src/components/atoms/PinDot.tsx` | DD-10 | matches handoff spec |
-| T-4.2 | Atom: 66×66 circle key, `#FDFAF4` bg, `1px #D9C3A0` border, 22px/500 label. | `src/components/atoms/PinKey.tsx` | DD-10 | matches handoff spec |
-| T-4.3 | Atom: 70×70 maple-leaf SVG, gradient `#C84030→#8A2010` (reuse handoff SVG path). | `src/components/atoms/AppIcon.tsx` | DD-10 | matches handoff spec |
-| T-4.4 | Molecule: row of 4 `PinDot`. | `src/components/molecules/PinDots.tsx` | DD-10 | renders 4 dots, fills left-to-right |
-| T-4.5 | Molecule: 3×4 grid + Phosphor `Backspace` (`fill`) + empty `[9,0]` cell. | `src/components/molecules/PinPad.tsx` | DD-10 | matches handoff layout |
-| T-4.6 | Molecule: avatars/names sourced ENTIRELY from `listRecords()`; auto-select if exactly one record; "+ vincular" → `PairDeviceScreen` (wires T-3.2's temp route into the real selector). | `src/components/molecules/UserSelector.tsx` | DD-3 RFC | 0 records → only "+ vincular" shown; 1 record → auto-selected, no picker |
-| T-4.7 | Organism: `AppIcon` + title "Antimahue" + subtitle(selected) + "INGRESA TU PIN" + `PinDots` + `PinPad` + lockout countdown (reads `$lock`). | `src/components/organisms/PinUnlockPanel.tsx` | DD-10 | matches handoff screen 1 |
-| T-4.8 | Hook: 4-digit accumulation → `getRecord`→`deriveKey`→`decryptToken`→`refreshSession({refresh_token})`; on success RE-ENCRYPT the rotated refresh token + `putRecord`; reset `failCount`; fetch own `profiles` row → `rol` into `$auth` (REQ-AUTH-4); on failure → DD-2 backoff, 9th failure → `deleteRecord`+route to pairing. | `src/features/auth/usePinUnlock.ts` | REQ-AUTH-1, REQ-AUTH-2, REQ-AUTH-4, DD-2, DD-7 | vitest w/ mocked `crypto.subtle`/supabase: correct PIN resolves + resets failCount; wrong PIN throws locally, zero network calls; 9th failure calls `deleteRecord` |
-| T-4.9 | Rewrite skeleton into real container: `UserSelector` (if >1 record) → `PinUnlockPanel`, wires `usePinUnlock`, disables pad while `$lock` active, navigates `/dashboard` 350ms after 4th correct digit, resets dots. | `src/features/auth/PinScreen.tsx` | DD-10, REQ-AUTH-1 | manual walkthrough: correct PIN → dashboard; wrong PIN → reset, no navigation |
+**Phase 4 status: 9/9 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. See `sdd/auth-pin/apply-progress` in engram for the full verification
+output, the Tailwind/Terraza-tokens wiring decision (no CSS entry file existed before this phase), and
+the `@phosphor-icons/react` dependency addition (design-system-mandated icon set, not a fresh choice).
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-4.1 | Atom: 13×13 dot, filled `#8B5E3C` / empty border `#D9C3A0`, 150ms fill transition. | `src/components/atoms/PinDot.tsx` | DD-10 | matches handoff spec | [x] Done |
+| T-4.2 | Atom: 66×66 circle key, `#FDFAF4` bg, `1px #D9C3A0` border, 22px/500 label. | `src/components/atoms/PinKey.tsx` | DD-10 | matches handoff spec | [x] Done |
+| T-4.3 | Atom: 70×70 maple-leaf SVG, gradient `#C84030→#8A2010` (reuse handoff SVG path). | `src/components/atoms/AppIcon.tsx` | DD-10 | matches handoff spec | [x] Done |
+| T-4.4 | Molecule: row of 4 `PinDot`. | `src/components/molecules/PinDots.tsx` | DD-10 | renders 4 dots, fills left-to-right | [x] Done |
+| T-4.5 | Molecule: 3×4 grid + Phosphor `Backspace` (`fill`) + empty `[9,0]` cell. | `src/components/molecules/PinPad.tsx` | DD-10 | matches handoff layout | [x] Done — uses `BackspaceIcon` (the non-deprecated export; `Backspace` itself is `@deprecated` in `@phosphor-icons/react` 2.1.10) |
+| T-4.6 | Molecule: avatars/names sourced ENTIRELY from `listRecords()`; auto-select if exactly one record; "+ vincular" → `PairDeviceScreen` (wires T-3.2's temp route into the real selector). | `src/components/molecules/UserSelector.tsx` | DD-3 RFC | 0 records → only "+ vincular" shown; 1 record → auto-selected, no picker | [x] Done — auto-select/no-picker logic lives in `PinScreen.tsx` (the container); the molecule itself is presentational (records/onSelect props) |
+| T-4.7 | Organism: `AppIcon` + title "Antimahue" + subtitle(selected) + "INGRESA TU PIN" + `PinDots` + `PinPad` + lockout countdown (reads `$lock`). | `src/components/organisms/PinUnlockPanel.tsx` | DD-10 | matches handoff screen 1 | [x] Done — countdown ticks via a `now` state value updated in a `setInterval` effect, not a direct `Date.now()` call in the render body (`react-hooks/purity`, eslint-plugin-react-hooks v7) |
+| T-4.8 | Hook: 4-digit accumulation → `getRecord`→`deriveKey`→`decryptToken`→`refreshSession({refresh_token})`; on success RE-ENCRYPT the rotated refresh token + `putRecord`; reset `failCount`; fetch own `profiles` row → `rol` into `$auth` (REQ-AUTH-4); on failure → DD-2 backoff, 9th failure → `deleteRecord`+route to pairing. | `src/features/auth/usePinUnlock.ts` | REQ-AUTH-1, REQ-AUTH-2, REQ-AUTH-4, DD-2, DD-7 | vitest w/ mocked `crypto.subtle`/supabase: correct PIN resolves + resets failCount; wrong PIN throws locally, zero network calls; 9th failure calls `deleteRecord` | [x] Done — split into `pinUnlock.ts` (pure orchestration, mirrors the `pairDevice.ts` precedent, holds ALL the logic in this row's description including the `$auth`/`$lock` store writes) + `usePinUnlock.ts` (the React digit-accumulation state machine calling it). `src/features/auth/pinUnlock.test.ts`, 12 tests: successful roundtrip + `$auth` update, token-rotation re-encryption recoverable with the same PIN, wrong-PIN zero-network, 5th-failure 30s lock, cooldown rejection without touching `failCount`/network, 9th-failure wipe, revoked-user (`activo=false`) refusal with vault intact, not-paired edge case, `refreshSession`-rejects edge case, post-refresh profile-read-fails edge case, `syncLockFromVault` mirroring + neutral-reset |
+| T-4.9 | Rewrite skeleton into real container: `UserSelector` (if >1 record) → `PinUnlockPanel`, wires `usePinUnlock`, disables pad while `$lock` active, navigates `/dashboard` 350ms after 4th correct digit, resets dots. | `src/features/auth/PinScreen.tsx` | DD-10, REQ-AUTH-1 | manual walkthrough: correct PIN → dashboard; wrong PIN → reset, no navigation | [x] Done — not manually walked through yet inside an actual browser (this agent has no browser tool in this session); logic verified via the 12 `pinUnlock.test.ts` cases + all 5 static gates green. Flagged as residual verification for `sdd-verify`/T-9 rather than silently claimed complete. |
 
 ## Phase 5 — Employee enrollment: POST (slice 5, DD-4, DD-6)
 
@@ -225,3 +230,10 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    unlock. Phase 8 doesn't exist yet, so this has zero live consequence now; flagging for whoever builds
    Phase 8 to confirm `usePinUnlock` actually runs (or an equivalent `profiles` read fires) right after
    pairing completes, not only on subsequent unlocks.
+   **PARTIALLY RESOLVED 2026-07-14 (Phase 4)**: REQ-AUTH-4's own claimed responsibility is now built —
+   `attemptUnlock` (`src/features/auth/pinUnlock.ts`) performs a fresh `profiles` SELECT on every PIN unlock
+   and writes the resolved `rol` (plus an `activo` GATE — see design.md §5's "Edge case" and this file's
+   T-4.8 row) into `$auth`, never trusting the vault's cached hint or a stale value. The residual edge case
+   itself (freshly-paired user's `$auth.rol` is `null` until their FIRST unlock) is UNCHANGED by this phase
+   — still correctly flagged for whoever builds Phase 8's `RequireAdmin` guard, since Phase 8 remains out of
+   scope here.
