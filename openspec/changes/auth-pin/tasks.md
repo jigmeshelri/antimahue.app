@@ -8,7 +8,7 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "29/47"
+progress: "31/47"
 updated_at: 2026-07-14
 ---
 
@@ -156,10 +156,34 @@ empirical run: `handle_new_user()`'s role sourcing cannot actually produce an ad
 
 ## Phase 7 — Revocation (slice 7, D5, DD-6)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-7.1 | Add `PATCH` (revoke/restore): `{userId,activo}` → `UPDATE profiles SET activo=<>`; revoke also `admin.updateUserById(userId,{ban_duration:'876000h'})`, restore `ban_duration:'none'`; `audit_log` insert (`action='revoke_empleado'`); `activo` write MUST NOT depend on the ban call succeeding. | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-4 | 404 unknown user; `activo` flips even if the ban call throws |
-| T-7.2 | Wire the revoke/restore toggle in the roster to call `PATCH`; refetch-on-success UI update. | `src/features/empleadas/EmpleadasScreen.tsx` | DD-11 | toggling a roster row flips its `activo` badge after the call resolves |
+**Phase 7 status: 2/2 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`pnpm test`, `pnpm build`) pass. Same Gap 9 grant wall as Phase 6 hit the `activo` write too — resolved via
+a new migration, `supabase/migrations/20260717000000_actualizar_activo_perfil_rpc.sql`
+(`actualizar_activo_perfil()`, `is_admin()`-gated SECURITY DEFINER RPC, same pattern as `listar_perfiles()`
+but RAISE-on-failure like `crear_producto`/`actualizar_producto`, since this is a write). Full local-stack
+E2E verified against a disposable `supabase db reset` + `supabase functions serve` run (synthetic admin +
+2 empleados, all via real password-grant JWTs — the admin created via a single atomic `auth.users` SQL
+insert per Gap 5/11's own methodology, both empleados via the real `POST` enroll path, regression-checking
+Phase 5 in the same pass): admin revokes an active empleado → 200, `profiles.activo=false` immediately,
+`auth.users.banned_until` ~100y out, one `audit_log` row (`action='revoke_empleado'`); the revoked
+empleado's STILL-VALID JWT (confirmed via `/auth/v1/user`, not merely assumed) is denied on the very next
+request — `productos` SELECT → `[]`, `is_active()` → `false`, `confirmar_venta` → RAISE `'usuario
+inactivo'` — satisfying REQ-AP-SEG-2 end-to-end for real, driven by this phase's own action rather than a
+manually-flipped column; admin restores → 200, `activo=true`, ban lifted, `audit_log` row
+(`action='restore_empleado'`), empleado regains `is_active()=true` immediately; empleado-caller (non-admin)
+attempting PATCH → 403 `not_active_admin`, zero side effects; anon (no header) → 401
+`missing_authorization`; unknown `userId` → 404 `user_not_found`; malformed body (missing `activo`) → 422
+`invalid_input`; admin self-revoke → 400 `cannot_self_target`, verified at the DB level to have left
+**zero** side effects (admin's own `banned_until` stayed null, no extra `audit_log` row) — both the Edge
+Function's own guard AND the RPC's independent internal guard were exercised directly (the RPC bypass path
+raises `'no puede modificar el estado de su propia cuenta'` when called straight over PostgREST, and
+`'solo admin'` for a non-admin direct caller). See `sdd/auth-pin/apply-progress` in engram for the full
+command-by-command evidence and Gaps 12/13 below.
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-7.1 | Add `PATCH` (revoke/restore): `{userId,activo}` → `UPDATE profiles SET activo=<>`; revoke also `admin.updateUserById(userId,{ban_duration:'876000h'})`, restore `ban_duration:'none'`; `audit_log` insert (`action='revoke_empleado'`); `activo` write MUST NOT depend on the ban call succeeding. | `supabase/functions/enroll-empleado/index.ts` | REQ-AP-SEG-4 | 404 unknown user; `activo` flips even if the ban call throws | [x] Done — see Gap 12 for the `profiles`-write deviation (RPC detour, identical shape to Gap 9) and Gap 13 for the new, undesigned self-revoke guard |
+| T-7.2 | Wire the revoke/restore toggle in the roster to call `PATCH`; refetch-on-success UI update. | `src/features/empleadas/EmpleadasScreen.tsx` | DD-11 | toggling a roster row flips its `activo` badge after the call resolves | [x] Done — `setEmpleadoActivo()` added to `empleadasApi.ts` (4 new unit tests mocking `supabase.functions.invoke`, same pattern as `enrollEmpleado`/`fetchRoster`); the roster toggle in `EmpleadasScreen.tsx` is now a real interactive switch (was a disabled stub, T-6.2) — refetches the roster on success, shows a per-row pending state while the call is in flight, and disables/labels itself for the caller's OWN row (`isSelf`) as a UX courtesy mirroring the server's `cannot_self_target` guard. Component-level click-through not walked in an actual browser (no React Testing Library in this repo, same residual status T-4.9/T-6.2 already flagged) — the PATCH contract itself IS verified end-to-end, including via the real UI's own network module (`setEmpleadoActivo`'s unit tests assert the exact method/body it sends) |
 
 ## Phase 8 — Inactivity auto-lock + route guards (slice 8, DD-8, DD-9)
 
@@ -347,3 +371,50 @@ bodies are out of proposal scope (they don't exist beyond lazy-loaded stubs yet)
    DISTINCT FROM NEW.raw_app_meta_data) EXECUTE FUNCTION public.sync_profile_rol()` (re-derive/UPSERT
    `profiles.rol` from the post-update value) as a new additive migration, OR confirm whether a future
    "provision a second admin" flow is even needed before spending effort on it.
+12. **The `PATCH` `profiles.activo` write hits the IDENTICAL Gap 9 grant wall, this time for `UPDATE`
+   instead of `SELECT`** (discovered while implementing T-7.1, confirmed against a disposable local stack).
+   design.md §4's literal `PATCH` mechanism ("`UPDATE profiles SET activo=<>`") issued via
+   `adminClient.from('profiles').update(...)` would 42501 exactly like Gap 9's direct-role-read attempt did
+   for `POST`, and Gap 9's own Phase 6 forward-flag already predicted this for any future `profiles` write
+   too. Resolution taken, consistent with both precedents: a THIRD SECURITY DEFINER RPC,
+   `actualizar_activo_perfil(p_perfil_id, p_activo)`
+   (`supabase/migrations/20260717000000_actualizar_activo_perfil_rpc.sql`), `is_admin()`-gated inside its
+   own body, invoked via `callerClient` (the caller's own JWT). Unlike `listar_perfiles()` (a read that
+   degrades to an empty set for a non-admin caller), this RPC `RAISE EXCEPTION`s on a failed gate — matching
+   this codebase's own established idiom for admin-gated WRITES (`crear_producto`/`actualizar_producto`,
+   not `listar_perfiles()`'s read-only convention). Verified empirically both through the Edge Function's
+   normal path AND via a direct bypass call (non-admin caller invoking the RPC straight over PostgREST) —
+   see the Phase 7 status note above for the full result. The ban/unban call
+   (`auth.admin.updateUserById`) needed no such detour — it is a GoTrue Admin API call, not a PostgREST
+   table read, so `service_role` already has whatever it needs regardless of `profiles`' own grants.
+13. **Self-revoke guard — NEW, added during T-7.1, NOT specified by design.md §4/§8 or
+   specs/seguridad/spec.md's REQ-AP-SEG-4.** Neither document addresses what happens when an admin PATCHes
+   their OWN `userId`. This project has exactly one admin account (Angélica) provisioned to date, and no
+   other artifact in this change designs a recovery path for a locked-out sole admin (no support console,
+   no secondary admin seed, no "restore via SQL" runbook) — a successful self-revoke would durably lock the
+   store out of its only administrative account the instant the ban call lands (`ban_duration:'876000h'`,
+   ~100 years). Resolution taken (disclosed, not silently folded in, per this apply's own brief): `userId ===
+   actorId` is rejected in `enroll-empleado`'s `handlePatch` BEFORE either the RPC or the ban call runs (400
+   `cannot_self_target`, zero side effects — verified at the DB level: the admin's own `banned_until` stayed
+   null and no extra `audit_log` row appeared), AND independently inside `actualizar_activo_perfil()` itself
+   (`RAISE EXCEPTION` on `p_perfil_id = auth.uid()`) as defense-in-depth against a direct RPC call bypassing
+   the Edge Function entirely — the same bypass surface already defended for `listar_perfiles()`/
+   `is_admin()`/`is_active()`. Flagged for whoever writes `specs/seguridad/spec.md`'s next revision: REQ-AP-
+   SEG-4 should probably gain an explicit scenario for this ("an admin MUST NOT be able to revoke their own
+   account"), since it is currently an implementation-only guarantee, not a spec-mandated one.
+14. **`Access-Control-Allow-Methods` CORS header was stale since Phase 6 — found and fixed while adding
+   `PATCH` (T-7.1), not a Phase 7-introduced defect.** `supabase/functions/enroll-empleado/index.ts`'s
+   `corsHeaders` constant listed `'POST, OPTIONS'` only; Phase 6 added a `GET` action but never updated this
+   header, and Phase 5/6's own local-stack verification used `curl` (which does not enforce CORS), so a real
+   browser preflight rejecting the `GET` roster call would never have been caught by either phase's own
+   verification. Fixed here to `'GET, POST, PATCH, OPTIONS'` alongside `PATCH`'s own addition — otherwise
+   T-7.2's UI wiring would have been silently broken in an actual browser despite passing every unit test
+   and curl-based local-stack check (unit tests mock `supabase.functions.invoke` entirely, and curl ignores
+   CORS, so neither surface would have caught this). NOT independently re-verified against local Kong's own
+   OPTIONS response in this apply — the local dev gateway (Kong) returns its OWN more-permissive default
+   Allow-Methods list for `OPTIONS` on the `/functions/v1/*` route, which superseded this function's own
+   header value during this phase's local testing, making Kong an unreliable oracle for this specific header
+   locally. The code fix itself is verified correct by inspection (same `corsHeaders` object already used,
+   unconditionally, for the function's own `OPTIONS` response since Phase 5) — flagged for whoever runs
+   T-9.1/T-9.4 (real browser/PWA verification) to confirm the deployed Cloud Edge Function (which does not
+   sit behind a local-dev-only Kong gateway) returns this function's own header value to a real preflight.

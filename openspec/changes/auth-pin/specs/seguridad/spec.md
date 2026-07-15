@@ -89,6 +89,32 @@ call succeeding. It MUST insert one `audit_log` row (`action='revoke_empleado'`)
 - THEN `profiles.activo = false` takes effect immediately (REQ-AP-SEG-2 denies the next request) and the `auth.users` row is banned for future logins/refreshes
 - AND one `audit_log` row records the revocation
 
+### Requirement: REQ-AP-SEG-4a — Self-revoke guard: an admin MUST NOT deactivate their own account
+
+Rationale — sole-admin lockout prevention: this project has one admin (Angélica)
+and no designed recovery path for a locked-out sole admin (no support console, no
+secondary admin, no restore-via-SQL runbook). A successful self-revoke would durably
+lock the store out of its only administrative account. An active admin attempting to
+deactivate their OWN profile (`p_perfil_id == auth.uid()`, or Edge-Function
+`userId === actorId`) MUST be rejected with ZERO side effects: no `activo` flip, no
+`ban_duration` call, no `audit_log` row. The guard MUST hold at BOTH layers (defense
+in depth): the `enroll-empleado` Edge Function rejects a self-target (`400
+cannot_self_target`) before any write, AND the `actualizar_activo_perfil` RPC
+independently re-raises for a direct-bypass caller (the RPC is EXECUTE-granted to
+`authenticated`, so it is directly callable without the Edge Function). This guard
+applies regardless of the target's own role or activo state — it keys on identity,
+not role.
+
+#### Scenario: admin self-deactivation via the Edge Function is rejected
+- GIVEN an active admin whose id is `A`
+- WHEN they PATCH `enroll-empleado` with `userId = A`, `activo = false`
+- THEN it is rejected (`400 cannot_self_target`) before any write — `profiles.activo` for `A` is unchanged, no ban is issued, and no `audit_log` row is inserted
+
+#### Scenario: admin self-deactivation via a direct RPC bypass is still rejected
+- GIVEN an active admin whose `auth.uid()` is `A`, calling the RPC directly (bypassing the Edge Function)
+- WHEN they invoke `actualizar_activo_perfil(p_perfil_id = A, p_activo = false)`
+- THEN the RPC raises and no row is updated — the guard does not depend on the Edge Function being in the path
+
 ### Requirement: REQ-AP-SEG-5 — Multi-role RLS/RPC verification matrix (closes data-model T-5.1–T-5.5)
 
 The runtime JWT suite data-model deferred MUST execute against a real `'empleado'`

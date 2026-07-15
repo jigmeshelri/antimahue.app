@@ -3,13 +3,14 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 /**
- * enroll-empleado — DD-6, REQ-AP-SEG-3 (Phase 5, T-5.1/T-5.2; Phase 6, T-6.1).
+ * enroll-empleado — DD-6, REQ-AP-SEG-3/REQ-AP-SEG-4 (Phase 5, T-5.1/T-5.2;
+ * Phase 6, T-6.1; Phase 7, T-7.1).
  *
- * Admin-gated Deno Edge Function running with service_role. Phase 5 implemented
- * the `POST` (enroll) action; Phase 6 adds `GET` (roster list, T-6.1) below.
- * `PATCH` (revoke/restore, Phase 7, T-7.1) still lands on the SAME method
- * switch in a later phase — the shared auth chain (steps 1-3) already covers
- * all three per design.md §4's literal ordering.
+ * Admin-gated Deno Edge Function running with service_role. Phase 5
+ * implemented the `POST` (enroll) action; Phase 6 added `GET` (roster list,
+ * T-6.1); Phase 7 adds `PATCH` (revoke/restore, T-7.1) below — the shared
+ * auth chain (steps 1-3) already covers all three per design.md §4's
+ * literal ordering.
  *
  * GET (roster) — design.md §4's literal mechanism ("With SERVICE_ROLE, ...
  * FROM profiles") hits the IDENTICAL grant wall as Gap 9 (see that gap's
@@ -21,6 +22,23 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
  * by the shared auth chain) — while `email`/`displayName`/`banned` come from
  * `admin.listUsers()`, a GoTrue Admin API call (not a PostgREST table read),
  * which needs no table grant at all.
+ *
+ * PATCH (revoke/restore, REQ-AP-SEG-4) — the SAME `profiles` grant wall
+ * applies to the `activo` flip, so `handlePatch` below routes it through
+ * ANOTHER SECURITY DEFINER RPC, `actualizar_activo_perfil()` (see
+ * `20260717000000_actualizar_activo_perfil_rpc.sql`), invoked via
+ * `callerClient`. The ban/unban call (`auth.admin.updateUserById`) is a
+ * GoTrue Admin API call, not a PostgREST table read, so it still goes
+ * through `adminClient` (service_role) exactly as design.md §4 specifies —
+ * only the `profiles.activo` write needed the RPC detour.
+ *
+ * SELF-REVOKE GUARD (new — not specified by design.md/spec.md; see the
+ * migration's own header for the full reasoning): `handlePatch` rejects a
+ * PATCH where `userId` equals the caller's own id, BEFORE calling either the
+ * RPC or the ban API, so a self-targeting request has zero side effects.
+ * The RPC independently re-asserts the same guard (defense-in-depth against
+ * a direct RPC call bypassing this function entirely, identical bypass
+ * surface already defended for `listar_perfiles()`).
  *
  * Auth chain (MUST run, in order, for every method — design.md §4):
  *   1. CORS preflight (`OPTIONS`) — allow the SPA origin.
@@ -86,7 +104,12 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  // NOTE (found while adding PATCH here, Phase 7): this list was never
+  // updated past 'POST, OPTIONS' when Phase 6 added GET — a real browser
+  // preflight would have rejected the GET roster call outright (curl-based
+  // local-stack verification, used through Phase 5/6, doesn't enforce CORS,
+  // so this was never caught). Fixed here, alongside PATCH's own addition.
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
 }
 
 function json(status: number, body: unknown): Response {
@@ -100,6 +123,12 @@ interface EnrollBody {
   email: string
   password: string
   displayName: string
+}
+
+// PATCH (revoke/restore) request body — design.md §4's literal contract.
+interface PatchBody {
+  userId: string
+  activo: boolean
 }
 
 // GET (roster) response row shape — design.md §4's literal contract:
@@ -146,6 +175,12 @@ function isEnrollBody(value: unknown): value is EnrollBody {
     typeof v.displayName === 'string' &&
     v.displayName.trim().length > 0
   )
+}
+
+function isPatchBody(value: unknown): value is PatchBody {
+  if (typeof value !== 'object' || value === null) return false
+  const v = value as Record<string, unknown>
+  return typeof v.userId === 'string' && v.userId.length > 0 && typeof v.activo === 'boolean'
 }
 
 // Maps a `createUser` AuthError to the design.md-specified error surface:
@@ -263,6 +298,83 @@ async function handleRoster(
   return json(200, roster)
 }
 
+// PATCH (revoke/restore) — design.md §4 / T-7.1 (REQ-AP-SEG-4). Flips
+// `profiles.activo` via `actualizar_activo_perfil()` (the caller's own JWT,
+// via `callerClient` — see the file-header note and that migration's own
+// header for why this replaces a direct service-role `profiles` write), then
+// durably blocks/unblocks future token refreshes via the GoTrue Admin API
+// (`adminClient`, service_role — no table grant involved). The `activo`
+// write MUST NOT depend on the ban/unban call succeeding (design.md §4) —
+// a `banError` is logged, not treated as a request failure.
+//
+// Rejection paths (self-target, not-found) leave zero side effects: both are
+// checked/detected BEFORE the ban call or the audit_log insert ever runs.
+async function handlePatch(
+  req: Request,
+  adminClient: ReturnType<typeof createClient>,
+  callerClient: ReturnType<typeof createClient>,
+  actorId: string
+): Promise<Response> {
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return json(400, { error: 'invalid_json' })
+  }
+
+  if (!isPatchBody(body)) {
+    return json(422, { error: 'invalid_input' })
+  }
+
+  const { userId, activo } = body
+
+  // SELF-REVOKE GUARD — see this file's header note and the migration's own
+  // header for the full reasoning. Checked first, before any write.
+  if (userId === actorId) {
+    return json(400, { error: 'cannot_self_target' })
+  }
+
+  const { data: updated, error: rpcError } = await callerClient.rpc('actualizar_activo_perfil', {
+    p_perfil_id: userId,
+    p_activo: activo,
+  })
+
+  if (rpcError) {
+    return json(500, { error: 'internal_error' })
+  }
+  if (updated !== true) {
+    return json(404, { error: 'user_not_found' })
+  }
+
+  const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
+    ban_duration: activo ? 'none' : '876000h',
+  })
+  if (banError) {
+    // Disclosed asymmetry with `handleEnroll`'s compensation logic: the
+    // `activo` flip above already denies the target's NEXT request
+    // immediately (REQ-AP-SEG-2) regardless of this call's outcome — design.md
+    // §4 is explicit that the DB write must not depend on the ban call
+    // succeeding, so this is logged, not compensated/rolled back.
+    console.error(
+      'enroll-empleado: ban/unban call failed, activo flip already committed',
+      banError
+    )
+  }
+
+  const { error: auditError } = await adminClient.from('audit_log').insert({
+    actor_id: actorId,
+    action: activo ? 'restore_empleado' : 'revoke_empleado',
+    entity: 'auth.users',
+    entity_id: userId,
+  })
+  if (auditError) {
+    console.error('enroll-empleado: audit_log insert failed for PATCH', auditError)
+    return json(500, { error: 'internal_error' })
+  }
+
+  return json(200, { id: userId, activo })
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -307,8 +419,9 @@ Deno.serve(async (req: Request) => {
       return await handleEnroll(req, adminClient, caller.id)
     case 'GET':
       return await handleRoster(adminClient, callerClient)
+    case 'PATCH':
+      return await handlePatch(req, adminClient, callerClient, caller.id)
     default:
-      // PATCH (Phase 7, T-7.1) lands here in a later phase.
       return json(405, { error: 'method_not_allowed' })
   }
 })

@@ -18,7 +18,13 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 import { supabase } from '@/lib/supabase'
-import { EmpleadasApiError, enrollEmpleado, fetchRoster, type RosterEntry } from './empleadasApi'
+import {
+  EmpleadasApiError,
+  enrollEmpleado,
+  fetchRoster,
+  setEmpleadoActivo,
+  type RosterEntry,
+} from './empleadasApi'
 
 const invoke = vi.mocked(supabase.functions.invoke)
 
@@ -153,6 +159,62 @@ describe('enrollEmpleado', () => {
       status: 409,
       code: null,
       message: 'Ya existe una cuenta con ese correo.',
+    })
+  })
+})
+
+describe('setEmpleadoActivo', () => {
+  const input = { userId: 'u3', activo: false }
+
+  it('should_return_the_ack_and_send_a_PATCH_with_the_given_body_when_the_call_succeeds', async () => {
+    const ack = { id: 'u3', activo: false }
+    invoke.mockResolvedValue({ data: ack, error: null } as never)
+
+    const result = await setEmpleadoActivo(input)
+
+    expect(result).toEqual(ack)
+    expect(invoke).toHaveBeenCalledExactlyOnceWith('enroll-empleado', {
+      method: 'PATCH',
+      body: input,
+    })
+  })
+
+  it('should_throw_a_self_target_message_on_400', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      error: httpError(400, { error: 'cannot_self_target' }),
+    } as never)
+
+    await expect(setEmpleadoActivo(input)).rejects.toMatchObject({
+      status: 400,
+      code: 'cannot_self_target',
+      message: 'No puede modificar el estado de su propia cuenta.',
+    })
+  })
+
+  it('should_throw_a_not_found_message_on_404', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      error: httpError(404, { error: 'user_not_found' }),
+    } as never)
+
+    await expect(setEmpleadoActivo(input)).rejects.toMatchObject({
+      status: 404,
+      code: 'user_not_found',
+      message: 'No se encontró a la persona indicada.',
+    })
+  })
+
+  it('should_throw_a_403_message_when_the_caller_is_not_an_active_admin', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      error: httpError(403, { error: 'not_active_admin' }),
+    } as never)
+
+    await expect(setEmpleadoActivo(input)).rejects.toMatchObject({
+      status: 403,
+      code: 'not_active_admin',
+      message: 'Esta acción requiere una cuenta de administradora activa.',
     })
   })
 })
