@@ -3,13 +3,24 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 /**
- * enroll-empleado — DD-6, REQ-AP-SEG-3 (Phase 5, T-5.1/T-5.2).
+ * enroll-empleado — DD-6, REQ-AP-SEG-3 (Phase 5, T-5.1/T-5.2; Phase 6, T-6.1).
  *
- * Admin-gated Deno Edge Function running with service_role. Phase 5 implements
- * only the `POST` (enroll) action; `GET` (roster list, Phase 6, T-6.1) and
- * `PATCH` (revoke/restore, Phase 7, T-7.1) are dispatched from the SAME method
- * switch below and will be added to it in those later phases — the shared auth
- * chain (steps 1-3) already covers all three per design.md §4's literal ordering.
+ * Admin-gated Deno Edge Function running with service_role. Phase 5 implemented
+ * the `POST` (enroll) action; Phase 6 adds `GET` (roster list, T-6.1) below.
+ * `PATCH` (revoke/restore, Phase 7, T-7.1) still lands on the SAME method
+ * switch in a later phase — the shared auth chain (steps 1-3) already covers
+ * all three per design.md §4's literal ordering.
+ *
+ * GET (roster) — design.md §4's literal mechanism ("With SERVICE_ROLE, ...
+ * FROM profiles") hits the IDENTICAL grant wall as Gap 9 (see that gap's
+ * writeup in tasks.md and this repo's `20260716000000_listar_perfiles_rpc.sql`
+ * migration): `service_role` has zero SELECT grant on `public.profiles`.
+ * `handleRoster` below therefore reads `rol`/`activo` via the SAME
+ * `is_admin()`-precedent — a new SECURITY DEFINER RPC, `listar_perfiles()`,
+ * invoked via `callerClient` (the caller's own JWT, already proven `is_admin()`
+ * by the shared auth chain) — while `email`/`displayName`/`banned` come from
+ * `admin.listUsers()`, a GoTrue Admin API call (not a PostgREST table read),
+ * which needs no table grant at all.
  *
  * Auth chain (MUST run, in order, for every method — design.md §4):
  *   1. CORS preflight (`OPTIONS`) — allow the SPA origin.
@@ -89,6 +100,33 @@ interface EnrollBody {
   email: string
   password: string
   displayName: string
+}
+
+// GET (roster) response row shape — design.md §4's literal contract:
+// `[{id,email,displayName,rol,activo,banned}]`.
+interface RosterEntry {
+  id: string
+  email: string | null
+  displayName: string
+  rol: string
+  activo: boolean
+  banned: boolean
+}
+
+// Shape of one `listar_perfiles()` RPC row (see the Phase 6 migration).
+interface Perfil {
+  id: string
+  rol: string
+  activo: boolean
+}
+
+// GoTrue marks a banned user with a far-future `banned_until` timestamp
+// (Phase 7's `ban_duration:'876000h'`, ~100 years) and clears it back to
+// `'none'` on restore — so "still in the future" is the correct ban check,
+// not merely "field present".
+function isBanned(bannedUntil: string | null | undefined): boolean {
+  if (!bannedUntil) return false
+  return new Date(bannedUntil).getTime() > Date.now()
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -183,6 +221,48 @@ async function handleEnroll(
   })
 }
 
+// GET (roster) — design.md §4 / T-6.1. `admin.listUsers()` (GoTrue Admin API,
+// service_role, no table grant needed) supplies email/displayName/banned;
+// `listar_perfiles()` (the caller's own JWT, via `callerClient` — see the
+// file-header note) supplies rol/activo. Joined by `id`. A staff member
+// missing from either side (should not happen — `handle_new_user()` always
+// inserts a `profiles` row on `auth.users` insert) is dropped rather than
+// surfaced with a half-populated row.
+async function handleRoster(
+  adminClient: ReturnType<typeof createClient>,
+  callerClient: ReturnType<typeof createClient>
+): Promise<Response> {
+  const { data: listData, error: listError } = await adminClient.auth.admin.listUsers()
+  if (listError) {
+    return json(500, { error: 'internal_error' })
+  }
+
+  const { data: perfiles, error: perfilesError } = await callerClient.rpc('listar_perfiles')
+  if (perfilesError) {
+    return json(500, { error: 'internal_error' })
+  }
+
+  const perfilesById = new Map<string, Perfil>(
+    ((perfiles ?? []) as Perfil[]).map((perfil) => [perfil.id, perfil])
+  )
+
+  const roster: RosterEntry[] = []
+  for (const user of listData.users) {
+    const perfil = perfilesById.get(user.id)
+    if (!perfil) continue
+    roster.push({
+      id: user.id,
+      email: user.email ?? null,
+      displayName: (user.user_metadata?.display_name as string | undefined) ?? '',
+      rol: perfil.rol,
+      activo: perfil.activo,
+      banned: isBanned(user.banned_until),
+    })
+  }
+
+  return json(200, roster)
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -225,8 +305,10 @@ Deno.serve(async (req: Request) => {
   switch (req.method) {
     case 'POST':
       return await handleEnroll(req, adminClient, caller.id)
+    case 'GET':
+      return await handleRoster(adminClient, callerClient)
     default:
-      // GET (Phase 6, T-6.1) and PATCH (Phase 7, T-7.1) land here in later phases.
+      // PATCH (Phase 7, T-7.1) lands here in a later phase.
       return json(405, { error: 'method_not_allowed' })
   }
 })
