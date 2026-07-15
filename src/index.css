@@ -1,0 +1,88 @@
+/**
+ * Tailwind entry stylesheet + "Terraza" design tokens — DD-10 (Phase 4).
+ *
+ * First CSS file in the repo. `@tailwindcss/vite` (vite.config.ts) has been
+ * wired since setup-stack, but nothing ever imported Tailwind's own CSS or
+ * declared the handoff's "Terraza" palette as reusable tokens —
+ * `PairDeviceScreen.tsx` (Phase 3) used raw inline styles specifically
+ * because this file didn't exist yet (see its own header comment). This
+ * closes that gap for the PIN-screen atoms/molecules/organism built here.
+ *
+ * Tokens are named 1:1 with docs/design_handoff_antimahue/README.md's own
+ * CSS custom-property table ("Sistema visual — Variación Terraza"), just
+ * flattened onto Tailwind v4's `--color-*`/`--radius-*`/`--font-*`
+ * namespaces so every value below also becomes a utility class for free
+ * (`--color-corteza` → `bg-corteza` / `text-corteza` / `border-corteza`).
+ *
+ * Font note (deviation, see apply-progress): the handoff specifies DM Sans
+ * via a Google Fonts <link>. This repo's CSP (`public/_headers`) is
+ * `font-src 'self'` / `default-src 'self'` — fetching fonts.googleapis.com
+ * would be silently blocked in production. Self-hosting the DM Sans files
+ * is left as follow-up work; the stack below degrades to the system
+ * sans-serif stack, matching the fallback already used by
+ * `PairDeviceScreen.tsx`'s inline style.
+ */
+@import 'tailwindcss';
+
+@theme {
+  /* Marca / identidad */
+  --color-hoja: #c84030;
+  --color-hoja-deep: #8a2010;
+  --color-terracota: #c17b4a;
+  --color-madera: #8b5e3c;
+  --color-corteza: #2d1f14;
+
+  /* Fondos */
+  --color-bg-pantalla: #f5eed8;
+  --color-bg-card: #fdfaf4;
+
+  /* Bordes */
+  --color-border-sand: #d9c3a0;
+  --color-border-sand-light: #e8d5b7;
+
+  /* Texto */
+  --color-text-primary: #2d1f14;
+  --color-text-secondary: #b09070;
+  --color-text-muted: #8b6255;
+
+  /* Nav */
+  --color-nav-bg: #2d1f14;
+  --color-nav-active: #e8c090;
+  --color-nav-inactive: rgba(250, 240, 224, 0.3);
+
+  /* Estados de stock */
+  --color-stock-ok: #6b9e6b;
+  --color-stock-low: #c9860a;
+  --color-stock-low-bg: #fef3c7;
+  --color-stock-out: #c84a3a;
+  --color-stock-out-bg: rgba(200, 74, 58, 0.08);
+  --color-stock-out-border: rgba(200, 74, 58, 0.2);
+
+  /* Éxito */
+  --color-success: #3a8a3a;
+  --color-success-bg: #e8f2e8;
+  --color-success-border: #b0d4b0;
+
+  /* Alertas (terracota clara) */
+  --color-terracota-alert-bg: rgba(200, 74, 58, 0.08);
+  --color-terracota-alert-border: rgba(200, 74, 58, 0.18);
+  --color-error: #a33a2a;
+
+  /* Tipografía — DM Sans not self-hosted yet (see header note); system fallback */
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Radios */
+  --radius-card: 12px;
+  --radius-card-sm: 10px;
+  --radius-button: 12px;
+  --radius-input: 10px;
+  --radius-badge: 20px;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg-pantalla);
+    color: var(--color-text-primary);
+  }
+}
