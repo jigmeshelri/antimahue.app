@@ -502,6 +502,42 @@
 
   <div class="req">
     <div class="req-header">
+      <span class="req-id">REQ-AP-SEG-4a</span>
+      <span class="req-title">Salvaguarda anti-autorrevocación: una administradora no puede desactivar su propia cuenta</span>
+      <span class="badge badge-new">NUEVO</span>
+      <span class="badge badge-must">MUST</span>
+      <span class="badge badge-security">CRÍTICO</span>
+    </div>
+    <div class="req-body">
+      <p>Motivo — evitar el bloqueo total de la única administradora: el proyecto tiene una sola
+      administradora (Angélica) y ningún cambio del repositorio diseña una vía de recuperación si esa cuenta
+      queda bloqueada (no hay consola de soporte, ni administradora secundaria, ni procedimiento de
+      restauración por SQL). Una autorrevocación exitosa dejaría a la tienda sin su única cuenta
+      administrativa de forma duradera. Una administradora activa que intente desactivar su propio perfil
+      debe ser rechazada sin ningún efecto secundario: no se cambia <code>activo</code>, no se emite el
+      baneo, no se escribe auditoría. La salvaguarda rige en ambas capas (defensa en profundidad): la
+      función <code>enroll-empleado</code> rechaza el auto-objetivo (<code>400 cannot_self_target</code>)
+      antes de cualquier escritura, y la RPC <code>actualizar_activo_perfil</code> vuelve a lanzar el error
+      de forma independiente para quien la llame directamente sorteando la función —esa RPC está otorgada a
+      <code>authenticated</code>, así que es invocable de forma directa—. La regla depende de la identidad,
+      no del rol ni del estado activo del objetivo.</p>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: autodesactivación vía la función es rechazada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una administradora activa cuyo id es <code>A</code></div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> hace un PATCH a <code>enroll-empleado</code> con <code>userId = A</code>, <code>activo = false</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> se rechaza (<code>400 cannot_self_target</code>) antes de cualquier escritura — su <code>activo</code> no cambia, no se emite baneo y no se inserta auditoría</div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">Escenario: autodesactivación por llamada directa a la RPC también es rechazada</div>
+        <div class="scenario-step"><span class="keyword">Dado</span> una administradora activa cuyo <code>auth.uid()</code> es <code>A</code>, llamando la RPC directamente (sorteando la función)</div>
+        <div class="scenario-step"><span class="keyword">Cuando</span> invoca <code>actualizar_activo_perfil(p_perfil_id = A, p_activo = false)</code></div>
+        <div class="scenario-step"><span class="keyword">Entonces</span> la RPC lanza el error y no se actualiza ninguna fila — la salvaguarda no depende de que la función esté en el camino</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="req">
+    <div class="req-header">
       <span class="req-id">REQ-AP-SEG-5</span>
       <span class="req-title">Matriz de verificación RLS/RPC multi-rol — cierra T-5.1–T-5.5 de <code>data-model</code></span>
       <span class="badge badge-new">NUEVO</span>
@@ -656,7 +692,7 @@
         <tr><td>D2 — activación del multi-rol</td><td>REQ-SETUP-8, REQ-AP-SEG-5</td></tr>
         <tr><td>D3 — valor de rol <code>'empleado'</code></td><td>REQ-SETUP-8</td></tr>
         <tr><td>D4 — enrolamiento mínimo</td><td>REQ-AP-SEG-3</td></tr>
-        <tr><td>D5 — revocación (compuerta <code>activo</code> + baneo)</td><td>REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-AP-SEG-4</td></tr>
+        <tr><td>D5 — revocación (compuerta <code>activo</code> + baneo + salvaguarda anti-autorrevocación)</td><td>REQ-AP-SEG-1, REQ-AP-SEG-2, REQ-AP-SEG-4, REQ-AP-SEG-4a</td></tr>
         <tr><td>D6 — autobloqueo por inactividad, sin plan de pago</td><td>REQ-AUTH-3</td></tr>
       </tbody>
     </table>
