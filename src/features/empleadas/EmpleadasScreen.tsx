@@ -1,6 +1,6 @@
 /**
- * EmpleadasScreen — admin-only employee-management screen (Phase 6, T-6.2,
- * DD-11).
+ * EmpleadasScreen — admin-only employee-management screen (Phase 6, T-6.2;
+ * Phase 7, T-7.2; DD-11).
  *
  * NET-NEW surface, absent from the 9-screen hi-fi handoff (proposal.md Risk
  * R2) — visual language derived from the handoff's Terraza tokens (terracota
@@ -9,11 +9,17 @@
  *
  * Admin gating here is UX-ONLY (DD-8): the real boundary is Postgres
  * (`is_admin()` inside `enroll-empleado`'s auth chain, and the
- * `listar_perfiles()` RPC it calls — see the Phase 6 migration). This
- * component additionally never even ATTEMPTS the roster fetch unless the
- * in-memory `$auth.rol` is `'admin'` — `<RequireAdmin>` route guard lands in
- * Phase 8, out of scope here, so this is the interim "don't render roster
- * data without an admin session state" gate.
+ * `listar_perfiles()`/`actualizar_activo_perfil()` RPCs it calls — see the
+ * Phase 6/7 migrations). This component additionally never even ATTEMPTS
+ * the roster fetch unless the in-memory `$auth.rol` is `'admin'` —
+ * `<RequireAdmin>` route guard lands in Phase 8, out of scope here, so this
+ * is the interim "don't render roster data without an admin session state"
+ * gate.
+ *
+ * The revoke/restore toggle (Phase 7, T-7.2) additionally disables itself
+ * for the caller's OWN roster row (`isSelf` in `RosterCard`) — a UX courtesy
+ * mirroring the server-side self-revoke guard in `enroll-empleado`'s PATCH
+ * handler (`cannot_self_target`), never the actual boundary.
  *
  * Pure network/parsing logic lives in `empleadasApi.ts` (unit-tested there,
  * mocking only `supabase.functions.invoke`) — this component is a thin
@@ -21,8 +27,9 @@
  * `pairDevice.ts`/`PairDeviceScreen.tsx` and `pinUnlock.ts`/`PinScreen.tsx`
  * split (T-3.1, T-4.8/T-4.9). No React Testing Library exists in this repo
  * yet (every test so far covers extracted pure logic, never rendering) —
- * this component's interactive behavior is residual manual/browser
- * verification, same status T-4.9 flagged for `PinScreen.tsx`.
+ * this component's interactive behavior (including the toggle click) is
+ * residual manual/browser verification, same status T-4.9 flagged for
+ * `PinScreen.tsx`.
  */
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
@@ -30,7 +37,13 @@ import { useStore } from '@nanostores/react'
 import { ArrowLeftIcon, PlusIcon } from '@phosphor-icons/react'
 import { $auth } from '@/stores/auth'
 import type { Rol } from '@/lib/vault'
-import { EmpleadasApiError, enrollEmpleado, fetchRoster, type RosterEntry } from './empleadasApi'
+import {
+  EmpleadasApiError,
+  enrollEmpleado,
+  fetchRoster,
+  setEmpleadoActivo,
+  type RosterEntry,
+} from './empleadasApi'
 
 const ROL_LABEL: Record<Rol, string> = {
   admin: 'Administradora',
@@ -38,15 +51,21 @@ const ROL_LABEL: Record<Rol, string> = {
 }
 
 const GENERIC_LOAD_ERROR = 'No se pudo cargar la lista de vendedoras.'
+const GENERIC_TOGGLE_ERROR = 'No se pudo actualizar el estado de la vendedora.'
 
 export default function EmpleadasScreen() {
   const navigate = useNavigate()
   const auth = useStore($auth)
   const isAdmin = auth.rol === 'admin'
+  const currentUserId = auth.user?.id ?? null
 
   const [roster, setRoster] = useState<RosterEntry[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  // Phase 7 (T-7.2): tracks which row's revoke/restore call is in flight, so
+  // only that row's toggle disables — the rest of the roster stays usable.
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [toggleError, setToggleError] = useState<string | null>(null)
 
   // Kept as a plain (non-memoized) function: called imperatively from event
   // handlers (the "reintentar" button, `onEnrolled`'s refetch) — the initial
@@ -64,6 +83,25 @@ export default function EmpleadasScreen() {
       .catch((err: unknown) => {
         setRoster((previous) => previous ?? [])
         setLoadError(err instanceof EmpleadasApiError ? err.message : GENERIC_LOAD_ERROR)
+      })
+  }
+
+  // Revoke/restore toggle (Phase 7, T-7.2). The server independently rejects
+  // a self-targeting call (`cannot_self_target`) — `RosterCard` below also
+  // disables the toggle for the caller's own row as a UX courtesy, so this
+  // handler is never actually invoked for that case in practice.
+  function handleToggleActivo(entry: RosterEntry): void {
+    setToggleError(null)
+    setTogglingId(entry.id)
+    setEmpleadoActivo({ userId: entry.id, activo: !entry.activo })
+      .then(() => {
+        loadRoster()
+      })
+      .catch((err: unknown) => {
+        setToggleError(err instanceof EmpleadasApiError ? err.message : GENERIC_TOGGLE_ERROR)
+      })
+      .finally(() => {
+        setTogglingId(null)
       })
   }
 
@@ -144,6 +182,12 @@ export default function EmpleadasScreen() {
           </div>
         )}
 
+        {toggleError && (
+          <p role="alert" className="mb-3 text-[13px] font-medium text-error">
+            {toggleError}
+          </p>
+        )}
+
         {roster === null ? (
           <p className="text-[13px] text-text-secondary">Cargando…</p>
         ) : roster.length === 0 && !loadError ? (
@@ -151,7 +195,13 @@ export default function EmpleadasScreen() {
         ) : (
           <ul className="flex flex-col gap-[8px]">
             {roster.map((entry) => (
-              <RosterCard key={entry.id} entry={entry} />
+              <RosterCard
+                key={entry.id}
+                entry={entry}
+                isSelf={entry.id === currentUserId}
+                pending={togglingId === entry.id}
+                onToggleActivo={() => handleToggleActivo(entry)}
+              />
             ))}
           </ul>
         )}
@@ -160,7 +210,25 @@ export default function EmpleadasScreen() {
   )
 }
 
-function RosterCard({ entry }: { entry: RosterEntry }) {
+interface RosterCardProps {
+  entry: RosterEntry
+  isSelf: boolean
+  pending: boolean
+  onToggleActivo: () => void
+}
+
+function RosterCard({ entry, isSelf, pending, onToggleActivo }: RosterCardProps) {
+  // SELF-REVOKE GUARD, client-side half (Phase 7): the server independently
+  // rejects a self-targeting PATCH (`cannot_self_target`, see
+  // `enroll-empleado`'s PATCH handler) — this is a UX courtesy only (DD-8),
+  // not the security boundary, so it never needs to be trusted on its own.
+  const disabled = isSelf || pending
+  const label = isSelf
+    ? `No puede modificar su propia cuenta (${entry.displayName})`
+    : entry.activo
+      ? `Revocar acceso de ${entry.displayName}`
+      : `Restaurar acceso de ${entry.displayName}`
+
   return (
     <li className="flex items-center justify-between gap-[12px] rounded-card border border-border-sand bg-bg-card px-[14px] py-[11px]">
       <div className="flex flex-col">
@@ -177,19 +245,27 @@ function RosterCard({ entry }: { entry: RosterEntry }) {
         >
           {entry.activo ? 'Activa' : 'Inactiva'}
         </span>
-        {/* Revoke/restore toggle STUB (T-6.2) — wired to the `PATCH` action
-            in Phase 7 (T-7.2); intentionally non-interactive here. */}
+        {/* Revoke/restore toggle (Phase 7, T-7.2) — wired to the `PATCH`
+            action; T-6.2's disabled stub is now interactive. */}
         <button
           type="button"
-          disabled
-          title="Disponible en una próxima fase"
-          aria-label={
-            entry.activo
-              ? `Revocar acceso de ${entry.displayName} (disponible en una próxima fase)`
-              : `Restaurar acceso de ${entry.displayName} (disponible en una próxima fase)`
-          }
-          className="h-[22px] w-[38px] shrink-0 cursor-not-allowed rounded-full border border-border-sand bg-border-sand-light opacity-60"
-        />
+          role="switch"
+          aria-checked={entry.activo}
+          disabled={disabled}
+          title={isSelf ? label : undefined}
+          aria-label={label}
+          onClick={onToggleActivo}
+          className={`relative h-[22px] w-[38px] shrink-0 rounded-full border border-border-sand transition-colors ${
+            entry.activo ? 'bg-success' : 'bg-border-sand-light'
+          } ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+        >
+          <span
+            aria-hidden="true"
+            className={`absolute top-[2px] h-[16px] w-[16px] rounded-full bg-bg-card shadow transition-transform ${
+              entry.activo ? 'translate-x-[18px]' : 'translate-x-[2px]'
+            }`}
+          />
+        </button>
       </div>
     </li>
   )

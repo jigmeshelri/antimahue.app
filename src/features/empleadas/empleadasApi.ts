@@ -53,6 +53,17 @@ export interface EnrollAck {
   rol: Rol
 }
 
+export interface SetActivoInput {
+  userId: string
+  activo: boolean
+}
+
+/** Ack from the `PATCH` (revoke/restore) call (Phase 7, T-7.2). */
+export interface SetActivoAck {
+  id: string
+  activo: boolean
+}
+
 /** Thrown for any `enroll-empleado` call failure meant to surface to the UI. */
 export class EmpleadasApiError extends Error {
   constructor(
@@ -94,6 +105,8 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   missing_authorization: 'La sesión expiró. Vuelva a iniciar sesión.',
   invalid_token: 'La sesión expiró. Vuelva a iniciar sesión.',
   not_active_admin: 'Esta acción requiere una cuenta de administradora activa.',
+  cannot_self_target: 'No puede modificar el estado de su propia cuenta.',
+  user_not_found: 'No se encontró a la persona indicada.',
 }
 
 function messageFor(status: number | null, code: string | null): string {
@@ -136,4 +149,19 @@ export async function enrollEmpleado(input: EnrollInput): Promise<EnrollAck> {
   })
   if (error) return throwFor(error)
   return data as EnrollAck
+}
+
+/** PATCH — revoke or restore an employee (Phase 7, T-7.2, REQ-AP-SEG-4).
+ * Server-side rejects a self-targeting call (`cannot_self_target`, see
+ * `enroll-empleado`'s PATCH handler) — the UI additionally disables the
+ * toggle for the caller's own row as a UX courtesy (DD-8: concealment is
+ * UX-only, the real boundary is this server-side guard). Callers should
+ * refetch the roster on success (design.md §7's "refetch-on-success"). */
+export async function setEmpleadoActivo(input: SetActivoInput): Promise<SetActivoAck> {
+  const { data, error } = await supabase.functions.invoke('enroll-empleado', {
+    method: 'PATCH',
+    body: input,
+  })
+  if (error) return throwFor(error)
+  return data as SetActivoAck
 }
