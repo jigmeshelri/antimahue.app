@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informe de verificación — auth-pin · Antimahue</title>
+<style>
+  :root{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2; --admin:#8a4b9c; --admin-soft:#efe3f3;
+    --radius:12px; --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:960px;margin:0 auto;padding:2.4rem 1.3rem 4rem}
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:1.3rem;margin-bottom:2rem}
+  header.doc .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--brand);font-weight:600}
+  header.doc h1{font-size:1.85rem;margin:.35rem 0 .5rem;font-weight:700;line-height:1.2}
+  header.doc p.lead{margin:0;color:var(--muted);font-size:1.02rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .badge{font-size:.74rem;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:500}
+  .badge.brand{background:var(--brand-soft);border-color:#e3c3af;color:var(--brand)}
+  .badge.ok{background:var(--ok-soft);border-color:#c3ddc9;color:var(--ok)}
+  .badge.warn{background:var(--warn-soft);border-color:#e6cd8f;color:var(--warn)}
+  h2{font-size:1.28rem;margin:2.6rem 0 .9rem;padding-top:.4rem;font-weight:700;
+    border-top:1px solid var(--line)}
+  h2 .n{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  h3{font-size:1.02rem;margin:1.5rem 0 .5rem;font-weight:600}
+  p{margin:.6rem 0}
+  section > p:first-of-type{margin-top:0}
+  code{font-family:var(--mono);font-size:.86em;background:#f0e7db;padding:.08em .35em;
+    border-radius:5px;color:#7a3f22;overflow-wrap:anywhere}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:var(--radius);
+    padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.5;
+    margin:1rem 0}
+  pre code{background:none;color:inherit;padding:0;font-size:1em}
+  .path-note{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+    background:#f2ebe0;border-left:3px solid var(--line);padding:.4rem .7rem;margin:.4rem 0 1rem;
+    border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem}
+  .tbl-scroll{overflow-x:auto;margin:1rem 0}
+  .tbl-scroll table{margin:0;min-width:640px}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--brand-soft);color:#7a3f22;font-weight:600;font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:nth-child(even){background:#fcf9f4}
+  .callout{border-radius:var(--radius);padding:1rem 1.15rem;margin:1.1rem 0;border:1px solid;
+    border-left-width:5px}
+  .callout h4{margin:0 0 .4rem;font-size:.94rem;font-weight:700;display:flex;gap:.4rem;align-items:center}
+  .callout p{margin:.35rem 0}
+  .callout.warnbox{background:var(--warn-soft);border-color:#e6cd8f;border-left-color:var(--warn)}
+  .callout.crit{background:var(--danger-soft);border-color:#e6b3ab;border-left-color:var(--danger)}
+  .callout.info{background:var(--brand-soft);border-color:#e3c3af;border-left-color:var(--brand)}
+  .callout.pass{background:var(--ok-soft);border-color:#c3ddc9;border-left-color:var(--ok)}
+  .tag{display:inline-block;font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:5px;
+    font-family:var(--mono);white-space:nowrap}
+  .tag.pass{background:var(--ok-soft);color:var(--ok)}
+  .tag.partial{background:var(--warn-soft);color:var(--warn)}
+  .tag.fail{background:var(--danger-soft);color:var(--danger)}
+  ul.clean{margin:.6rem 0;padding-left:1.2rem}
+  ul.clean li{margin:.3rem 0}
+  .kpis{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.2rem 0}
+  .kpi{flex:1 1 130px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:.9rem 1rem;text-align:center}
+  .kpi .num{font-size:1.7rem;font-weight:700;line-height:1.1}
+  .kpi .lbl{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+  .kpi.ok .num{color:var(--ok)} .kpi.warn .num{color:var(--warn)} .kpi.mut .num{color:var(--muted)}
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.82rem}
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#211d1a; --panel:#2a2521; --ink:#f0e9df; --muted:#b3a89b; --line:#463d35;
+      --brand:#e08a5c; --brand-soft:#3a2a20; --ok:#7fc99a; --ok-soft:#1f3527;
+      --warn:#e0b45c; --warn-soft:#3a2f18; --danger:#e08585; --danger-soft:#3a2220;
+      --code-bg:#161311; --code-ink:#f0e9df;
+    }
+    th{color:#f0d9c8}
+    code{color:#e0a878;background:#3a2a20}
+  }
+  :root[data-theme="dark"]{
+    --bg:#211d1a; --panel:#2a2521; --ink:#f0e9df; --muted:#b3a89b; --line:#463d35;
+    --brand:#e08a5c; --brand-soft:#3a2a20; --ok:#7fc99a; --ok-soft:#1f3527;
+    --warn:#e0b45c; --warn-soft:#3a2f18; --danger:#e08585; --danger-soft:#3a2220;
+    --code-bg:#161311; --code-ink:#f0e9df;
+  }
+  :root[data-theme="light"]{
+    --bg:#faf7f2; --panel:#fff; --ink:#2b2622; --muted:#6f665d; --line:#e7ddd0;
+    --brand:#b4552d; --brand-soft:#f3e2d7; --ok:#3f7d54; --ok-soft:#e3f0e6;
+    --warn:#b07a17; --warn-soft:#f7ecd3; --danger:#a8392f; --danger-soft:#f6e0dc;
+    --code-bg:#2c2723; --code-ink:#f4ece2;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Antimahue · SDD · fase verify</div>
+  <h1>Informe de verificación: PIN de 4 dígitos y roles admin/empleado</h1>
+  <p class="lead">Contraste de la implementación completa del change <code>auth-pin</code> contra sus
+  especificaciones, su diseño y sus tareas, más el cierre de la batería de JWT multi-rol que
+  <code>data-model</code> había dejado pendiente. La evidencia combina inspección de solo lectura sobre
+  el proyecto real y ejecución real de pruebas contra una pila local desechable.</p>
+  <div class="meta">
+    <span class="badge brand">change: auth-pin</span>
+    <span class="badge warn">veredicto: PASA CON ADVERTENCIAS</span>
+    <span class="badge ok">0 críticos</span>
+    <span class="badge">4 advertencias · 2 sugerencias</span>
+    <span class="badge">verificado: 2026-07-15</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1.</span>Resumen ejecutivo</h2>
+  <div class="kpis">
+    <div class="kpi ok"><div class="num">0</div><div class="lbl">Críticos</div></div>
+    <div class="kpi warn"><div class="num">4</div><div class="lbl">Advertencias</div></div>
+    <div class="kpi mut"><div class="num">2</div><div class="lbl">Sugerencias</div></div>
+    <div class="kpi ok"><div class="num">7/7</div><div class="lbl">Filas de la batería JWT</div></div>
+    <div class="kpi ok"><div class="num">10/12</div><div class="lbl">Requisitos PASA</div></div>
+  </div>
+  <div class="callout pass">
+    <h4>Veredicto: PASA CON ADVERTENCIAS</h4>
+    <p>Los 8 migraciones están aplicadas en producción con versiones idénticas al prefijo del archivo.
+    Las políticas RLS, los cuerpos de las funciones —incluido el pliegue de <code>activo</code> dentro
+    de <code>is_admin()</code>/<code>is_active()</code> y la guarda de autorrevocación en
+    <code>actualizar_activo_perfil</code>— y los privilegios coinciden con el diseño, punto por punto,
+    confirmados en el proyecto real. La batería de verificación de roles múltiples (REQ-AP-SEG-5),
+    heredada como pendiente desde <code>data-model</code>, se ejecutó por primera vez de manera real
+    contra una pila local desechable con JWT genuinos de cuatro actores distintos: 7 de 7 filas pasan.
+    Ninguna advertencia bloquea el archivado del change.</p>
+  </div>
+  <div class="callout info">
+    <h4>Qué cambia respecto a los informes anteriores</h4>
+    <p>Esta es la primera verificación de <code>auth-pin</code> y la primera vez que la batería JWT
+    multi-rol corre con actores reales (admin, empleado activo, empleado revocado, anónimo) en lugar de
+    quedar como pendiente estructural. La única observación de fondo que este informe había levantado —el
+    circuito de alta y revocación no dejaba rastro en producción— quedó <strong>cerrada</strong> con un
+    ciclo real y reversible en producción (ver sección 2a). El chequeo a ciegas sobre el estado
+    persistente hizo su trabajo: la afirmación previa estaba sobredimensionada, y ahora sí está
+    demostrada de punta a punta en el ambiente productivo.</p>
+  </div>
+  <div class="callout pass">
+    <h4>W-2 cerrada — ciclo real de alta y revocación en producción</h4>
+    <p>Con el JWT real de Angélica (obtenido por credenciales, no con la clave de servicio) contra el
+    proyecto productivo: alta vía la función desplegada → 200 (empleada de prueba con rol de empleada);
+    listado del padrón → 200 (Angélica y la empleada de prueba); revocación → 200
+    (<code>activo=false</code>); el registro de auditoría anotó el alta y la revocación; y la
+    <strong>guarda de autorrevocación quedó confirmada CONTRA PRODUCCIÓN EN VIVO</strong> —Angélica
+    revocándose a sí misma → 400 <code>cannot_self_target</code>—, así que REQ-AP-SEG-4a ahora tiene
+    evidencia en producción, no solo local. La limpieza dejó producción exactamente en su línea base
+    (un perfil, un usuario, una sola fila de auditoría del alta inicial, cero sesiones).</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Ejecución de la batería de roles (T-9.3)</h2>
+  <p><code>src/lib/authPinRlsBattery.test.ts</code> — desde la Fase 1 quedaba como <em>scaffold</em>, con
+  cada caso marcado <code>it.skip</code> porque no existía todavía un actor <code>'empleado'</code> real.
+  Esta sesión lo activa por completo, contra una pila Supabase local desechable — nunca contra
+  producción — con JWT genuinos emitidos por GoTrue para cuatro actores: administradora activa,
+  empleada activa, empleada revocada y anónimo.</p>
+  <div class="path-note">Test: src/lib/authPinRlsBattery.test.ts</div>
+  <p>La suite queda protegida detrás de la variable <code>RUN_LOCAL_RLS_BATTERY=1</code>: sin ella (el
+  caso de CI, que no levanta Supabase), los 7 casos se reportan como omitidos de forma honesta, no como
+  un fallo silencioso ni como un pase falso.</p>
+  <pre><code>RUN_LOCAL_RLS_BATTERY=1 pnpm exec vitest run authPinRlsBattery
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)</code></pre>
+
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Fila</th><th>Caso</th><th>Actor</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>SEG-5.1</td><td>SELECT sobre <code>producto_costos</code>/<code>proveedores</code></td><td>empleada activa</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.2</td><td>Frontera WITH CHECK de una política de escritura</td><td>admin vs. empleada</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.3</td><td><code>deshacer_venta</code> sobre una venta que no es la última</td><td>empleada</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.4</td><td><code>confirmar_venta</code> por sobre el stock disponible</td><td>empleada</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.5</td><td><code>productos</code> embebiendo <code>producto_costos</code></td><td>empleada activa</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.6</td><td>Acceso a cualquier tabla o función de dominio</td><td>anónimo</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>SEG-5.7</td><td>Sesión aún válida de una cuenta ya revocada</td><td>empleada revocada</td><td><span class="tag pass">PASA</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Hallazgos durante la implementación de la batería</h3>
+  <div class="callout info">
+    <h4>D1 — El almacenamiento de sesión de GoTrue es un singleton dentro de Node</h4>
+    <p>Iniciar sesión con el método propio de <code>supabase-js</code> (<code>signInWithPassword</code>)
+    en varios clientes distintos dentro del mismo proceso de Node los hace competir por una única clave de
+    almacenamiento en memoria — la propia librería lo advierte ("Multiple GoTrueClient instances
+    detected"). El último inicio de sesión terminaba ganando para todos los clientes, así que el cliente
+    "administradora" quedaba autenticado como otro actor. La solución fue evitar por completo ese
+    mecanismo: un <code>fetch</code> directo contra el endpoint de credenciales de GoTrue obtiene el
+    token de acceso, y cada cliente se construye con ese token como encabezado explícito — el mismo
+    patrón que ya usa <code>enroll-empleado</code> en producción. Es un artefacto exclusivo del entorno de
+    pruebas en Node: un navegador real tiene una sola sesión por pestaña, así que esto no puede ocurrir en
+    producción.</p>
+  </div>
+  <div class="callout info">
+    <h4>D2 y D3 — dos redacciones de la especificación no calzan con el comportamiento real</h4>
+    <p>La fila SEG-5.2 describe una frontera "de valores" para la cláusula WITH CHECK de
+    <code>configuracion</code>/<code>proveedores</code>, heredada tal cual de <code>data-model</code>;
+    en la implementación real esa cláusula es simétrica sobre <code>is_admin()</code> — no existe un
+    valor "fuera de rango" que probar mientras la sesión siga siendo administradora. La prueba ejercita
+    la frontera que sí existe: una administradora puede escribir, una empleada no. De forma similar, la
+    fila SEG-5.5 esperaba que el embed de <code>producto_costos</code> se degradara a una lista vacía
+    para una empleada; como esa relación es de uno a uno (la clave primaria de <code>producto_costos</code>
+    es también su clave foránea), PostgREST la trata como un embed de a uno y la degradación real es
+    <code>null</code>, no una lista vacía. En ambos casos la propiedad que la especificación busca proteger
+    —la solicitud no falla, y una empleada nunca ve el dato protegido— se cumple; solo cambia la forma
+    exacta del valor. Se recomienda corregir la redacción de ambas filas en una futura revisión de la
+    especificación.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Confirmación estructural en producción</h2>
+  <p>Proyecto <code>aruteznqhdaaxxvllvzm</code> (São Paulo), inspeccionado en modo de solo lectura.</p>
+  <ul class="clean">
+    <li><strong>Migraciones</strong>: 8 de 8, versiones idénticas al prefijo de cada archivo del
+      repositorio.</li>
+    <li><strong><code>profiles</code></strong>: columna <code>activo boolean NOT NULL DEFAULT true</code>
+      presente; el CHECK de <code>rol</code> acepta <code>'admin'</code> y <code>'empleado'</code>; una
+      sola fila hoy (Angélica, <code>rol='admin'</code>, <code>activo=true</code>).</li>
+    <li><strong>Funciones</strong>: <code>handle_new_user()</code> con el valor por defecto de mínimo
+      privilegio (<code>'empleado'</code> cuando no hay metadata explícita); <code>is_admin()</code> e
+      <code>is_active()</code> ambas exigen <code>activo</code>; <code>actualizar_activo_perfil()</code>
+      trae la guarda de autorrevocación confirmada en vivo, no solo en el código fuente;
+      <code>confirmar_venta</code>/<code>deshacer_venta</code> contienen el llamado a
+      <code>is_active()</code> de forma literal.</li>
+    <li><strong>Políticas RLS</strong>: 9 en total; las 4 que antes leían <code>true</code> ahora leen
+      <code>is_active()</code>.</li>
+    <li><strong>Privilegios</strong>: <code>service_role</code> mantiene cero permisos de lectura o
+      escritura sobre <code>profiles</code> (confirmado en producción, coincide con el hallazgo de la
+      pila local), y exactamente <code>INSERT</code> sobre <code>audit_log</code>. Ejecución
+      (<code>EXECUTE</code>) de las funciones sensibles: solo <code>authenticated</code>, nunca
+      <code>anon</code> ni <code>service_role</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Advisors de seguridad</h2>
+  <p>El crecimiento de advertencias aceptadas sigue la trayectoria que el propio informe de
+  <code>data-model</code> anticipaba (2 → 7 → ahora 10), por la incorporación de tres nuevas funciones
+  <code>SECURITY DEFINER</code> con puerta de autorización interna ya verificada
+  (<code>is_active</code>, <code>listar_perfiles</code>, <code>actualizar_activo_perfil</code>).</p>
+  <div class="callout warnbox">
+    <h4>Hallazgo nuevo: protección contra contraseñas filtradas, desactivada</h4>
+    <p>El advisor de seguridad reporta <code>auth_leaked_password_protection</code> como deshabilitado.
+    No aparecía en informes anteriores; ahora es relevante porque la administradora fija contraseñas
+    iniciales para cada empleada (<code>enroll-empleado</code>), y verificar contra contraseñas filtradas
+    protege contra un error plausible en ese flujo.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Matriz de cumplimiento de especificación</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>Requisito</th><th>Veredicto</th><th>Evidencia</th></tr></thead>
+    <tbody>
+      <tr><td>REQ-SETUP-8 — roles múltiples, alta de mínimo privilegio</td><td><span class="tag pass">PASA</span></td><td>CHECK ampliado y valor por defecto confirmados en producción; el texto de la especificación se corrigió el 2026-07-14 para alinearse con el diseño</td></tr>
+      <tr><td>REQ-AP-SEG-1 — columna <code>activo</code></td><td><span class="tag pass">PASA</span></td><td>presente, con valor por defecto verdadero; la fila existente de Angélica queda activa sin ningún UPDATE explícito</td></tr>
+      <tr><td>REQ-AP-SEG-2 — la compuerta <code>activo</code> en cada camino de autorización</td><td><span class="tag pass">PASA</span></td><td>confirmado en producción; la fila SEG-5.7 de la batería lo prueba de punta a punta con una sesión aún válida</td></tr>
+      <tr><td>REQ-AP-SEG-3 — contrato de <code>enroll-empleado</code></td><td><span class="tag pass">PASA</span></td><td>código inspeccionado y verificado en la Fase 5 (pila local); <strong>ahora también confirmado en vivo en producción</strong> (sección 2a: alta → 200, rol de empleada, listado → 200, fila de auditoría de alta)</td></tr>
+      <tr><td>REQ-AP-SEG-4 — acción de revocación</td><td><span class="tag pass">PASA</span></td><td>verificado en la Fase 7 (pila local); <strong>ahora también confirmado en vivo en producción</strong> (sección 2a: revocación → 200, <code>activo=false</code>, fila de auditoría de revocación)</td></tr>
+      <tr><td>REQ-AP-SEG-4a — guarda de autorrevocación</td><td><span class="tag pass">PASA</span></td><td>confirmada en ambas capas y <strong>contra producción en vivo</strong>: Angélica revocándose a sí misma devuelve 400 <code>cannot_self_target</code> (sección 2a), además de la guarda interna de la función SQL</td></tr>
+      <tr><td>REQ-AP-SEG-5 — batería JWT multi-rol</td><td><span class="tag pass">PASA</span></td><td>7 de 7 filas, esta sesión, con JWT reales</td></tr>
+      <tr><td>REQ-AUTH-1 — desbloqueo sin red</td><td><span class="tag partial">PARCIAL</span></td><td>arquitectura, código y pruebas unitarias lo respaldan con fuerza; falta una captura de red en vivo desde un dispositivo real</td></tr>
+      <tr><td>REQ-AUTH-2 — bloqueo progresivo</td><td><span class="tag pass">PASA</span></td><td>10 casos unitarios más inspección de código</td></tr>
+      <tr><td>REQ-AUTH-3 — bloqueo por inactividad</td><td><span class="tag pass">PASA</span></td><td>15 casos unitarios con reloj inyectado; el cableado en el navegador no se repitió esta sesión (sin herramienta de pruebas de componentes en este repositorio)</td></tr>
+      <tr><td>REQ-AUTH-4 — lectura fresca de perfil</td><td><span class="tag pass">PASA</span></td><td>confirmado leyendo directamente <code>attemptUnlock</code>: lee <code>profiles</code> en cada desbloqueo, nunca confía en el rol cacheado</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>10 de 12 requisitos en PASA, 2 en PARCIAL, ninguno en FALLA.</strong></p>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>Criterios de éxito de la propuesta</h2>
+  <div class="tbl-scroll">
+  <table>
+    <thead><tr><th>#</th><th>Criterio</th><th>Veredicto</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>profiles.rol</code> acepta <code>'empleado'</code>; existe una fila de empleada que se autentica por PIN</td><td><span class="tag partial">PARCIAL</span> — el ciclo en vivo (sección 2a) creó una empleada real en producción (y luego la limpió), así que la parte "existe una fila de empleada" queda demostrada; el residuo es solo que ninguna empleada completó un desbloqueo por PIN específicamente en producción</td></tr>
+      <tr><td>2</td><td>Una empleada no puede leer costos ni proveedores</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>3</td><td>La administradora puede dar de alta a una empleada, sin autorregistro público</td><td><span class="tag pass">PASA</span> — alta ejercitada en vivo en producción (sección 2a)</td></tr>
+      <tr><td>4</td><td>La administradora puede revocar; el acceso se pierde en la siguiente solicitud</td><td><span class="tag pass">PASA</span> — revocación ejercitada en vivo en producción (sección 2a)</td></tr>
+      <tr><td>5</td><td>El PIN nunca viaja al servidor</td><td><span class="tag partial">PARCIAL</span> — respaldado por arquitectura y pruebas unitarias; falta la captura de red en vivo</td></tr>
+      <tr><td>6</td><td>Un PIN incorrecto se resuelve localmente, con bloqueo progresivo, nunca con un token</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>7</td><td>La batería de <code>data-model</code> (T-5.1..T-5.5) se ejecuta y pasa</td><td><span class="tag pass">PASA</span></td></tr>
+      <tr><td>8</td><td>Ninguna lógica de autorización vive en <code>src/**</code></td><td><span class="tag pass">PASA</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>6 de 8 en PASA, 2 en PARCIAL.</strong></p>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Ítems diferidos, confirmados cerrados</h2>
+  <ul class="clean">
+    <li><strong>DM Sans autoalojada</strong>: confirmado — los tres pesos en formato woff2 más su
+      licencia están presentes, y la hoja de estilos los referencia como primera opción tipográfica.</li>
+    <li><strong>Barrido de voseo</strong>: confirmado — ninguna de las ocho formas rioplatenses
+      previamente marcadas aparece en texto visible para la usuaria; solo queda una mención en un
+      comentario de código que documenta el defecto histórico, no una cadena en pantalla.</li>
+    <li><strong>Manual de arranque de la administradora única</strong>: confirmado — el perfil de
+      Angélica existe en producción con su fila correspondiente en el registro de auditoría
+      (<code>bootstrap_admin</code>), documentando el paso manual y deliberado que exige la
+      especificación.</li>
+    <li><strong>Prueba de humo de WebCrypto/IndexedDB dentro de la PWA instalada (R4)</strong>: se acepta
+      como satisfecha según lo reportado por quien orquestó esta sesión — una usuaria real probó la PWA
+      instalada en un dispositivo real (vinculación, PIN, desbloqueo). No se reconstruyó de forma
+      independiente en esta sesión por falta de una herramienta de navegador/dispositivo disponible.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Hallazgos</h2>
+
+  <div class="callout warnbox">
+    <h4>W-1 — Falta la traza de red en vivo (T-9.4)</h4>
+    <p>No se adjuntó esta sesión una captura HAR ni de las herramientas de desarrollo confirmando, desde
+    un dispositivo real, que ninguna solicitud de red transporta el PIN o el token en texto claro. La
+    arquitectura y las pruebas unitarias dan una garantía indirecta fuerte; la forma más literal de
+    evidencia que pide la tarea sigue pendiente. No bloquea el archivado.</p>
+  </div>
+
+  <div class="callout pass">
+    <h4>W-2 — CERRADA: el alta y la revocación quedaron demostradas en producción</h4>
+    <p>Levantada originalmente porque el estado persistente de producción no mostraba ningún ciclo real de
+    alta/revocación —solo el alta manual de Angélica—, lo que revelaba una afirmación previa
+    sobredimensionada. Se cerró con un ciclo real y reversible (sección 2a): alta → 200, listado → 200,
+    revocación → 200, filas de auditoría de alta y revocación registradas, la guarda de autorrevocación
+    confirmada contra producción en vivo (400 <code>cannot_self_target</code>), y limpieza que dejó
+    producción exactamente en su línea base. El chequeo a ciegas sobre el estado persistente cumplió su
+    función. Ya no es un pendiente.</p>
+  </div>
+
+  <div class="callout warnbox">
+    <h4>W-3 — Limitación real al dar de alta una segunda cuenta administradora</h4>
+    <p>La API de administración crea la cuenta y recién después actualiza sus metadatos en un segundo
+    paso — el disparador que asigna el rol nunca alcanza a ver ese metadato a tiempo, y siempre asigna el
+    rol de menor privilegio. Hoy esto no tiene efecto real porque el único flujo de alta existente pide
+    siempre ese mismo rol menor, pero sería un defecto genuino si alguna vez se intenta dar de alta una
+    segunda administradora por ese camino. La propia batería de esta sesión tuvo que rodear la limitación
+    con una actualización directa en la base para poder construir su propio actor administrador de
+    prueba.</p>
+  </div>
+
+  <div class="callout warnbox">
+    <h4>W-4 — Protección contra contraseñas filtradas, desactivada</h4>
+    <p>Ver sección 4. Se recomienda activarla, dado que la administradora fija contraseñas iniciales para
+    cada empleada.</p>
+  </div>
+
+  <div class="callout warnbox">
+    <h4>W-5 — Encabezado CORS: alcance reducido, sigue como advertencia menor</h4>
+    <p>El ciclo en vivo (sección 2a) ya ejercitó el despacho de <code>GET</code>/<code>POST</code>/
+    <code>PATCH</code> de la función desplegada, así que la función es alcanzable y devuelve su propio
+    encabezado (correcto) en producción. El residuo es estrecho y específico: una llamada autenticada por
+    JWT no es una solicitud con precomprobación CORS, de modo que ni dispara ni valida la precomprobación
+    <code>OPTIONS</code> del navegador que este encabezado realmente gobierna. Se mantiene abierta porque
+    lo que ese encabezado controla —una precomprobación real desde el origen de la aplicación— sigue sin
+    capturarse (misma causa raíz que W-1). Severidad baja: el valor del encabezado es correcto por
+    inspección y la función responde bien; solo falta la prueba del camino de precomprobación.</p>
+  </div>
+
+  <h3>Sugerencias</h3>
+  <ul class="clean">
+    <li><strong>S-1</strong> — Los tipos TypeScript generados desde el esquema quedaron desactualizados
+      desde la Fase 1; no falta ningún tipo que la aplicación use hoy, pero conviene regenerarlos antes de
+      que código de cliente llame directamente a las funciones agregadas en fases posteriores.</li>
+    <li><strong>S-2</strong> — El cableado en React del bloqueo por inactividad y las guardas de ruta no
+      tiene pruebas de componente propias (no hay herramienta de pruebas de interfaz en este repositorio);
+      la lógica pura que los sostiene sí está bien cubierta.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">9.</span>Puertas de calidad</h2>
+  <pre><code>$ pnpm lint            → sin observaciones
+$ pnpm format:check    → todo el código sigue el estilo de Prettier
+$ pnpm typecheck       → sin errores
+$ RUN_LOCAL_RLS_BATTERY=1 pnpm test
+   Test Files  9 passed (9)
+        Tests  83 passed (83)
+$ pnpm build           → compilación + PWA generada correctamente</code></pre>
+  <p>Sin la variable de entorno (el caso de integración continua), la misma corrida reporta
+  <code>76 passed | 7 skipped</code> — la batería se omite de forma honesta cuando no hay una pila
+  Supabase local disponible.</p>
+</section>
+
+<section>
+  <h2><span class="n">10.</span>Recomendación</h2>
+  <div class="callout pass">
+    <h4>Proceder al archivado</h4>
+    <p>Sin hallazgos críticos. Diez de doce requisitos en PASA, los dos restantes en PARCIAL por falta de
+    evidencia de un dispositivo real, no por un defecto de diseño o de código. La única observación de
+    fondo que este informe había levantado (W-2) quedó cerrada con un ciclo real en producción. Las
+    advertencias restantes —W-1, W-3, W-4 y W-5— quedan registradas como pendientes a futuro; ninguna
+    exige reabrir la implementación ni bloquea el archivado.</p>
+  </div>
+</section>
+
+<footer>
+  Informe generado en la fase <code>verify</code> de <code>auth-pin</code> — Antimahue, 2026-07-15.
+</footer>
+
+</div>
+</body>
+</html>

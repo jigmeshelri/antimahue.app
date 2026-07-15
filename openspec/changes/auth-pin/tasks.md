@@ -8,8 +8,8 @@ sequencing_source: "design.md §8 (DD-12) — 9 slices, smallest-first, daily-pa
 apply_gate: "Phase 0 (APPLY GATE) MUST be 100% checked before any other phase starts — proposal decision, non-negotiable"
 phase_count: 10
 task_count: 47
-progress: "35/47"
-updated_at: 2026-07-14
+progress: "39/47"
+updated_at: 2026-07-15
 ---
 
 # Tasks: auth-pin — PIN unlock + admin/empleado roles
@@ -215,13 +215,22 @@ already covers same-origin files).
 
 ## Phase 9 — Verify prep (slice 9, DD-13, R4)
 
-| ID | Task | Files | Refs | Verification |
-|---|---|---|---|---|
-| T-9.1 | **[HUMAN]** Build + install the PWA (production build, SW registered, "Add to Home Screen") on a real or emulated mobile device. | — | R4 | app launches in `display-mode: standalone` |
-| T-9.2 | **[HUMAN, or agent via chrome-devtools-mcp emulation]** Run the WebCrypto/IndexedDB smoke test INSIDE the installed PWA: `generateSalt→deriveKey→encryptToken→putRecord→reload→getRecord→decryptToken`, assert plaintext roundtrip; assert `crypto.subtle` present in the standalone context. | — | R4, DD-13 | roundtrip succeeds after a real reload of the installed app (setup-stack task 7.10 was left unverified — this closes it) |
-| T-9.3 | Confirm Phase 1's REQ-AP-SEG-5 battery (T-1.5–T-1.11) fully closed now that Phase 5 + Phase 7 provide real empleado + revoked-empleado rows; re-run any row only structurally checked earlier. | — | REQ-AP-SEG-5 | all 7 rows PASS against the live project with real JWTs |
-| T-9.4 | **[HUMAN]** Network-trace check across one full daily unlock (correct PIN): confirm zero requests carry a PIN or token in cleartext; confirm the ONE authenticated request in the whole flow is the one-time enrollment/pairing login. | — | REQ-AUTH-1 (both scenarios) | HAR/devtools capture attached to `verify-report.md` |
-| T-9.5 | Walk `proposal.md`'s Success Criteria checklist (8 items) end-to-end; record PASS/FAIL per item. | — | proposal.md Success Criteria | all 8 PASS, or each FAIL has a documented follow-up |
+**Phase 9 status: 4/5 complete.** All five gates (`pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+`RUN_LOCAL_RLS_BATTERY=1 pnpm test` — 83/83 passed, incl. the un-skipped battery —, `pnpm build`) pass.
+Full detail, prod cross-checks, and the Success Criteria walkthrough live in `verify-report.md`/
+`verify-report.html`. T-9.3's battery now executes for real against a disposable local Supabase stack
+with genuine JWTs for 4 actors (admin, active empleado, revoked empleado, anon) — 7/7 rows PASS, 0
+skipped. T-9.1/T-9.2 accepted per orchestrator-reported evidence (a real user tested the installed PWA
+this session — pairing→PIN→unlock); not independently reconstructed (no browser/device tooling
+available in this agent's environment). T-9.4 remains genuinely open — see verify-report.md W-1/W-2.
+
+| ID | Task | Files | Refs | Verification | Status |
+|---|---|---|---|---|---|
+| T-9.1 | **[HUMAN]** Build + install the PWA (production build, SW registered, "Add to Home Screen") on a real or emulated mobile device. | — | R4 | app launches in `display-mode: standalone` | [x] Done — accepted per orchestrator-reported evidence this session (real device, installed PWA); not independently reconstructed by this agent |
+| T-9.2 | **[HUMAN, or agent via chrome-devtools-mcp emulation]** Run the WebCrypto/IndexedDB smoke test INSIDE the installed PWA: `generateSalt→deriveKey→encryptToken→putRecord→reload→getRecord→decryptToken`, assert plaintext roundtrip; assert `crypto.subtle` present in the standalone context. | — | R4, DD-13 | roundtrip succeeds after a real reload of the installed app (setup-stack task 7.10 was left unverified — this closes it) | [x] Done — same reported-evidence basis as T-9.1 (pairing + PIN unlock exercised the WebCrypto/IndexedDB path on a real installed PWA this session) |
+| T-9.3 | Confirm Phase 1's REQ-AP-SEG-5 battery (T-1.5–T-1.11) fully closed now that Phase 5 + Phase 7 provide real empleado + revoked-empleado rows; re-run any row only structurally checked earlier. | `src/lib/authPinRlsBattery.test.ts` | REQ-AP-SEG-5 | all 7 rows PASS against the live project with real JWTs | [x] Done — un-skipped for real against a disposable LOCAL stack (never prod), genuine GoTrue JWTs for 4 actors; 7/7 PASS, 0 skipped, 0 failed. Two discoveries during implementation: a Node-only GoTrue client storage-singleton collision (fixed via a raw password-grant `fetch` + explicit `Authorization` header, same pattern as `enroll-empleado`'s own `callerClient`), and two spec-wording mismatches (SEG-5.2's value-boundary framing vs. the live role-symmetric WITH CHECK; SEG-5.5's `[]` vs. the real `null` for a to-one embed) — both disclosed in verify-report.md, not silently patched around. Added `pg`/`@types/pg` as test-only devDependencies (direct superuser SQL for 2 fixture-setup steps the service-role REST client cannot do — see Gap 11/9/12) |
+| T-9.4 | **[HUMAN]** Network-trace check across one full daily unlock (correct PIN): confirm zero requests carry a PIN or token in cleartext; confirm the ONE authenticated request in the whole flow is the one-time enrollment/pairing login. | — | REQ-AUTH-1 (both scenarios) | HAR/devtools capture attached to `verify-report.md` | [ ] NOT done — no live HAR/devtools capture this session. Strong indirect evidence exists (DD-7 architecture, code inspection, `pinUnlock.test.ts`'s zero-network-call assertions) but the literal live capture is still open — see verify-report.md W-1. Non-blocking for archive per this session's verify verdict |
+| T-9.5 | Walk `proposal.md`'s Success Criteria checklist (8 items) end-to-end; record PASS/FAIL per item. | — | proposal.md Success Criteria | all 8 PASS, or each FAIL has a documented follow-up | [x] Done — 6/8 PASS, 2/8 PARTIAL (0 FAIL), full table in `verify-report.md` §5 |
 
 ## Gaps (spec/design inconsistencies — surfaced, not silently resolved)
 
@@ -446,3 +455,26 @@ already covers same-origin files).
    unconditionally, for the function's own `OPTIONS` response since Phase 5) — flagged for whoever runs
    T-9.1/T-9.4 (real browser/PWA verification) to confirm the deployed Cloud Edge Function (which does not
    sit behind a local-dev-only Kong gateway) returns this function's own header value to a real preflight.
+   **VERIFY STATUS 2026-07-15 (T-9.3 pass, `sdd-verify`)**: still open exactly as described — the code fix
+   is confirmed correct by re-inspection, but no live preflight against the deployed Cloud Edge Function was
+   captured this session (tied to T-9.4/Gap 15 below, both blocked on the same missing browser capture). See
+   `verify-report.md` W-5.
+15. **NEW, discovered during `sdd-verify` (T-9.3 pass, 2026-07-15) — prod's `audit_log`/`auth.users` show
+   no enroll/revoke history.** The verify phase's read-only prod inspection (`aruteznqhdaaxxvllvzm`) found
+   exactly ONE `auth.users` row (Angélica) and exactly ONE `audit_log` row (`action='bootstrap_admin'`,
+   recording her own manual provisioning) — no `enroll_empleado`/`revoke_empleado`/`restore_empleado` row
+   exists. This is not itself a code or design defect (Phases 5–7's own local-stack E2E runs, plus this
+   session's T-9.3 battery, both exercise the enroll/revoke/RLS paths for real against a disposable local
+   stack), but it means the specific claim relayed into this verify phase — "auth verified end-to-end
+   against prod by a real user... pairing→PIN→unlock→roster→enroll→revoke" — is only PARTIALLY
+   corroborated by prod's own persistent state: the pairing/PIN/unlock portion is plausible (Angélica's
+   `auth.users.updated_at` sits ~1h after `created_at`, consistent with a later `refreshSession` call), but
+   the enroll→revoke portion left no trace in prod specifically. Two explanations are equally consistent
+   with the evidence: (a) enroll/revoke was exercised against the LOCAL stack, not prod, or (b) it ran
+   against prod and a superuser SQL delete removed both the `auth.users` row and its `audit_log` row
+   afterward (the only path that could remove an `audit_log` row at all, since `service_role` itself holds
+   only `INSERT` on that table — confirmed via prod grants, §2/§7 of earlier phases). Not resolved here:
+   this agent has read-only prod access only, per its verify-phase mandate. Recommend the orchestrator
+   either confirm which explanation is correct, or run one real, reversible enroll+revoke cycle directly
+   against prod as a cheap closing step before treating Success Criteria #1/#3/#4 (`proposal.md`) as fully
+   demonstrated in the live environment, not just locally. See `verify-report.md` W-2 for the full writeup.
