@@ -385,6 +385,17 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# enroll-empleado (Phase 5, T-5.1/T-5.2, DD-6): admin-gated staff-administration
+# function (create/list/revoke). `verify_jwt = true` is the CLI default anyway —
+# stated explicitly here so the intent is not silently implicit: this function
+# is ONLY ever called with a real user JWT (the admin's own session), never
+# webhook/service-to-service traffic, so the platform-level JWT check should
+# stay on. The function's own code re-checks the caller is an ACTIVE admin
+# (see supabase/functions/enroll-empleado/index.ts) — verify_jwt alone would
+# only prove "some authenticated user", not "an admin".
+[functions.enroll-empleado]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
