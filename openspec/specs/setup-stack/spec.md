@@ -181,33 +181,43 @@ ALTER TABLE public.{table} ENABLE ROW LEVEL SECURITY;
 - WHEN a server-side call uses the `service_role` key
 - THEN it can read all rows (service_role bypasses RLS by design)
 
-### REQ-SETUP-8: Profiles table — minimal MVP scaffold
+### REQ-SETUP-8: Profiles table — multi-role (admin, empleado), least-privilege signup
 
-The initial migration MUST create a `profiles` table linked to `auth.users`. MVP requires exactly 1 row (Angélica / admin).
+> **Modified by `auth-pin` (2026-07-15).** MVP original: exactamente 1 fila y `rol CHECK (rol IN ('admin'))` con DEFAULT `'admin'`. `auth-pin` fue el primer change en tocar ese CHECK. Corrección aplicada en la propia fase `specs` de `auth-pin` (2026-07-14): el primer borrador de este delta pedía que el auto-signup siguiera defaulteando a `'admin'`, redactado contra el comportamiento pre-hardening; ganó el diseño aprobado (`design.md` §3) después de que el agente de apply verificara empíricamente que el trigger pre-migración + el DEFAULT `'admin'` de la columna era un agujero de escalada de privilegios EN VIVO — cualquier `signUp()` anónimo forjaba un admin completo. Confirmado en prod por el verify report de `auth-pin` (REQ-SETUP-8 ✅ PASS).
 
-```sql
-CREATE TABLE public.profiles (
-  id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  rol        text NOT NULL DEFAULT 'admin' CHECK (rol IN ('admin')),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-```
+The `profiles` table MUST accept `rol IN ('admin', 'empleado')` (not `'seller'`, per the es-domain/en-platform convention). The CHECK MUST be widened via an additive migration (`DROP CONSTRAINT` + `ADD CONSTRAINT`, same column), never a destructive table rewrite. `handle_new_user()` MUST derive the role from tamper-proof `app_metadata` — `COALESCE(NEW.raw_app_meta_data->>'rol', 'empleado')` — so a row created without service_role-set metadata defaults to LEAST privilege (`'empleado'`), never `'admin'`. Only a service_role path (`enroll-empleado`, seguridad domain REQ-AP-SEG-3 — never the client) can set `app_metadata.rol`; self-signup, if ever enabled, MUST NOT yield an admin profile. Bootstrap consequence: on a FRESH environment the first user no longer auto-becomes admin — first-admin provisioning MUST be a deliberate manual/seed step (service_role or SQL), not a signup side effect.
 
 > **MUST:** `service_role` key MUST NOT appear in client-side code or `.env` files committed to git.
 
-#### Scenario: profile row created on user signup
+#### Scenario: empleado role now accepted
 
-- GIVEN a trigger or post-auth function creates a profile row on user creation
-- WHEN a new user is created in Supabase Auth
-- THEN a corresponding row exists in `public.profiles`
-- AND `rol` defaults to `'admin'`
+- GIVEN the widened CHECK `rol IN ('admin', 'empleado')`
+- WHEN a row is inserted with `rol = 'empleado'`
+- THEN Postgres accepts it
 
-#### Scenario: non-admin rol rejected at DB level
+#### Scenario: an undefined role value is still rejected
 
-- GIVEN the CHECK constraint `rol IN ('admin')` on MVP
-- WHEN an INSERT with `rol = 'employee'` is attempted
+- GIVEN the widened CHECK
+- WHEN a row is inserted with `rol = 'vendedor'` or any value outside `('admin','empleado')`
 - THEN Postgres rejects it with a check constraint violation
+
+#### Scenario: self-signup without app_metadata defaults to least privilege
+
+- GIVEN `handle_new_user()` fires for a new `auth.users` row whose `raw_app_meta_data` carries no `rol` key
+- WHEN the trigger creates the `profiles` row
+- THEN `rol` is `'empleado'` — an anonymous `signUp()` can never mint an admin
+
+#### Scenario: service_role-set app_metadata still yields admin
+
+- GIVEN an `auth.users` row created with `app_metadata.rol = 'admin'` (settable only by service_role)
+- WHEN the trigger runs
+- THEN the `profiles` row has `rol = 'admin'`
+
+#### Scenario: fresh environment has no automatic first admin
+
+- GIVEN a fresh environment with zero users
+- WHEN the first user signs up without service_role-set metadata
+- THEN their profile is `'empleado'` — the first admin is provisioned by a deliberate seed/service_role step, not by signup order
 
 ### REQ-SETUP-9: Key separation
 

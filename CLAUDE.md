@@ -20,9 +20,11 @@ Comandos reales (de `package.json`):
 - `pnpm typecheck` — typecheck sin emitir.
 - `pnpm preview` — sirve el `dist/` buildeado.
 
-**Todavía NO hay tests** (no inventes `pnpm test` — falla; la suite de tests es trabajo futuro). El change `setup-stack` está **cerrado y archivado** (apply 48/48 + `sdd-archive` ejecutados el 2026-06-22, ver `diario/2026-06-22.md`): vive en `openspec/changes/archive/2026-06-22-setup-stack/` y su spec consolidada quedó en `openspec/specs/setup-stack/spec.md`.
+**Ya hay tests** (Vitest): `pnpm test` corre la suite (`76 passed | 7 skipped` por default — los 7 `it.skip` son la batería RLS multi-rol, que solo corre contra un stack Supabase local disponible; `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza → 83/83). También existen `pnpm lint` (ESLint) y `pnpm format` / `pnpm format:check` (Prettier). CI vive en `.github/workflows/ci.yml` (GitHub Actions): corre lint + format:check + typecheck + test + build en cada PR contra `main` y en push a `main` — introducido en la fase toolchain de `auth-pin` (T-0.4). El change `setup-stack` está **cerrado y archivado** (apply 48/48 + `sdd-archive` ejecutados el 2026-06-22, ver `diario/2026-06-22.md`): vive en `openspec/changes/archive/2026-06-22-setup-stack/` y su spec consolidada quedó en `openspec/specs/setup-stack/spec.md`.
 
 El cambio `data-model` está **LIVE en producción y archivado** (apply 48/48, verify PASS 0 CRITICAL, `sdd-archive` 2026-07-06): desplegado a `sa-east-1` con 7 tablas + 4 funciones RPC para 4 dominios (catalogo, venta, configuracion, seguridad). Vive en `openspec/changes/archive/2026-07-06-data-model/` y los specs consolidados en `openspec/specs/{catalogo,venta,configuracion,seguridad}/spec.md`. Nota: el host terminó en **Cloudflare Workers Static Assets**, no Pages classic (el dashboard nuevo de CF corre `wrangler deploy`, no `pages deploy`).
+
+El cambio `auth-pin` está **LIVE en producción y archivado** (apply fases 0-9, verify PASS WITH WARNINGS — 0 CRITICAL, 4 WARNING, 2 SUGGESTION —, `sdd-archive` 2026-07-15): agrega PIN unlock local-only (PBKDF2 600k + AES-GCM, cero red en el desbloqueo diario), roles `admin`/`empleado` (CHECK de `profiles.rol` ampliado), la columna `profiles.activo` como gate de revocación en cada policy/RPC, la Edge Function `enroll-empleado` (alta y baja) con guard anti-autorrevocación en dos capas, y auto-lock por inactividad. Cierra la batería JWT multi-rol que `data-model` había diferido (T-5.1–T-5.5), ejecutada de verdad (7/7) contra un stack Supabase local con JWTs reales. Vive en `openspec/changes/archive/2026-07-15-auth-pin/` y los specs consolidados en `openspec/specs/{setup-stack,seguridad,auth}/spec.md` (dominio `auth` es nuevo; `setup-stack` y `seguridad` recibieron requirements MODIFIED/ADDED). Residuales no bloqueantes que quedan para la próxima sesión que toque auth: falta captura HAR/network-trace real del PIN unlock (W-1), un trigger `AFTER UPDATE OF raw_app_meta_data` si se llega a provisionar un segundo admin (W-3), y habilitar `auth_leaked_password_protection` en Supabase Auth (W-4).
 
 ## Metodología: Spec-Driven Development (SDD) vía openspec
 
@@ -43,6 +45,7 @@ Changes activos al momento de escribir esto (verificá `state.yaml` actual, esto
 Changes archivados:
 - `setup-stack` (2026-06-22) — bootstrapping del stack SPA+Supabase+CF
 - `data-model` (2026-07-06) — schema MVP: 7 tablas, 4 funciones RPC, RLS/GRANTs, live en producción
+- `auth-pin` (2026-07-15) — PIN unlock local-only + roles admin/empleado + revocación con guard anti-autorrevocación, live en producción
 
 Los changes cerrados viven en `openspec/changes/archive/`.
 
