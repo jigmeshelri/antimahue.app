@@ -46,6 +46,7 @@ const TicketView = lazy(() => import('@/features/venta/TicketView'))
 const ScannerScreen = lazy(() => import('@/features/escaner/ScannerScreen'))
 const CatalogScreen = lazy(() => import('@/features/catalogo/CatalogScreen'))
 const ProductDetailScreen = lazy(() => import('@/features/catalogo/ProductDetailScreen'))
+const ProductFormScreen = lazy(() => import('@/features/catalogo/ProductFormScreen'))
 const SupplierScreen = lazy(() => import('@/features/proveedor/SupplierScreen'))
 const DteImportScreen = lazy(() => import('@/features/dte/DteImportScreen'))
 const EmpleadasScreen = lazy(() => import('@/features/empleadas/EmpleadasScreen'))
@@ -139,6 +140,22 @@ export const router = createBrowserRouter([
       <RequireSession>
         <ProductDetailScreen />
       </RequireSession>
+    ),
+  },
+  {
+    path: '/catalogo/new',
+    element: (
+      <RequireAdmin>
+        <ProductFormScreen mode="create" />
+      </RequireAdmin>
+    ),
+  },
+  {
+    path: '/catalogo/:id/edit',
+    element: (
+      <RequireAdmin>
+        <ProductFormScreen mode="edit" />
+      </RequireAdmin>
     ),
   },
   {
