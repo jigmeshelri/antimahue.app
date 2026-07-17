@@ -104,3 +104,61 @@ The system MUST expose `crear_producto(...)` and `actualizar_producto(...)` as S
 - WHEN the RPC executes
 - THEN the transaction rolls back
 - AND no orphan row is left in `productos`
+
+## Client catalog feature (change: catalogo)
+
+### API layer
+
+`src/features/catalogo/catalogoApi.ts`
+
+| Function | Behavior |
+|---|---|
+| `fetchProducts(filters)` | PostgREST query with `search` (debounced), `tipo`, `limit`/`offset`; default sort `nombre ASC`; returns `Product[]`. |
+| `fetchProductById(id)` | Single row by id; returns `Product \| null`. |
+| `findProductBySku(sku)` | Exact SKU match; returns `Product \| null`. |
+| `createProduct(input)` | Calls `crear_producto` RPC; returns new product id. |
+| `updateProduct(id, input)` | Calls `actualizar_producto` RPC with changed fields. |
+
+### Utilities
+
+`src/features/catalogo/catalogoUtils.ts`
+
+| Function | Behavior |
+|---|---|
+| `formatPrice(value)` | CLP formatting, e.g. `4800` → `"$4.800"`. |
+| `resolveStockStatus(stock, minimo, defaultMinimo)` | `"ok" \| "low" \| "out"`. |
+| `productSubtitle(product)` | `marca · grosor · color_nombre` fallback to `tipo`. |
+| `computeMargin(precioVenta, costo)` | Gross margin percentage rounded to 1 decimal. |
+
+### Components
+
+| Component | Path | Responsibility |
+|---|---|---|
+| `StockBadge` | `src/components/atoms/StockBadge.tsx` | Stock status pill. |
+| `SearchInput` | `src/components/molecules/SearchInput.tsx` | Controlled search input. |
+| `FilterChips` | `src/components/molecules/FilterChips.tsx` | Horizontal type filter chips. |
+| `ProductCard` | `src/components/molecules/ProductCard.tsx` | List item with thumbnail, name, price, stock badge. |
+| `Stepper` | `src/components/molecules/Stepper.tsx` | +/- quantity control. |
+| `BottomNav` | `src/components/organisms/BottomNav.tsx` | Tab navigation. |
+| `ScreenHeader` | `src/components/organisms/ScreenHeader.tsx` | Terracotta header with back / right action. |
+
+### Screens
+
+| Screen | Path | Routes |
+|---|---|---|
+| `CatalogScreen` | `src/features/catalogo/CatalogScreen.tsx` | `/catalogo` |
+| `ProductDetailScreen` | `src/features/catalogo/ProductDetailScreen.tsx` | `/catalogo/:id` |
+| `ProductFormScreen` | `src/features/catalogo/ProductFormScreen.tsx` | `/catalogo/new`, `/catalogo/:id/edit` |
+| `ScannerScreen` | `src/features/escaner/ScannerScreen.tsx` | `/escaner` |
+
+### Store extensions
+
+`src/stores/saleDraft.ts`
+
+- `addLine(line: SaleLine)` — adds a new line or increments quantity if the product already exists in the draft.
+
+### Security/role behavior
+
+- Admin sees create/edit buttons and cost/margin card.
+- Employee sees only product info and "Agregar a la venta".
+- `<RequireAdmin>` route guard is UX concealment only; write RPCs enforce `is_admin()`.
