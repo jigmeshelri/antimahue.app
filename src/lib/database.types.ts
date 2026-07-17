@@ -1,15 +1,13 @@
 /**
- * Supabase generated TS types — T-1.4 (auth-pin Phase 1, post-migration regen).
+ * Supabase generated TS types — regenerated for catalogo change.
  *
  * Generated with:
  *   supabase gen types typescript --project-id aruteznqhdaaxxvllvzm --schema public
  *
- * Post-migration snapshot (20260714000000_auth_pin_multirole live in
- * sa-east-1): `profiles.activo: boolean` now present in Row/Insert/Update,
- * `is_active` in Functions. `profiles.rol` still types as plain `string` —
- * the CHECK constraint (`'admin' | 'empleado'`) never surfaces as a union in
- * generated types; app-level narrowing lives in application code, not here.
- * Supersedes the T-0.5 pre-migration baseline.
+ * Snapshot includes domain RPCs (`crear_producto`, `actualizar_producto`,
+ * `confirmar_venta`, `deshacer_venta`) and auth-pin Phase 6/7 RPCs
+ * (`listar_perfiles`, `actualizar_activo_perfil`). `profiles.rol` still types
+ * as plain `string` — the CHECK constraint never surfaces as a union.
  *
  * DO NOT hand-edit. Excluded from ESLint/Prettier (generated code).
  */
@@ -348,6 +346,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      actualizar_activo_perfil: {
+        Args: { p_activo: boolean; p_perfil_id: string }
+        Returns: boolean
+      }
       actualizar_producto: {
         Args: {
           p_costo?: number
@@ -369,6 +371,14 @@ export type Database = {
       deshacer_venta: { Args: { p_venta_id: string }; Returns: undefined }
       is_active: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      listar_perfiles: {
+        Args: never
+        Returns: {
+          activo: boolean
+          id: string
+          rol: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
