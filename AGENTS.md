@@ -1,6 +1,6 @@
 # AGENTS — Proyecto Antimahue
 
-> Estado al 2026-07-05: app **LIVE en producción** (`antimahue.com`). La guía completa del repo vive en `CLAUDE.md` — este archivo es el resumen operativo para agentes. Mantener ambos sincronizados.
+> Estado al 2026-08-06: app **LIVE en producción** (`antimahue.com`). Tres changes del MVP cerrados y archivados: `data-model`, `auth-pin`, `catalogo` (ver `openspec/changes/archive/`). Próximo change del roadmap: `venta`. La guía completa del repo vive en `CLAUDE.md` — este archivo es el resumen operativo para agentes. Mantener ambos sincronizados.
 
 ## Comandos reales
 
@@ -10,7 +10,7 @@
 - `pnpm preview` — sirve el `dist/` buildeado.
 - `pnpm lint` — ESLint.
 - `pnpm format` / `pnpm format:check` — Prettier (escribe / solo chequea).
-- `pnpm test` — Vitest. `76 passed | 7 skipped` por default (CI parity); los skips son la batería RLS multi-rol, local-only — `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza contra un stack Supabase local → 83/83.
+- `pnpm test` — Vitest. `166 passed | 7 skipped` por default (CI parity); los skips son la batería RLS multi-rol, local-only — `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza contra un stack Supabase local → 173/173.
 - CI (`.github/workflows/ci.yml`, GitHub Actions) corre lint + format:check + typecheck + test + build en cada PR contra `main` y en push a `main`.
 
 ## Workflow git
