@@ -63,6 +63,7 @@ export default function ProductDetailScreen() {
       name: product.nombre,
       quantity,
       unitPrice: product.precio_venta,
+      stockSnapshot: product.stock,
     })
     navigate('/venta')
   }
