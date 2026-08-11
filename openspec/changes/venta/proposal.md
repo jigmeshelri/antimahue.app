@@ -1,11 +1,11 @@
 ---
 change: venta
 phase: proposal
-status: in_progress
+status: completed
 depends_on: [data-model, auth-pin, catalogo]
 supersedes: ~
 persistence: openspec+engram
-updated_at: 2026-08-06
+updated_at: 2026-08-07
 ---
 
 # Proposal: venta — sale flow (cart, charge, stock decrement, undo, ticket) (Antimahue MVP)
@@ -29,7 +29,7 @@ Governing principle inherited: **the client bundle is UNTRUSTED — authorizatio
 - Tests for API layer, pure utils, store, atomic components (TDD).
 
 ### Out of scope
-- **Offline sale queue** — explicitly deferred (YAGNI: single store, good connectivity; issue #6 stretch goal stays unmet by design). Network failure leaves the draft intact for manual retry.
+- **Offline sale queue** — explicitly deferred (YAGNI: single store, good connectivity; issue #6 stretch goal stays unmet by design). Network failure leaves the draft intact for manual retry, with a warning that a retry after an unknown commit outcome can duplicate the sale (R7).
 - **Reprint from sale history** — deferred to the `dashboard` change (declares issue #9's reprint AC unmet here by design).
 - Any backend/schema/migration work (backend is complete).
 - Realtime stock subscriptions (RPC `FOR UPDATE` covers oversell).
@@ -45,11 +45,11 @@ Governing principle inherited: **the client bundle is UNTRUSTED — authorizatio
 | D4 | Ticket output | **`window.print()` + 80mm print CSS + `wa.me` plain text** — zero dependencies | PDF library; thermal printer integration |
 | D5 | Undo UX | **Button in TicketView only** (user-validated); RPC rejection mapped to toast | Also on SaleScreen; per-user undo |
 | D6 | Offline queue | **OUT of scope** (user-validated YAGNI) | IndexedDB queue with sync/conflict handling |
-| D7 | Seller name on ticket | **Show only for own sale** (session `user_metadata.display_name`); omit otherwise | Schema change to make names readable |
+| D7 | Seller name on ticket | **Show only for own sale** (session `user_metadata.display_name`); fallback to email local-part if `display_name` is absent; omit the line entirely if no email/name is available | Schema change to make names readable |
 | D8 | Ticket reference | **Short uuid fragment** (first 8 chars) as on-screen/print reference | Fake sequential folio ("Ticket N° 0047") |
 | D9 | RPC error handling | **Match stable prefixes** (`'stock insuficiente'`, `'solo se puede deshacer'`) + uuid regex to flag the line | Parse full free-text; opaque generic errors |
 | D10 | Oversell / realtime | **No Realtime** — server `FOR UPDATE` is the truth; optional stock refetch on SaleScreen mount | Supabase Realtime subscription |
-| D11 | Employee cost visibility | **Conceal by construction** — `SaleLine` carries no cost; reuse no admin cost components. Boundary stays RLS/RPC | Client-side role branching over cost data |
+| D11 | Employee cost visibility | **Conceal by construction within `src/features/venta/**`** — `SaleLine` carries no cost; reuse no admin cost components. Product search reuses `fetchProducts`, whose cost column is unreadable to empleados via RLS; the static guard applies only to the sale feature boundary. | Client-side role branching over cost data |
 
 ### D1 — Pure frontend (MUST)
 `confirmar_venta` validates `medio_pago` against the same set as the `ventas.medio_pago` CHECK, locks each item row `FOR UPDATE`, freezes price from `productos.precio_venta`, recomputes the total, and returns the venta uuid. `deshacer_venta` soft-cancels with a compensating ledger. Both are gated by `is_active()`. Nothing is missing server-side.
@@ -64,7 +64,7 @@ The handoff ships a printable 80mm thermal layout (`Ticket Térmico.dc.html`: `@
 The RPC rule is **global last-sale-only** (any later confirmed sale, from any device, invalidates undo). By construction, the TicketView of a just-confirmed sale shows the global last sale; if another sale slipped in, `deshacer_venta` rejects with `'solo se puede deshacer la última venta confirmada'` and the UI surfaces it as a toast. Minor deviation from the design handoff (which doesn't draw the button) — validated by the user.
 
 ### D7 — Seller name own-sale-only (SHOULD)
-Seller display name lives in session `user_metadata.display_name`; `profiles` has no name column and its RLS is own-row, so there is no readable source for other sellers' names. The ticket shows the name on the just-confirmed (own) sale and omits the field when deep-linking someone else's sale.
+Seller display name lives in session `user_metadata.display_name`; `profiles` has no name column and its RLS is own-row, so there is no readable source for other sellers' names. The ticket shows the name on the just-confirmed (own) sale, falls back to the email local-part if `display_name` is missing, and omits the field when deep-linking someone else's sale or when no name/email is available.
 
 ## Affected Areas
 
@@ -91,6 +91,7 @@ Seller display name lives in session `user_metadata.display_name`; `profiles` ha
 | R4 | Issue #9 reprint-from-history AC unmet here | High (by design) | Declared deferred to `dashboard`; TicketView deep-linkable by id so history can link it later. |
 | R5 | Stale stock snapshot in a long-lived draft | Med | Advisory only; server rejects on confirm and the failing line is flagged (D2/D9). |
 | R6 | `BarcodeDetector` unsupported on iOS/Safari | Low | Manual fallback already inherited from catalogo; not a new risk. |
+| R7 | Network failure after RPC commit causes duplicate sale on blind retry | Med | UX mitigation: if confirm fails with an ambiguous network error, warn the user to check the ticket list/history before retrying; do not auto-retry. Client-generated idempotency key is impossible without a schema change, so it is out of scope. |
 
 ## Rollback Plan
 

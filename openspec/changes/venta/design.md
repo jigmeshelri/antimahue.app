@@ -1,13 +1,14 @@
 ---
 change: venta
 phase: design
-status: in_progress
+status: completed
 depends_on: [data-model, auth-pin, catalogo]
 supersedes: ~
 persistence: openspec
-updated_at: 2026-08-06
+updated_at: 2026-08-07
 resolves_open_questions: [OQ-1, OQ-2, OQ-3, OQ-4]
 carries_forward: [D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11]
+design_decisions: [DD-1, DD-2, DD-3, DD-4, DD-5, DD-6, DD-7, DD-8, DD-9, DD-10]
 ---
 
 # Design: venta — sale flow (cart, charge, undo, ticket)
@@ -31,6 +32,7 @@ Three layers, mirroring catalogo: **API layer** (`ventaApi.ts`, mocks only Supab
 | DD-7 | D5 | New **`Toast` organism** rendering the designed-but-unrendered `$ui.toastMessage` + `showToast()` helper; mounted in `AppShell` | Inline banners per screen (duplicated; `$ui` already exists for this) |
 | DD-8 | D4 | WhatsApp = plain-text ticket via `buildWhatsAppText()` → `window.open('https://wa.me/?text=' + encodeURIComponent(t))` | wa.me with phone number (no fixed customer number exists) |
 | DD-9 | OQ-1 | Print ticket font = **system `ui-monospace` stack** — zero new binary assets, print-only; screens stay DM Sans | Self-host DM Mono woff2 (faithful to handoff but adds binaries for a print-only path) |
+| DD-10 | D8 / handoff | **SaleScreen renders `BottomNav active="venta"`** — same chrome as catalogo screens, not full-screen | Full-screen sale flow (breaks the established app-shell pattern) |
 
 ### DD-3 — Undo button (handoff deviation, user-validated)
 
@@ -75,14 +77,14 @@ fetchStock(productIds: string[]): Promise<Record<string, number>>      // DD-2: 
 ```ts
 // src/features/venta/ventaUtils.ts (pure, TDD)
 parseRpcError(message: string): ParsedRpcError
-buildWhatsAppText(v: Venta, store: string, seller?: string): string
+buildWhatsAppText(v: Venta, store: string, seller?: string): string  // seller omitted when absent; falls back to email local-part if display_name missing
 draftTotal(lines: SaleLine[]): number
 shortRef(uuid: string): string          // first 8 chars — D8 ("Ticket #a1b2c3d4")
 formatTicketDate(iso: string): string   // Intl.DateTimeFormat es-CL
 MEDIO_PAGO_LABELS: Record<MedioPago, string>
 ```
 
-WhatsApp text: store name, date, `Ticket #<shortRef>`, `Atiende: <seller>` (own sale only, D7), one block per item (`nombre` / `qty × $unit = $subtotal` via `formatPrice`), dashed separators, `TOTAL $…`, medio de pago label, `¡Gracias por tu compra!`.
+WhatsApp text: store name, date, `Ticket #<shortRef>`, `Atiende: <seller>` (own sale only, D7; fallback to email local-part if `display_name` is absent; omit line if no seller identifier is available), one block per item (`nombre` / `qty × $unit = $subtotal` via `formatPrice`), dashed separators, `TOTAL $…`, medio de pago label, `¡Gracias por tu compra!`.
 
 ## 4. `saleDraft` extension (DD-6)
 
@@ -100,8 +102,9 @@ setMedioPago(mp: MedioPago)
 
 ## 5. Components and screens
 
-- **SaleScreen** (`/venta`): `ScreenHeader("Nueva venta")`, `SearchInput` + scanner button (`navigate('/escaner')`), search results (reuse `fetchProducts({search})`, tap → `addLine` qty 1), cart lines (name, subtitle, `qty × $unit`, line total, `Stepper` with `max=stockSnapshot`), footer: total, medio-pago chips, CTA `Confirmar venta · $total` (disabled when empty/any line over snapshot). Confirm → `confirmSale` → `clearDraft()` → `navigate('/venta/' + id + '/ticket', { replace: true })`. `stock_insuficiente` → flag matching line red, keep draft (R5); other errors → toast. Mount → DD-2 refetch.
-- **TicketView** (`/venta/:id/ticket`, deep-linkable): fetch `fetchVenta` + `fetchStoreName`. Success banner, receipt card per handoff (store header, items, total, medio de pago, `Ticket #<shortRef>`, seller name iff `venta.actor_id === $auth.user.id` — D7), actions stack (DD-3), print-only `<PrintTicket>` block (DD-1). Deshecha state per DD-4.
+- **SaleScreen** (`/venta`): `ScreenHeader("Nueva venta")`, `BottomNav active="venta"` (DD-10), `SearchInput` + scanner button (`navigate('/escaner')`), search results (reuse `fetchProducts({search})`, tap → `addLine` qty 1), cart lines (name, subtitle, `qty × $unit`, line total, `Stepper` with `max=stockSnapshot`), footer: total, medio-pago chips, CTA `Confirmar venta · $total` (disabled when empty/any line over snapshot; enters loading state once tapped). Confirm → set in-flight guard → `confirmSale` → `clearDraft()` → `navigate('/venta/' + id + '/ticket', { replace: true })`. `stock_insuficiente` → flag matching line red, keep draft (R5); other errors → toast. Mount → DD-2 refetch.
+  - *Cost note:* search reuses the catalogo `fetchProducts` helper; for empleados its cost columns are unreadable via RLS, and no cost data is rendered or stored inside `src/features/venta/**`.
+- **TicketView** (`/venta/:id/ticket`, deep-linkable): fetch `fetchVenta` + `fetchStoreName`. `null` result → "Venta no encontrada o no accesible" empty state with "Nueva venta" CTA to `/venta`. Success banner, receipt card per handoff (store header, items, total, medio de pago, `Ticket #<shortRef>`, seller name iff `venta.actor_id === $auth.user.id` — D7; fallback to email local-part if `display_name` missing, omit line if unavailable), actions stack (DD-3), print-only `<PrintTicket>` block (DD-1). Deshecha state per DD-4.
 - **Toast** (new organism): reads `$ui`, auto-dismiss ~4 s; `showToast(message, type)` helper in `stores/ui.ts`. Mounted once in `AppShell`.
 
 ## 6. Data flow
@@ -121,7 +124,7 @@ confirmSale(lines, medioPago) ──ok──▶ clearDraft ─▶ /venta/:id/tic
 
 ## 8. Security and role handling
 
-Admin and empleado see an identical sale flow (D11): `SaleLine` carries no cost, no admin cost component is reused, and the ticket embed selects only `nombre`. The real boundary stays RLS/RPC (`is_active()` gates both RPCs; `producto_costos` is never queried from venta). Route guards unchanged (`<RequireSession>` already wraps both routes).
+Admin and empleado see an identical sale flow (D11): `SaleLine` carries no cost, no admin cost component is reused inside `src/features/venta/**`, and the ticket embed selects only `nombre`. The real boundary stays RLS/RPC (`is_active()` gates both RPCs; `producto_costos` is never queried from venta). Search reuses catalogo `fetchProducts`, whose cost columns are unreadable to empleados via RLS. Route guards unchanged (`<RequireSession>` already wraps both routes).
 
 ## 9. Migration / schema impact
 
