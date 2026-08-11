@@ -27,6 +27,7 @@ import { router } from '@/lib/router'
 import { supabase } from '@/lib/supabase'
 import { $auth } from '@/stores/auth'
 import { useIdleLock } from '@/features/auth/useIdleLock'
+import { Toast } from '@/components/organisms'
 import '@/index.css'
 
 // Bootstrap Supabase session listener.
@@ -54,7 +55,12 @@ supabase.auth.onAuthStateChange((_event, session) => {
 /** Mounts the idle-lock watcher above the router so it survives every route (T-8.2). */
 function AppShell() {
   useIdleLock()
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toast />
+    </>
+  )
 }
 
 const rootEl = document.getElementById('root')
