@@ -1,11 +1,13 @@
 interface StepperProps {
   quantity: number
   max?: number
+  allowZero?: boolean
   onChange: (quantity: number) => void
 }
 
-export default function Stepper({ quantity, max, onChange }: StepperProps) {
-  const canDecrement = quantity > 1
+export default function Stepper({ quantity, max, allowZero = false, onChange }: StepperProps) {
+  const min = allowZero ? 0 : 1
+  const canDecrement = quantity > min
   const canIncrement = max === undefined || quantity < max
 
   return (

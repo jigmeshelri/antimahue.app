@@ -16,3 +16,21 @@ export const $ui = atom<UiState>({
   toastMessage: null,
   toastType: null,
 })
+
+/**
+ * Show a transient toast message.
+ * The Toast organism reads $ui and auto-dismisses after ~4 seconds.
+ */
+export function showToast(
+  message: string,
+  type: Exclude<UiState['toastType'], null> = 'info'
+): void {
+  $ui.set({ ...$ui.get(), toastMessage: message, toastType: type })
+}
+
+/**
+ * Clear the current toast manually.
+ */
+export function clearToast(): void {
+  $ui.set({ ...$ui.get(), toastMessage: null, toastType: null })
+}

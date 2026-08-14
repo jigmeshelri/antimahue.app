@@ -102,6 +102,7 @@ export default function ScannerScreen() {
       name: product.nombre,
       quantity,
       unitPrice: product.precio_venta,
+      stockSnapshot: product.stock,
     })
     navigate('/venta')
   }

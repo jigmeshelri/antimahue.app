@@ -1,8 +1,8 @@
 change:
   name: venta
-  status: proposal
+  status: active
   created_at: "2026-08-06T22:30:00Z"
-  updated_at: "2026-08-06T22:45:00Z"
+  updated_at: "2026-08-07T14:00:00Z"
   depends_on:
     - data-model
     - auth-pin
@@ -13,6 +13,6 @@ change:
     specs: completed
     design: completed
     tasks: completed
-    apply: pending
+    apply: completed
     verify: pending
     archive: pending

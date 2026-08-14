@@ -7,6 +7,7 @@ supersedes: ~
 persistence: openspec+engram
 domain: venta
 delta_of: openspec/specs/venta/spec.md
+updated_at: 2026-08-07
 ---
 
 # Delta for venta — sale UI flow (cart, confirm, undo, ticket)
@@ -43,15 +44,21 @@ empty state and block confirm.
 
 A payment method MUST be selected before confirm (`efectivo` preselected).
 Confirm MUST call `confirmar_venta` with only `{producto_id, cantidad}[]` +
-medio de pago — never price/total (REQ-DM-VENTA-3). Success MUST clear the draft
-and navigate to `/venta/:id/ticket`. Out-of-stock rejection MUST flag the
-offending line (`'stock insuficiente'` prefix + uuid regex, D9) and keep the
-draft intact.
+medio de pago — never price/total (REQ-DM-VENTA-3). The "Confirmar venta" CTA
+MUST disable and show a loading state from tap until the RPC settles. Success
+MUST clear the draft and navigate to `/venta/:id/ticket`. Out-of-stock rejection
+MUST flag the offending line (`'stock insuficiente'` prefix + uuid regex, D9)
+and keep the draft intact.
 
 #### Scenario: confirm happy path
 - GIVEN a cart with medio de pago selected
 - WHEN the user confirms
-- THEN the RPC gets only ids+cantidades+medio de pago; the draft clears and the ticket opens
+- THEN the CTA enters a loading/disabled state, the RPC gets only ids+cantidades+medio de pago, and the draft clears and the ticket opens once the RPC settles
+
+#### Scenario: confirm in-flight guard
+- GIVEN a confirm RPC is in flight
+- WHEN the user taps "Confirmar venta" again
+- THEN the CTA remains disabled/loading and no duplicate RPC is sent
 
 #### Scenario: stock failure flags the line
 - GIVEN a rejection `'stock insuficiente … <uuid>'`
@@ -80,13 +87,21 @@ calling `deshacer_venta` (REQ-DM-VENTA-4). Last-sale-only rejection (prefix
 The ticket MUST render store name, lines (nombre, cantidad, precio unitario,
 subtotal), total, medio de pago, fecha/hora, reference = first 8 uuid chars
 (D8). MUST be reachable at `/venta/:id/ticket` by any authenticated role.
-Seller name MUST appear only on the user's own sale (D7).
+Seller name MUST appear only on the user's own sale (D7). If `fetchVenta`
+returns `null` (bad id, inactive user, or RLS rejection), the screen MUST show
+a "Venta no encontrada o no accesible" state with a "Nueva venta" CTA.
 
 #### Scenario: seller name only on own sale
 - GIVEN a rendered ticket
 - WHEN the sale is the user's own
 - THEN their display name is shown
 - AND for someone else's deep-linked sale the seller field is omitted
+
+#### Scenario: missing or inaccessible sale
+- GIVEN a bad or unreadable venta id
+- WHEN the ticket screen loads
+- THEN a "Venta no encontrada o no accesible" message is shown
+- AND a "Nueva venta" CTA navigates to `/venta`
 
 ### Requirement: REQ-VENTA-UI-5 — Print and WhatsApp output
 
