@@ -8,7 +8,7 @@ sequencing_source: "design.md §6 session plan"
 phase_count: 3
 session_count: 3
 task_count: 18
-progress: "8/18"
+progress: "16/18"
 updated_at: 2026-08-18
 ---
 
@@ -45,14 +45,14 @@ Objetivo: componentes puros y testeados, sin conectar al screen aún.
 
 | ID | Task | Files | Refs | Verification | Status |
 |---|---|---|---|---|---|
-| S2-T-1 | Crear `DashboardHeader` con saludo dinámico, icono app, campana + badge. | `src/features/dashboard/components/DashboardHeader.tsx` | REQ-DASH-UI-1, REQ-DASH-5 | test + snapshot visual manual | [ ] |
-| S2-T-2 | Test `DashboardHeader`: saludo según hora, nombre, badge según alertas. | `src/features/dashboard/components/DashboardHeader.test.tsx` | REQ-DASH-UI-1 | tests pass | [ ] |
-| S2-T-3 | Crear `StatCard` reutilizable. | `src/features/dashboard/components/StatCard.tsx` | REQ-DASH-UI-3 | test | [ ] |
-| S2-T-4 | Crear `PaymentBreakdown` con 4 columnas y divisores. | `src/features/dashboard/components/PaymentBreakdown.tsx` | REQ-DASH-UI-4 | test | [ ] |
-| S2-T-5 | Crear `StockAlertList` con clasificación agotado/bajo y navegación. | `src/features/dashboard/components/StockAlertList.tsx` | REQ-DASH-3, REQ-DASH-4, REQ-DASH-8, REQ-DASH-UI-5 | test | [ ] |
-| S2-T-6 | Crear `QuickSearch` que navega a `/catalogo?search=...`. | `src/features/dashboard/components/QuickSearch.tsx` | REQ-DASH-7 | test | [ ] |
-| S2-T-7 | Crear `AlertStrip` condicional con link a catálogo. | `src/features/dashboard/components/AlertStrip.tsx` | REQ-DASH-UI-2 | test | [ ] |
-| S2-T-8 | Gate: typecheck + test + build green. | — | — | `pnpm typecheck && pnpm test && pnpm build` | [ ] |
+| S2-T-1 | Crear `DashboardHeader` con saludo dinámico, icono app, campana + badge. | `src/features/dashboard/components/DashboardHeader.tsx` | REQ-DASH-UI-1, REQ-DASH-5 | test + snapshot visual manual | [x] |
+| S2-T-2 | Test `DashboardHeader`: saludo según hora, nombre, badge según alertas. | `src/features/dashboard/components/DashboardHeader.test.tsx` | REQ-DASH-UI-1 | tests pass | [x] |
+| S2-T-3 | Crear `StatCard` reutilizable. | `src/features/dashboard/components/StatCard.tsx` | REQ-DASH-UI-3 | test | [x] |
+| S2-T-4 | Crear `PaymentBreakdown` con 4 columnas y divisores. | `src/features/dashboard/components/PaymentBreakdown.tsx` | REQ-DASH-UI-4 | test | [x] |
+| S2-T-5 | Crear `StockAlertList` con clasificación agotado/bajo y navegación. | `src/features/dashboard/components/StockAlertList.tsx` | REQ-DASH-3, REQ-DASH-4, REQ-DASH-8, REQ-DASH-UI-5 | test | [x] |
+| S2-T-6 | Crear `QuickSearch` que navega a `/catalogo?search=...`. | `src/features/dashboard/components/QuickSearch.tsx` | REQ-DASH-7 | test | [x] |
+| S2-T-7 | Crear `AlertStrip` condicional con link a catálogo. | `src/features/dashboard/components/AlertStrip.tsx` | REQ-DASH-UI-2 | test | [x] |
+| S2-T-8 | Gate: lint + format + typecheck + test + build green. | — | — | cinco gates green | [x] |
 
 **Commit sugerido:** `feat(dashboard): add dashboard UI components`
 
