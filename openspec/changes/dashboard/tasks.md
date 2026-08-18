@@ -8,7 +8,7 @@ sequencing_source: "design.md §6 session plan"
 phase_count: 3
 session_count: 3
 task_count: 18
-progress: "16/18"
+progress: "18/18"
 updated_at: 2026-08-18
 ---
 
@@ -64,13 +64,13 @@ Objetivo: armar `DashboardScreen`, tests de screen, verify report y PR.
 
 | ID | Task | Files | Refs | Verification | Status |
 |---|---|---|---|---|---|
-| S3-T-1 | Reescribir `DashboardScreen.tsx`: carga de datos, estados loading/error/empty, layout handoff, refresh manual, adaptación por rol. | `src/features/dashboard/DashboardScreen.tsx` | design.md §4, REQ-DASH-UI-1..6 | visual manual | [ ] |
-| S3-T-2 | Screen test: loading, datos admin, datos empleado, error, refresh, navegación desde alertas y búsqueda. | `src/features/dashboard/DashboardScreen.test.tsx` | REQ-DASH-6, REQ-DASH-7, REQ-DASH-8 | tests pass | [ ] |
-| S3-T-3 | Agregar `src/features/dashboard/components/index.ts` si aplica. | `src/features/dashboard/components/index.ts` | — | typecheck green | [ ] |
-| S3-T-4 | Actualizar `openspec/changes/dashboard/state.yaml` a fase `apply: completed`. | `openspec/changes/dashboard/state.yaml` | — | — | [ ] |
-| S3-T-5 | Generar `verify-report.md` con gates y screenshots descriptivos. | `openspec/changes/dashboard/verify-report.md` | — | — | [ ] |
-| S3-T-6 | Gate final: lint, format, typecheck, test, build. | — | — | `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` | [ ] |
-| S3-T-7 | Crear PR a `main` con commits atómicos por sesión. | — | AGENTS.md | CI green | [ ] |
+| S3-T-1 | Reescribir `DashboardScreen.tsx`: carga de datos, estados loading/error/empty, layout handoff, refresh manual, adaptación por rol. | `src/features/dashboard/DashboardScreen.tsx` | design.md §4, REQ-DASH-UI-1..6 | visual manual | [x] |
+| S3-T-2 | Screen test: loading, datos admin, datos empleado, error, refresh, navegación desde alertas y búsqueda. | `src/features/dashboard/DashboardScreen.test.tsx` | REQ-DASH-6, REQ-DASH-7, REQ-DASH-8 | tests pass | [x] |
+| S3-T-3 | Agregar `src/features/dashboard/components/index.ts` si aplica. | `src/features/dashboard/components/index.ts` | — | typecheck green | [x] |
+| S3-T-4 | Actualizar `openspec/changes/dashboard/state.yaml` a fase `apply: completed`. | `openspec/changes/dashboard/state.yaml` | — | — [x] |
+| S3-T-5 | Generar `verify-report.md` con gates y screenshots descriptivos. | `openspec/changes/dashboard/verify-report.md` | — | — | [x] |
+| S3-T-6 | Gate final: lint, format, typecheck, test, build. | — | — | cinco gates green | [x] |
+| S3-T-7 | Crear PR a `main` con commits atómicos por sesión. | — | AGENTS.md | PR #47 creado; CI en ejecución | [x] |
 
 **Commits sugeridos:**
 - `feat(dashboard): wire DashboardScreen with data and role adaptation`
