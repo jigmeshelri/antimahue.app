@@ -379,6 +379,10 @@ export type Database = {
           rol: string
         }[]
       }
+      resumen_dashboard: {
+        Args: never
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
