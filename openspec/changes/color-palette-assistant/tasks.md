@@ -17,22 +17,22 @@
 
 ## Phase 3: UI components and screen
 
-- [ ] 3.1 Create `src/features/paleta/SeedPicker.tsx`: list products with `color_hex`, allow selection.
-- [ ] 3.2 Create `src/features/paleta/HarmonySelector.tsx`: chips for analogous/complementary/triadic.
-- [ ] 3.3 Create `src/features/paleta/SuggestionGrid.tsx`: show closest products per target with stock badges.
-- [ ] 3.4 Create `src/features/paleta/PaletteBuilder.tsx`: selected products with remove and reorder.
-- [ ] 3.5 Create `src/features/paleta/PaletaScreen.tsx` orchestrating the three steps with share and encargo note actions.
-- [ ] 3.6 Add `/paleta` lazy route wrapped in `<RequireSession>` in `src/lib/router.tsx`.
-- [ ] 3.7 Add paleta tab to `src/components/organisms/BottomNav.tsx`.
+- [x] 3.1 Create `src/features/paleta/SeedPicker.tsx`: list products with `color_hex`, allow selection. Presentational only — the caller (`PaletaScreen`) is responsible for passing already-colored products (from `fetchColoredProducts`); adds a local text-search filter over the given list.
+- [x] 3.2 Create `src/features/paleta/HarmonySelector.tsx`: chips for analogous/complementary/triadic. Mirrors `FilterChips`' visual pattern exactly.
+- [x] 3.3 Create `src/features/paleta/SuggestionGrid.tsx`: show closest products per target with stock badges. Groups `SuggestedProduct[]` by `targetIndex`, caps each group at 5 suggestions (`maxPerTarget`, **deviation**: not spec-mandated, a UX bound to keep the screen scrollable on a phone), and renders out-of-stock suggestions disabled per the open-question resolution.
+- [x] 3.4 Create `src/features/paleta/PaletteBuilder.tsx`: selected products with remove and reorder. Reorder is up/down buttons per D6 (no drag-and-drop), disabled at the list boundaries.
+- [x] 3.5 Create `src/features/paleta/PaletaScreen.tsx` orchestrating the three steps with share and encargo note actions. Share uses `window.open(url, '_blank', 'noopener')`; the encargo note + button section is gated to `auth.rol === 'admin'` only (UX concealment — `pedidos_pendientes` RLS is the real admin-only boundary, matching the `RequireAdmin`/route-guard convention documented in `routeGuards.ts`).
+- [x] 3.6 Add `/paleta` lazy route wrapped in `<RequireSession>` in `src/lib/router.tsx`.
+- [x] 3.7 Add paleta tab to `src/components/organisms/BottomNav.tsx` (**deviation**: the design_handoff hi-fi prototype fixes exactly 4 tabs — Inicio/Venta/Catálogo/Más — and "Más" has no built destination yet (`path: '#'`), so a genuine 5th tab is the faithful choice for this task rather than inventing an out-of-scope "Más" menu screen; bar height and therefore tap-target height are unchanged, only per-tab width shrinks, which stays well above 44px on any phone-sized viewport). Updated `BottomNav.test.tsx` from "should_render_four_tabs" to five, plus a new navigation assertion for `/paleta`.
 
 ## Phase 4: Testing and verification
 
-- [ ] 4.1 Run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`; fix failures.
-- [ ] 4.2 Apply migration to local Supabase and verify `crear_producto` computes HSL for `#FF0000`.
-- [ ] 4.3 Manually verify palette flow end-to-end: seed → rule → suggestions → build palette → share WhatsApp → save encargo.
+- [x] 4.1 Run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`; fix failures. All green — see slice-3 apply-progress entry for exact counts.
+- [x] 4.2 Apply migration to local Supabase and verify `crear_producto` computes HSL for `#FF0000` — already executed and verified in slice 1 (pulled forward as a slice-1 gate; see apply-progress.md "Local-stack SQL verification" section, item 2: `crear_producto` with `color_hex='#FF0000'` → row has `color_h=0, color_s=100, color_l=50`). Not re-run in slice 3 — no schema changes since slice 1.
+- [ ] 4.3 Manually verify palette flow end-to-end: seed → rule → suggestions → build palette → share WhatsApp → save encargo. **Not performed by this agent** — requires a real device/browser session, out of scope for an apply-phase agent; the orchestrator/user does this during `sdd-verify` or before merge.
 
 ## Phase 5: Cleanup and documentation
 
-- [ ] 5.1 Update `docs/product-definition.md` with color assistant (v1) and future portal/community (v2+).
-- [ ] 5.2 Resolve design open questions: out-of-stock display and WhatsApp message format.
-- [ ] 5.3 Update `openspec/changes/color-palette-assistant/state.yaml` to mark `tasks` completed.
+- [x] 5.1 Update `docs/product-definition.md` with color assistant (v1) and future portal/community (v2+). Section 8 and the v2+ portal/community bullets already existed from an earlier phase; this task refined section 8's wording for accuracy against the actual implementation (tap-to-move, not drag-and-drop; out-of-stock suggestions shown disabled, not filtered to "in stock" only; added the admin-only encargo note and the WhatsApp share bullet).
+- [x] 5.2 Resolve design open questions: out-of-stock display and WhatsApp message format. Both marked resolved in `design.md`'s Open Questions section, referencing the exact slice-2 code and slice-3 UI that encode each decision.
+- [x] 5.3 Update `openspec/changes/color-palette-assistant/state.yaml` to mark `tasks` completed. Already `completed` (set during the `sdd-tasks` phase); confirmed unchanged, `apply_progress` updated for slice 3.
