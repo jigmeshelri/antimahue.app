@@ -124,13 +124,128 @@ if needed again.
   persisted record instead, consistent with the declared `openspec`
   artifact store for this change.
 
-### Next batch: slice-2-core (tasks 2.1–2.4)
+## Slice 2 of 3 — `slice-2-core` (Phase 2: Core palette logic)
 
-Branch `feat/paleta-2-core`, stacked on `feat/paleta-1-foundation`. Scope:
-`paletaUtils.ts` (TDD: hex↔hsl, Euclidean distance, target generation for
-analogous/complementary/triadic, WhatsApp formatter), `paletaStore.ts`
-(`$colorPalette` nanostore), `paletaApi.ts` (fetch colored products, save
-`pedidos_pendientes`, mocked `@/lib/supabase`). No DB access needed — pure
-logic + mocked API layer, so the local Supabase stack does not need to be
-started again unless slice 3 wants to exercise `pedidos_pendientes` writes
-end-to-end.
+- **Branch**: `feat/paleta-2-core` (stacked on `feat/paleta-1-foundation`).
+- **Status**: complete. Tasks 2.1–2.4 done, strict TDD (RED confirmed before
+  each implementation). All gates green.
+- **Changed lines**: 930 insertions + 4 deletions = 934 (tasks.md deltas +
+  6 new files under `src/features/paleta/`). **Exceeds the 800-line attempt
+  budget** — flagged as a risk below; not resolved by this agent since git/PR
+  strategy is orchestrator-owned.
+
+### Tasks completed
+
+- [x] **2.1 / 2.2** `src/features/paleta/paletaUtils.ts` +
+  `paletaUtils.test.ts` (202 + 298 lines). TDD: wrote 33 failing tests first
+  (confirmed RED — `Failed to resolve import "./paletaUtils"` — before
+  writing any implementation), then implemented to GREEN.
+  - `hexToHsl` ported line-for-line from the SQL `hex_to_hsl()` algorithm in
+    `20260908000000_color_palette_hsl.sql` (same branch order for
+    max===r/g/b, same `Math.round` integer rounding). Verified against
+    `#FF0000→(0,100,50)`, `#00FF00→(120,100,50)`, `#0000FF→(240,100,50)`,
+    plus white/black/gray edge cases (delta=0 branch).
+  - `hslToHex` added as the inverse conversion (**deviation**: not named in
+    design.md's Interfaces block, but the task brief explicitly asked for
+    "hex↔HSL both directions" and it's needed for the round-trip test).
+  - `rotateHue` added as a small shared helper (**deviation**, same
+    rationale) used by `generateTargets` for all three rules and directly
+    unit-tested for wrap-around at both ends of the 0-360 circle.
+  - `colorDistance`: Euclidean over `(hueDistance, Δs, Δl)` where
+    `hueDistance = min(|h1-h2|, 360-|h1-h2|)` — design.md was silent on the
+    exact wrap-around formula (proposal.md only said "ajustando la
+    componente de tono para que sea circular"), so this agent chose the
+    standard circular-distance formula and encoded it in tests (350 vs 10 →
+    20, not 340; 0 vs 200 → 160, the short way, not 200).
+  - `generateTargets(seed, rule)`: analogous → seed ±30° (two targets);
+    complementary → seed +180° (one target, matches REQ-CPA-3 scenario
+    "one target color has hue 180"); triadic → seed +120°/+240° (two
+    targets 120° apart from each other, matching REQ-CPA-3's "target hues
+    spaced approximately 120° apart" scenario — the seed itself is the
+    third triad vertex and is not duplicated in the returned array).
+  - `rankProductsForTarget` / `findClosestYarns`: closest-first ranking,
+    products without stored HSL excluded, **out-of-stock suggestions are
+    NOT filtered — they are returned with `stockStatus` computed via the
+    reused `resolveStockStatus` from `catalogoUtils`** (open-question
+    resolution, orchestrator-directed: flag, don't hide). `SuggestedProduct`
+    extends design.md's `{product, distance, targetIndex}` with this
+    `stockStatus` field (**deviation**, necessary to satisfy REQ-CPA-5 and
+    the stock-awareness requirement from the task brief).
+  - `buildPaletteShareText` / `buildWhatsappShareUrl`: plain-text formatter
+    listing product name + `color_nombre` only, explicitly asserted to
+    contain no `$` and no price string (open-question resolution,
+    orchestrator-directed: names/colors only, no prices). `wa.me` URL
+    wraps the text with `encodeURIComponent`.
+
+- [x] **2.3** `src/features/paleta/paletaStore.ts` + `paletaStore.test.ts`
+  (79 + 161 lines, 16 tests). Mirrors `saleDraft.ts`'s plain-atom +
+  function-actions pattern exactly (`atom<PaletteState>`, no class, no
+  React). `$colorPalette: {seedId, rule, selected, note}`. Actions:
+  `setSeed`, `setRule`, `addToPalette` (dedupes by id), `removeFromPalette`,
+  `moveSelected(id, 'up'|'down')` implementing D6's "tap-to-move" reorder
+  (no-op at both list boundaries and for unknown ids — covered by 4
+  dedicated tests), `setNote`, `clearPalette`.
+
+- [x] **2.4** `src/features/paleta/paletaApi.ts` + `paletaApi.test.ts`
+  (48 + 138 lines, 5 tests). `fetchColoredProducts()`: same
+  `'*, producto_costos(costo, proveedor_id)'` select as `catalogoApi`,
+  filtered with `.not('color_hex', 'is', null)`, ordered by `nombre`, same
+  error-message-on-`error` convention as `catalogoApi`/`dashboardApi`.
+  `savePedidoPendiente({nota, colores})`: inserts into
+  `pedidos_pendientes` (`colores` cast through the generated `Json` type,
+  same pattern as `dashboardApi`'s `Json` usage). Mocked `@/lib/supabase`
+  with the same `from().select().not().order()` / `then()`-resolving
+  builder stub used by `catalogoApi.test.ts`.
+
+### Gates (all green)
+
+- `pnpm lint` — clean.
+- `pnpm format:check` — 2 files needed `pnpm format` (whitespace/line-wrap
+  only, no logic change); re-ran clean after.
+- `pnpm typecheck` — clean.
+- `pnpm test` — 327 passed | 7 skipped (baseline 273 passed | 7 skipped;
+  +54 new tests: 33 paletaUtils + 16 paletaStore + 5 paletaApi). The 7
+  skips remain the local-only RLS battery, untouched.
+- `pnpm build` — succeeds, PWA precache generated (36 entries, 649.85 KiB).
+
+### Risk: changed-lines budget exceeded
+
+The attempt was acquired with `--max-changed-lines 800`. Actual diff is
+**930 insertions + 4 deletions = 934** (`git diff --stat`, tracked +
+untracked via `git add -N` then reverted). All 6 new files under
+`src/features/paleta/` are additions (no existing code to shrink against);
+roughly 60% of the total is test code (298+161+138 = 597 test lines vs
+202+79+48 = 329 implementation lines), which is expected for strict-TDD
+pure-logic + store + API-layer work but pushed the slice over budget. This
+agent did not split the slice further or cut test coverage to fit the
+number — that tradeoff (accept as `size:exception`, or split into
+`slice-2a-utils` / `slice-2b-store-api`) is the orchestrator's/delivery
+strategy's call, not something to resolve unilaterally mid-slice. No git
+add/commit/push/PR was performed — only `git add -N` + `git reset` to
+compute the untracked-file diff stat, leaving the working tree exactly as
+it was.
+
+### Bookkeeping
+
+- `tasks.md`: 2.1–2.4 marked `[x]` with deviation notes inline.
+- `state.yaml`: `apply_progress.slices_done` now
+  `[slice-1-foundation, slice-2-core]`, `tasks_done` includes 2.1–2.4,
+  `next_slice: slice-3-ui`, `next_branch: feat/paleta-3-ui`.
+- Engram `mem_save` was again NOT available as a callable tool in this
+  execution context — this file remains the persisted record, consistent
+  with the declared `openspec` artifact store.
+
+### Next batch: slice-3-ui (tasks 3.1–3.7, 4.x, 5.x)
+
+Branch `feat/paleta-3-ui`, stacked on `feat/paleta-2-core`. Scope: the 5
+UI components + screen (`SeedPicker`, `HarmonySelector`, `SuggestionGrid`,
+`PaletteBuilder`, `PaletaScreen`), the `/paleta` route in `router.tsx`, the
+`BottomNav` tab, then Phase 4 verification (gates + local-Supabase manual
+verification of the migration's `crear_producto` HSL computation + full
+seed→rule→suggestions→palette→share→encargo flow) and Phase 5 cleanup
+(`product-definition.md` update, formal open-question closure note in
+design.md, `state.yaml` tasks-phase already completed so just confirm).
+The orchestrator should decide up front whether slice 3 stays under 800
+lines on its own or whether the slice-2 overage plus 7 new UI files
+warrants an explicit size exception or a further split — recommend
+flagging this to the user before slice 3 starts.
