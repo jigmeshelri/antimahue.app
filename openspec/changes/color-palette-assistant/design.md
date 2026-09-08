@@ -119,5 +119,5 @@ Rollback = revert the migration; no data loss because the change is additive.
 
 ## Open Questions
 
-- [ ] Should out-of-stock suggestions be hidden entirely or shown disabled? (Proposal says flag; design leans to disabled so Angélica can note the missing color.)
-- [ ] Should the palette WhatsApp message include product prices or only names/colors? (Design leans to names/colors to keep it advisory.)
+- [x] **Resolved (slice 2, `paletaUtils.rankProductsForTarget`; UI-confirmed slice 3, `SuggestionGrid.tsx`)** — Should out-of-stock suggestions be hidden entirely or shown disabled? **Decision: shown disabled, never hidden.** `rankProductsForTarget` always returns out-of-stock products tagged with `stockStatus: 'out'`; `SuggestionGrid` renders them with the same `StockBadge` ("Agotado") as the rest of the app and disables their "Agregar" button, so Angélica can still see the color exists in the catalog and offer to note an encargo for it (REQ-CPA-5, REQ-CPA-8).
+- [x] **Resolved (slice 2, `paletaUtils.buildPaletteShareText`)** — Should the palette WhatsApp message include product prices or only names/colors? **Decision: names/colors only, no prices.** `buildPaletteShareText` lists `- {nombre} ({color_nombre})` and is explicitly tested to contain no `$` and no price string, keeping the shared message advisory rather than a quote (REQ-CPA-7).

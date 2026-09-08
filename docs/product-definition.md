@@ -93,12 +93,13 @@ MVP: los 3 roles existen con autenticación simple (PIN de 4 dígitos).
 ### 8. Asistente de Combinación de Colores (Uso Interno)
 
 - **Asistente de Armonía Cromática:** Estructura el proceso en tres pasos:
-  1. **Selección Base:** Elección de una lana inicial (color semilla).
+  1. **Selección Base:** Elección de una lana inicial (color semilla) entre los hilados del catálogo que tienen un color registrado.
   2. **Regla de Diseño:** Selección de la relación deseada: colores "parecidos" (análogos), complementarios (contraste directo), o tríadas (opuestos).
-  3. **Recomendación de Inventario:** El sistema calcula los colores óptimos según la regla y sugiere automáticamente hilados del catálogo que estén en stock y que más se acerquen a la armonía deseada.
-- **Diseñador de Paletas Interactivo:** Una pantalla visual donde se arrastran y ordenan los hilados seleccionados para ver cómo se ven las hebras juntas antes de cortar o vender.
+  3. **Recomendación de Inventario:** El sistema calcula los colores óptimos según la regla y sugiere automáticamente los hilados del catálogo que más se acerquen a la armonía deseada, marcando visualmente cuáles están disponibles, con stock bajo o agotados (nunca oculta un color agotado: lo muestra deshabilitado para que Angélica pueda ofrecer anotar el encargo).
+- **Diseñador de Paletas Interactivo:** Una pantalla donde se agregan y ordenan (subir/bajar) los hilados seleccionados para ver cómo se ven las hebras juntas antes de cortar o vender.
 - **Verificación de Stock en Tiempo Real:** Alertas visuales sobre si los colores sugeridos para la paleta están disponibles, bajo stock mínimo, o agotados.
-- **Registro de Pedidos Pendientes:** Permite asociar colores agotados elegidos en la paleta a una nota de encargo del cliente, facilitando la lista de compras del próximo pedido a proveedores.
+- **Registro de Pedidos Pendientes:** Permite asociar colores agotados elegidos en la paleta a una nota de encargo del cliente, para armar la lista de compras del próximo pedido a proveedores. Función exclusiva de Angélica (admin) — los empleados no ven esta opción.
+- **Compartir por WhatsApp:** La paleta armada se puede compartir como texto plano (nombres de hilado y color, sin precios ni costos) a través de un enlace `wa.me`.
 
 
 ## Fuera del MVP (v2+)
