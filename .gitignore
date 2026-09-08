@@ -25,3 +25,5 @@ node_modules/
 # Seed WIP: destilación de PDFs del proveedor Ukryl — reservado para el change data-model, no versionar
 docs/Ukryl/
 
+# Cache local del skill-registry (gentle-ai)
+.atl/
