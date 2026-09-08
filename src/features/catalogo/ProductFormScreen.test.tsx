@@ -2,7 +2,7 @@
  * ProductFormScreen integration tests — create and edit flows.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
 import type { Product } from './catalogoTypes'
@@ -39,6 +39,9 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     peso_metraje: '50g',
     color_nombre: 'Rojo',
     color_hex: '#C84A3A',
+    color_h: 6,
+    color_s: 61,
+    color_l: 55,
     precio_venta: 4800,
     stock: 10,
     stock_minimo: 5,
@@ -108,6 +111,26 @@ describe('ProductFormScreen create', () => {
       })
     )
     expect(screen.getByText('DetailScreen')).toBeInTheDocument()
+  })
+
+  it('should_include_color_hex_when_the_optional_color_picker_is_set', async () => {
+    renderCreate()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText('Color HEX'), { target: { value: '#1E90FF' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(mocks.createProduct).toHaveBeenCalled())
+    // Native <input type="color"> normalizes the value to lowercase.
+    expect(mocks.createProduct).toHaveBeenCalledWith(
+      expect.objectContaining({ color_hex: '#1e90ff' })
+    )
+  })
+
+  it('should_submit_without_a_color_when_the_optional_picker_is_left_untouched', async () => {
+    renderCreate()
+    await fillRequiredFields()
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(mocks.createProduct).toHaveBeenCalled())
+    expect(mocks.createProduct).toHaveBeenCalledWith(expect.objectContaining({ color_hex: null }))
   })
 })
 
