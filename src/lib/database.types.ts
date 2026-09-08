@@ -1,13 +1,21 @@
 /**
- * Supabase generated TS types — regenerated for catalogo change.
+ * Supabase generated TS types — regenerated for color-palette-assistant
+ * (Phase 1 foundation).
  *
  * Generated with:
- *   supabase gen types typescript --project-id aruteznqhdaaxxvllvzm --schema public
+ *   supabase gen types typescript --local --schema public
  *
- * Snapshot includes domain RPCs (`crear_producto`, `actualizar_producto`,
- * `confirmar_venta`, `deshacer_venta`) and auth-pin Phase 6/7 RPCs
- * (`listar_perfiles`, `actualizar_activo_perfil`). `profiles.rol` still types
- * as plain `string` — the CHECK constraint never surfaces as a union.
+ * (Regenerated against the local Supabase stack after applying
+ * 20260908000000_color_palette_hsl.sql. Previous snapshots used
+ * `--project-id aruteznqhdaaxxvllvzm`; local generation omits the
+ * `__InternalSupabase.PostgrestVersion` block that only project-linked
+ * generation provides — no code in this repo reads that field.)
+ *
+ * Snapshot adds `productos.color_h/color_s/color_l`, the `hex_to_hsl` and
+ * updated `crear_producto`/`actualizar_producto` RPCs, and the new
+ * `pedidos_pendientes` table on top of the catalogo/dashboard/auth-pin
+ * snapshot. `profiles.rol` still types as plain `string` — the CHECK
+ * constraint never surfaces as a union.
  *
  * DO NOT hand-edit. Excluded from ESLint/Prettier (generated code).
  */
@@ -20,11 +28,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       audit_log: {
@@ -137,6 +140,27 @@ export type Database = {
           },
         ]
       }
+      pedidos_pendientes: {
+        Row: {
+          colores: Json
+          created_at: string
+          id: string
+          nota: string
+        }
+        Insert: {
+          colores?: Json
+          created_at?: string
+          id?: string
+          nota: string
+        }
+        Update: {
+          colores?: Json
+          created_at?: string
+          id?: string
+          nota?: string
+        }
+        Relationships: []
+      }
       producto_costos: {
         Row: {
           costo: number
@@ -175,8 +199,11 @@ export type Database = {
       }
       productos: {
         Row: {
+          color_h: number | null
           color_hex: string | null
+          color_l: number | null
           color_nombre: string | null
+          color_s: number | null
           created_at: string
           grosor: string | null
           id: string
@@ -192,8 +219,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          color_h?: number | null
           color_hex?: string | null
+          color_l?: number | null
           color_nombre?: string | null
+          color_s?: number | null
           created_at?: string
           grosor?: string | null
           id?: string
@@ -209,8 +239,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          color_h?: number | null
           color_hex?: string | null
+          color_l?: number | null
           color_nombre?: string | null
+          color_s?: number | null
           created_at?: string
           grosor?: string | null
           id?: string
@@ -369,6 +402,7 @@ export type Database = {
         Returns: string
       }
       deshacer_venta: { Args: { p_venta_id: string }; Returns: undefined }
+      hex_to_hsl: { Args: { p_hex: string }; Returns: Record<string, unknown> }
       is_active: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       listar_perfiles: {
@@ -379,10 +413,7 @@ export type Database = {
           rol: string
         }[]
       }
-      resumen_dashboard: {
-        Args: never
-        Returns: Json
-      }
+      resumen_dashboard: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
@@ -515,3 +546,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

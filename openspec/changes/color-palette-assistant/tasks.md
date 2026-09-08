@@ -2,11 +2,11 @@
 
 ## Phase 1: Foundation — schema, types, catalog wiring
 
-- [ ] 1.1 Create migration `supabase/migrations/20260813000000_color_palette_hsl.sql`: add `color_h/s/l` to `productos`, backfill from `color_hex`, update `crear_producto`/`actualizar_producto`, create `pedidos_pendientes` with RLS.
-- [ ] 1.2 Regenerate `src/lib/database.types.ts` with `supabase gen types`.
-- [ ] 1.3 Add `color_h/s/l` to `Product` and `ProductInput` in `src/features/catalogo/catalogoTypes.ts`.
-- [ ] 1.4 Forward `color_hex` to catalog RPCs in `src/features/catalogo/catalogoApi.ts`.
-- [ ] 1.5 Add optional color picker to `src/features/catalogo/ProductFormScreen.tsx` and set `color_hex`.
+- [x] 1.1 Create migration `supabase/migrations/20260908000000_color_palette_hsl.sql` (**deviation**: design named it `20260813000000_...`; renamed to `20260908000000_...` because production's latest applied migration is `20260818000000_resumen_dashboard_rpc.sql` — `supabase db push` skips any migration older than the latest applied one, so the 0813 timestamp would silently never deploy): add `color_h/s/l` to `productos`, backfill from `color_hex`, update `crear_producto`/`actualizar_producto`, create `pedidos_pendientes` with RLS.
+- [x] 1.2 Regenerate `src/lib/database.types.ts` with `supabase gen types` (against the local stack — `--local --schema public`, matching the previous `--schema public` convention; local generation has no project-id so the `__InternalSupabase.PostgrestVersion` block is absent, which no code in this repo reads).
+- [x] 1.3 Add `color_h/s/l` to `Product` in `src/features/catalogo/catalogoTypes.ts` (**deviation**: NOT added to `ProductInput` — HSL is server-computed per design D1 and the RPC contract from 1.1 only accepts `p_producto.color_hex`, never client-supplied HSL; adding write fields the API silently drops would be misleading).
+- [x] 1.4 Forward `color_hex` to catalog RPCs in `src/features/catalogo/catalogoApi.ts` — already implemented by the `catalogo` change; verified `toRpcProduct`/`toRpcProductPatch` include `color_hex` for both `crear_producto` and `actualizar_producto`, no code change needed.
+- [x] 1.5 Add optional color picker to `src/features/catalogo/ProductFormScreen.tsx` and set `color_hex` — the native `<input type="color">` field already existed from the `catalogo` change; added screen tests confirming it sets `color_hex` on submit and that leaving it untouched submits `null` (not a forced default).
 
 ## Phase 2: Core palette logic — utils, store, API
 
