@@ -26,6 +26,9 @@ export interface Product {
   peso_metraje: string | null
   color_nombre: string | null
   color_hex: string | null
+  color_h: number | null
+  color_s: number | null
+  color_l: number | null
   precio_venta: number
   stock: number
   stock_minimo: number | null
