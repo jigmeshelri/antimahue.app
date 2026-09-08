@@ -16,6 +16,10 @@
  *   /escaner    → ScannerScreen         (<RequireSession>)
  *   /catalogo   → CatalogScreen         (<RequireSession>)
  *   /catalogo/:id → ProductDetailScreen (<RequireSession>)
+ *   /paleta     → PaletaScreen          (<RequireSession> — NET-NEW, Screen
+ *                 10, color-palette-assistant change; the encargo action is
+ *                 gated in-component by role, matching `pedidos_pendientes`'
+ *                 admin-only RLS)
  *   /proveedor  → SupplierScreen        (<RequireAdmin> — session + role)
  *   /dte        → DteImportScreen       (<RequireAdmin> — session + role)
  *   /empleadas  → EmpleadasScreen (NET-NEW, Phase 6 T-6.3, DD-11 — admin-only
@@ -47,6 +51,7 @@ const ScannerScreen = lazy(() => import('@/features/escaner/ScannerScreen'))
 const CatalogScreen = lazy(() => import('@/features/catalogo/CatalogScreen'))
 const ProductDetailScreen = lazy(() => import('@/features/catalogo/ProductDetailScreen'))
 const ProductFormScreen = lazy(() => import('@/features/catalogo/ProductFormScreen'))
+const PaletaScreen = lazy(() => import('@/features/paleta/PaletaScreen'))
 const SupplierScreen = lazy(() => import('@/features/proveedor/SupplierScreen'))
 const DteImportScreen = lazy(() => import('@/features/dte/DteImportScreen'))
 const EmpleadasScreen = lazy(() => import('@/features/empleadas/EmpleadasScreen'))
@@ -156,6 +161,14 @@ export const router = createBrowserRouter([
       <RequireAdmin>
         <ProductFormScreen mode="edit" />
       </RequireAdmin>
+    ),
+  },
+  {
+    path: '/paleta',
+    element: (
+      <RequireSession>
+        <PaletaScreen />
+      </RequireSession>
     ),
   },
   {
