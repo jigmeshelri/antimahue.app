@@ -29,7 +29,7 @@
 
 - [x] 4.1 Run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`; fix failures. All green — see slice-3 apply-progress entry for exact counts.
 - [x] 4.2 Apply migration to local Supabase and verify `crear_producto` computes HSL for `#FF0000` — already executed and verified in slice 1 (pulled forward as a slice-1 gate; see apply-progress.md "Local-stack SQL verification" section, item 2: `crear_producto` with `color_hex='#FF0000'` → row has `color_h=0, color_s=100, color_l=50`). Not re-run in slice 3 — no schema changes since slice 1.
-- [ ] 4.3 Manually verify palette flow end-to-end: seed → rule → suggestions → build palette → share WhatsApp → save encargo. **Not performed by this agent** — requires a real device/browser session, out of scope for an apply-phase agent; the orchestrator/user does this during `sdd-verify` or before merge.
+- [x] 4.3 Manually verify palette flow end-to-end: seed → rule → suggestions → build palette → share WhatsApp → save encargo. (Verified by the maintainer on an Android phone against production on 2026-09-09, after PR #54 fixed seed search by color name.) **Not performed by this agent** — requires a real device/browser session, out of scope for an apply-phase agent; the orchestrator/user does this during `sdd-verify` or before merge.
 
 ## Phase 5: Cleanup and documentation
 
