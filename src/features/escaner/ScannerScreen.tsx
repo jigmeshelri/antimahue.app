@@ -27,6 +27,9 @@ export default function ScannerScreen() {
   const [product, setProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [manualSku, setManualSku] = useState('')
+  // Set when getUserMedia rejects (permission denied, no camera, policy)
+  // so the fallback copy can say so instead of blaming the device.
+  const [cameraError, setCameraError] = useState(false)
   const hasDetector =
     typeof (globalThis as never as { BarcodeDetector?: unknown }).BarcodeDetector !== 'undefined'
 
@@ -50,6 +53,7 @@ export default function ScannerScreen() {
       })
       .catch(() => {
         // Camera unavailable — manual input remains usable.
+        if (active) setCameraError(true)
       })
 
     return () => {
@@ -132,7 +136,11 @@ export default function ScannerScreen() {
         {!hasDetector || !streamReady ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center px-[24px] space-y-[16px]">
             <p className="text-text-secondary text-[14px] text-center">
-              El escáner de códigos no está disponible en este dispositivo.
+              {!hasDetector
+                ? 'El escáner de códigos no está disponible en este dispositivo.'
+                : cameraError
+                  ? 'No hay acceso a la cámara. Permite el permiso en el navegador o ingresa el SKU manualmente.'
+                  : 'Activando la cámara…'}
             </p>
             <div className="flex gap-[8px] w-full max-w-[320px]">
               <input
