@@ -38,11 +38,24 @@ export interface LockState {
   requiresRelogin: boolean // true when failCount >= 9 (terminal — blob wiped)
 }
 
-export const $lock = atom<LockState>({
+/** Neutral (unlocked, zero failures) lockout state — the store's own seed value. */
+export const NEUTRAL_LOCK: LockState = {
   failCount: 0,
   lockedUntil: null,
   requiresRelogin: false,
-})
+}
+
+export const $lock = atom<LockState>(NEUTRAL_LOCK)
+
+/**
+ * Resets `$lock` to `NEUTRAL_LOCK` — used after a confirmed local unpair
+ * (unpair-device DD-3) so a profile's lockout state never leaks into
+ * whichever profile is shown next. Does not touch the vault record or the
+ * private `NEUTRAL_LOCK` constant `pinUnlock.ts` uses for its own DD-2 path.
+ */
+export function resetLock(): void {
+  $lock.set(NEUTRAL_LOCK)
+}
 
 /** Consecutive-failure count at which the vault is wiped instead of cooling down. */
 const WIPE_THRESHOLD = 9

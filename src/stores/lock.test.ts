@@ -1,8 +1,9 @@
 /**
  * Lockout curve state-transition tests — T-2.4 (DD-2 backoff table).
+ * `resetLock()` coverage — T-1 (unpair-device, DD-3).
  */
 import { describe, expect, it } from 'vitest'
-import { isLocked, nextLockState, type LockState } from './lock'
+import { $lock, isLocked, nextLockState, NEUTRAL_LOCK, resetLock, type LockState } from './lock'
 
 describe('nextLockState', () => {
   it('should_not_lock_when_failure_count_is_below_5', () => {
@@ -94,5 +95,23 @@ describe('isLocked', () => {
     const state: LockState = { ...baseState, failCount: 5, lockedUntil: Date.now() - 1 }
 
     expect(isLocked(state)).toBe(false)
+  })
+})
+
+describe('resetLock', () => {
+  it('should_clear_failCount_lockedUntil_and_requiresRelogin_back_to_neutral', () => {
+    $lock.set({ failCount: 9, lockedUntil: null, requiresRelogin: true })
+
+    resetLock()
+
+    expect($lock.get()).toEqual(NEUTRAL_LOCK)
+  })
+
+  it('should_clear_an_active_cooldown', () => {
+    $lock.set({ failCount: 5, lockedUntil: Date.now() + 30_000, requiresRelogin: false })
+
+    resetLock()
+
+    expect($lock.get()).toEqual({ failCount: 0, lockedUntil: null, requiresRelogin: false })
   })
 })

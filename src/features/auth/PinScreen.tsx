@@ -15,16 +15,28 @@
  * etc. On a successful unlock, resume THAT route instead of always landing
  * on `/dashboard`. Falls back to `/dashboard` when there is no `from` (the
  * everyday case: opening the app fresh).
+ *
+ * Unpair / switch (unpair-device, DD-3, DD-4, DD-5): this container is the
+ * sole owner of the vault write and the `$lock` reset — `PinUnlockPanel`
+ * only ever calls back through `onUnpair`/`onSwitchUser`. `autoSelectedUserId`
+ * is shared between the mount effect and `handleUnpair` so the "0 → /pair,
+ * 1 → auto-select, 2+ → selector" rule is expressed exactly once.
  */
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import PinUnlockPanel from '@/components/organisms/PinUnlockPanel'
 import UserSelector from '@/components/molecules/UserSelector'
-import { listRecords, type VaultRecord } from '@/lib/vault'
+import { deleteRecord, listRecords, type VaultRecord } from '@/lib/vault'
+import { resetLock } from '@/stores/lock'
 import { usePinUnlock } from './usePinUnlock'
 
 interface PinScreenLocationState {
   from?: string
+}
+
+/** 1 record → auto-select it; 0 or 2+ records → no auto-selection (DD-5). */
+function autoSelectedUserId(records: VaultRecord[]): string | null {
+  return records.length === 1 ? records[0].userId : null
 }
 
 export default function PinScreen() {
@@ -38,7 +50,7 @@ export default function PinScreen() {
     void listRecords().then((loaded) => {
       if (cancelled) return
       setRecords(loaded)
-      if (loaded.length === 1) setSelectedUserId(loaded[0].userId)
+      setSelectedUserId(autoSelectedUserId(loaded))
     })
     return () => {
       cancelled = true
@@ -53,6 +65,22 @@ export default function PinScreen() {
     },
     onWiped: () => navigate('/pair'),
   })
+
+  async function handleUnpair(userId: string) {
+    await deleteRecord(userId)
+    resetLock()
+    const freshRecords = await listRecords()
+    if (freshRecords.length === 0) {
+      navigate('/pair', { replace: true })
+      return
+    }
+    setRecords(freshRecords)
+    setSelectedUserId(autoSelectedUserId(freshRecords))
+  }
+
+  function handleSwitchUser() {
+    setSelectedUserId(null)
+  }
 
   if (records === null) {
     // Loading `listRecords()` is a single fast IDB round-trip — an empty
@@ -70,11 +98,16 @@ export default function PinScreen() {
         <UserSelector records={records} onSelect={setSelectedUserId} />
       ) : (
         <PinUnlockPanel
+          key={selectedUser ? selectedUser.userId : 'no-user'}
           selectedUser={selectedUser}
           filledCount={filledCount}
           errorMessage={errorMessage}
           onDigit={pressDigit}
           onBackspace={pressBackspace}
+          onUnpair={() => {
+            if (selectedUser) return handleUnpair(selectedUser.userId)
+          }}
+          onSwitchUser={records.length >= 2 ? handleSwitchUser : null}
         />
       )}
     </div>
