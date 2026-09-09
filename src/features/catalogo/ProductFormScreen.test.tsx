@@ -154,6 +154,32 @@ describe('ProductFormScreen edit', () => {
     expect(screen.getByDisplayValue('4800')).toBeInTheDocument()
   })
 
+  it('should_never_send_stock_inside_the_patch_when_editing', async () => {
+    renderEdit()
+    await waitFor(() => expect(screen.getByDisplayValue('Lana Merino')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(mocks.updateProduct).toHaveBeenCalled())
+    const [, patch, stockDelta] = mocks.updateProduct.mock.calls[0]
+    expect(patch).not.toHaveProperty('stock')
+    expect(stockDelta).toBeUndefined()
+  })
+
+  it('should_send_the_stock_difference_as_a_delta_when_editing', async () => {
+    renderEdit()
+    await waitFor(() => expect(screen.getByDisplayValue('Lana Merino')).toBeInTheDocument())
+    const stockInput = screen.getByLabelText('Stock')
+    await userEvent.clear(stockInput)
+    await userEvent.type(stockInput, '13')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() =>
+      expect(mocks.updateProduct).toHaveBeenCalledWith(
+        'p1',
+        expect.not.objectContaining({ stock: 13 }),
+        3
+      )
+    )
+  })
+
   it('should_call_updateProduct_with_changes', async () => {
     renderEdit()
     await waitFor(() => expect(screen.getByDisplayValue('Lana Merino')).toBeInTheDocument())

@@ -210,6 +210,20 @@ describe('createProduct', () => {
 })
 
 describe('updateProduct', () => {
+  it('should_forward_the_stock_delta_and_never_stock_in_the_patch', async () => {
+    mocks.supabase.rpc.mockResolvedValue({ data: null, error: null })
+
+    await updateProduct('p1', { nombre: 'Lana', precio_venta: 6000, stock: 13 }, 3)
+
+    expect(mocks.supabase.rpc).toHaveBeenCalledWith('actualizar_producto', {
+      p_id: 'p1',
+      p_producto: { nombre: 'Lana', precio_venta: 6000 },
+      p_costo: undefined,
+      p_proveedor_id: undefined,
+      p_stock_delta: 3,
+    })
+  })
+
   it('should_call_actualizar_producto_rpc_with_mapped_payload', async () => {
     mocks.supabase.rpc.mockResolvedValue({ data: null, error: null })
 

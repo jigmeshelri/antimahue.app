@@ -69,10 +69,12 @@ function toRpcProductPatch(input: Partial<ProductInput>): Record<string, Json | 
     'color_nombre',
     'color_hex',
     'precio_venta',
-    'stock',
     'stock_minimo',
     'imagen_url',
   ]
+  // `stock` is deliberately absent: actualizar_producto rejects it inside
+  // p_producto and only moves stock through p_stock_delta, so the ledger
+  // (movimientos_stock) stays consistent with the column.
   for (const key of fields) {
     if (key in input) {
       payload[key] = input[key] ?? null
@@ -91,13 +93,21 @@ export async function createProduct(input: ProductInput): Promise<string> {
   return data as string
 }
 
-export async function updateProduct(id: string, input: Partial<ProductInput>): Promise<void> {
+/**
+ * PATCH an existing product. Stock is never part of the patch: pass the
+ * signed difference as `stockDelta` and the RPC records it in the ledger.
+ */
+export async function updateProduct(
+  id: string,
+  input: Partial<ProductInput>,
+  stockDelta?: number
+): Promise<void> {
   const { error } = await supabase.rpc('actualizar_producto', {
     p_id: id,
     p_producto: toRpcProductPatch(input),
     p_costo: input.costo ?? undefined,
     p_proveedor_id: input.proveedor_id ?? undefined,
-    p_stock_delta: undefined,
+    p_stock_delta: stockDelta,
   })
   if (error) throw new Error('No se pudo actualizar el producto')
 }
