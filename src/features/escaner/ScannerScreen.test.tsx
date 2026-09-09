@@ -76,6 +76,40 @@ describe('ScannerScreen', () => {
     )
   })
 
+  it('should_explain_that_the_device_has_no_barcode_detector', async () => {
+    renderScreen()
+    await waitFor(() =>
+      expect(
+        screen.getByText('El escáner de códigos no está disponible en este dispositivo.')
+      ).toBeInTheDocument()
+    )
+  })
+
+  it('should_explain_that_camera_access_was_denied_when_getUserMedia_rejects', async () => {
+    vi.stubGlobal(
+      'BarcodeDetector',
+      class {
+        detect = vi.fn()
+      }
+    )
+    const denied = new DOMException('Permission denied', 'NotAllowedError')
+    Object.defineProperty(global.navigator, 'mediaDevices', {
+      value: { getUserMedia: vi.fn().mockRejectedValue(denied) },
+      configurable: true,
+    })
+    renderScreen()
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          'No hay acceso a la cámara. Permite el permiso en el navegador o ingresa el SKU manualmente.'
+        )
+      ).toBeInTheDocument()
+    )
+    expect(
+      screen.queryByText('El escáner de códigos no está disponible en este dispositivo.')
+    ).not.toBeInTheDocument()
+  })
+
   it('should_lookup_sku_from_manual_input', async () => {
     renderScreen()
     const input = await screen.findByPlaceholderText('Ingresa el SKU manualmente')
