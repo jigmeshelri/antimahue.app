@@ -1,8 +1,8 @@
 change:
   name: unpair-device
-  status: tasks
+  status: apply
   created_at: "2026-09-09T00:00:00Z"
-  updated_at: "2026-09-09T00:20:00Z"
+  updated_at: "2026-09-09T00:40:00Z"
   domain: auth
   depends_on: [auth-pin]
   phase_states:
@@ -11,6 +11,6 @@ change:
     specs: completed
     design: completed
     tasks: completed
-    apply: pending
+    apply: in_progress
     verify: pending
     archive: pending

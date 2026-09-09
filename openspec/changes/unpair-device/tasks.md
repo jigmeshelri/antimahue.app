@@ -7,7 +7,7 @@ persistence: openspec
 sequencing_source: "design.md §4 data flow, §6 testing strategy"
 session_count: 1
 task_count: 9
-progress: "0/9"
+progress: "8/9"
 updated_at: 2026-09-09
 ---
 
@@ -43,15 +43,15 @@ If the measured diff clears 400 lines, request `size:exception` rather than frag
 
 | ID | Task | Files | Refs | Verification | Status |
 |----|------|-------|------|---------------|--------|
-| T-1 | RED: extend lock store tests — `resetLock()` clears `failCount`/`lockedUntil`/`requiresRelogin` back to neutral | `src/stores/lock.test.ts` | REQ-AUTH-7, DD-3, DD-6 | test fails (`resetLock` undefined) | [ ] |
-| T-2 | GREEN: export `NEUTRAL_LOCK` const and `resetLock()` (`$lock.set(NEUTRAL_LOCK)`); seed `$lock` from `NEUTRAL_LOCK` | `src/stores/lock.ts` | REQ-AUTH-7, DD-3 | T-1 passes | [ ] |
-| T-3 | RED: new panel tests — idle link per profile; tap shows note+buttons; cancel restores link and refocuses it; confirm calls `onUnpair` once; switch link only when `onSwitchUser` non-null; both links hidden when `selectedUser` is null; buttons disabled at `filledCount === 4` | `src/components/organisms/PinUnlockPanel.test.tsx` | REQ-AUTH-5,6,9,10; DD-1,2,6,7,8,9 | tests fail (props/markup missing) | [ ] |
-| T-4 | GREEN: add `onUnpair`/`onSwitchUser` props, `unpairState` machine (`'idle'\|'confirming'\|'submitting'`), action row under the name/role line, consequence note (`aria-describedby`), `Sí, desvincular`/`Cancelar` buttons, focus → Cancelar on confirm / → link on cancel, disable both links while `filledCount === 4`, move `mb-[38px]` to the action row | `src/components/organisms/PinUnlockPanel.tsx` | REQ-AUTH-5,6,9,10; DD-1,2,6,7,8,9 | T-3 passes | [ ] |
-| T-5 | RED: new container tests — mock `./usePinUnlock` and `@/lib/vault`; 1 profile → confirm → `deleteRecord`+`resetLock`+`/pair`; 2 profiles → confirm → selector with remaining profile; 3 profiles → confirm → selector; switch link → selector, no `deleteRecord` | `src/features/auth/PinScreen.test.tsx` | REQ-AUTH-7,8,9,10; DD-3,4,5 | tests fail (handlers missing) | [ ] |
-| T-6 | GREEN: add `autoSelectedUserId()` helper (shared with the mount effect), `handleUnpair(userId)` (`deleteRecord` → `resetLock` → re-run `listRecords` → route by DD-5 rule), `handleSwitchUser` (`setSelectedUserId(null)`), wire both into `PinUnlockPanel` | `src/features/auth/PinScreen.tsx` | REQ-AUTH-7,8,9,10; DD-3,4,5 | T-5 passes | [ ] |
-| T-7 | Gate: lint + format:check + typecheck + test + build | — | — | `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` green | [ ] |
+| T-1 | RED: extend lock store tests — `resetLock()` clears `failCount`/`lockedUntil`/`requiresRelogin` back to neutral | `src/stores/lock.test.ts` | REQ-AUTH-7, DD-3, DD-6 | test fails (`resetLock` undefined) | [x] |
+| T-2 | GREEN: export `NEUTRAL_LOCK` const and `resetLock()` (`$lock.set(NEUTRAL_LOCK)`); seed `$lock` from `NEUTRAL_LOCK` | `src/stores/lock.ts` | REQ-AUTH-7, DD-3 | T-1 passes | [x] |
+| T-3 | RED: new panel tests — idle link per profile; tap shows note+buttons; cancel restores link and refocuses it; confirm calls `onUnpair` once; switch link only when `onSwitchUser` non-null; both links hidden when `selectedUser` is null; buttons disabled at `filledCount === 4` | `src/components/organisms/PinUnlockPanel.test.tsx` | REQ-AUTH-5,6,9,10; DD-1,2,6,7,8,9 | tests fail (props/markup missing) | [x] |
+| T-4 | GREEN: add `onUnpair`/`onSwitchUser` props, `unpairState` machine (`'idle'\|'confirming'\|'submitting'`), action row under the name/role line, consequence note (`aria-describedby`), `Sí, desvincular`/`Cancelar` buttons, focus → Cancelar on confirm / → link on cancel, disable both links while `filledCount === 4`, move `mb-[38px]` to the action row | `src/components/organisms/PinUnlockPanel.tsx` | REQ-AUTH-5,6,9,10; DD-1,2,6,7,8,9 | T-3 passes | [x] |
+| T-5 | RED: new container tests — mock `./usePinUnlock` and `@/lib/vault`; 1 profile → confirm → `deleteRecord`+`resetLock`+`/pair`; 2 profiles → confirm → selector with remaining profile; 3 profiles → confirm → selector; switch link → selector, no `deleteRecord` | `src/features/auth/PinScreen.test.tsx` | REQ-AUTH-7,8,9,10; DD-3,4,5 | tests fail (handlers missing) | [x] |
+| T-6 | GREEN: add `autoSelectedUserId()` helper (shared with the mount effect), `handleUnpair(userId)` (`deleteRecord` → `resetLock` → re-run `listRecords` → route by DD-5 rule), `handleSwitchUser` (`setSelectedUserId(null)`), wire both into `PinUnlockPanel` | `src/features/auth/PinScreen.tsx` | REQ-AUTH-7,8,9,10; DD-3,4,5 | T-5 passes | [x] |
+| T-7 | Gate: lint + format:check + typecheck + test + build | — | — | `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` green | [x] |
 | T-8 | Manual on-device check (user/orchestrator-owned, real phone): single profile → unpair → `/pair`; two profiles → unpair one → selector; cancel leaves link, deletes nothing; switch link → selector, deletes nothing | — | REQ-AUTH-5..10 | manual sign-off before merge | [ ] |
-| T-9 | openspec bookkeeping: `state.yaml` → `phase_states.apply: completed`, `status: apply`, `updated_at` | `openspec/changes/unpair-device/state.yaml` | — | fields updated | [ ] |
+| T-9 | openspec bookkeeping: `state.yaml` → `phase_states.apply: completed`, `status: apply`, `updated_at` | `openspec/changes/unpair-device/state.yaml` | — | fields updated | [x] |
 
 **Commit suggestion (one PR, atomic commits):**
 1. `test(auth): add resetLock coverage to lock store` + `feat(auth): export NEUTRAL_LOCK and resetLock`
