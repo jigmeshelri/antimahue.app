@@ -1,6 +1,6 @@
 # AGENTS — Proyecto Antimahue
 
-> Estado al 2026-09-08: app **LIVE en producción** (`antimahue.com`). Cinco changes del MVP cerrados y archivados: `data-model`, `auth-pin`, `catalogo`, `venta`, `dashboard` (ver `openspec/changes/archive/`). Change activo: `color-palette-assistant` (`tasks` completado, `apply` pending). Próximo change del roadmap aprobado: `proveedores-dte`. Ojo: Supabase free tier se auto-pausa tras ~7 días sin uso — verificar `get_project.status` antes de tocar la DB. La guía completa del repo vive en `CLAUDE.md` — este archivo es el resumen operativo para agentes. Mantener ambos sincronizados.
+> Estado al 2026-09-09: app **LIVE en producción** (`antimahue.com`). Siete changes del MVP cerrados y archivados: `data-model`, `auth-pin`, `catalogo`, `venta`, `dashboard`, `color-palette-assistant`, `unpair-device` (ver `openspec/changes/archive/`). Sin change activo (`active_changes: []`). Próximo del roadmap aprobado: `proveedores-dte`. Ojo: Supabase free tier se auto-pausa tras ~7 días sin uso — verificar `get_project.status` antes de tocar la DB. La guía completa del repo vive en `CLAUDE.md` — este archivo es el resumen operativo para agentes. Mantener ambos sincronizados.
 
 ## Comandos reales
 
@@ -10,13 +10,15 @@
 - `pnpm preview` — sirve el `dist/` buildeado.
 - `pnpm lint` — ESLint.
 - `pnpm format` / `pnpm format:check` — Prettier (escribe / solo chequea).
-- `pnpm test` — Vitest. `271 passed | 7 skipped` por default (CI parity); los skips son la batería RLS multi-rol, local-only — `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza contra un stack Supabase local → 278/278.
+- `pnpm test` — Vitest. `385 passed | 7 skipped` por default (CI parity); los skips son la batería RLS multi-rol, local-only — `RUN_LOCAL_RLS_BATTERY=1 pnpm test` la fuerza contra un stack Supabase local → 392/392.
 - CI (`.github/workflows/ci.yml`, GitHub Actions) corre lint + format:check + typecheck + test + build en cada PR contra `main` y en push a `main`.
 
 ## Workflow git
 
 - **SIEMPRE vía PR a `main`** — sin push directo (ruleset de GitHub: PR obligatorio, sin force-push ni borrado en `main`/`develop`).
 - Conventional commits en inglés, atómicos (single responsibility), sin atribución de IA.
+- CI solo corre en PRs contra `main`: en cadenas apiladas, abrir cada PR contra `main` después de mergear el padre.
+- Copy de UI en tuteo neutro chileno, nunca voseo. Toda función SQL nueva se ejecuta contra el stack local con datos sembrados en `verify`.
 - **Deploy de schema (Supabase):** el merge a `main` dispara la GitHub integration (schema-as-code). Detalle y fallback sancionado en `CLAUDE.md` → "Convenciones y gotchas del repo".
 
 ## Seguridad
