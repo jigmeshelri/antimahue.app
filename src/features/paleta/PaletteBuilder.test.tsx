@@ -32,7 +32,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
 describe('PaletteBuilder', () => {
   it('should_show_an_empty_message_when_no_product_is_selected', () => {
     render(<PaletteBuilder selected={[]} onRemove={vi.fn()} onMove={vi.fn()} />)
-    expect(screen.getByText('Agregá hilados sugeridos para armar tu paleta')).toBeInTheDocument()
+    expect(screen.getByText('Agrega hilados sugeridos para armar tu paleta')).toBeInTheDocument()
   })
 
   it('should_list_every_selected_product', () => {

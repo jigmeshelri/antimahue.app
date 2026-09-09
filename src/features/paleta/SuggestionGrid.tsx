@@ -29,7 +29,7 @@ export default function SuggestionGrid({
   if (targets.length === 0) {
     return (
       <p className="text-center text-text-secondary text-[14px] py-[16px]">
-        Elegí un hilado base para ver sugerencias
+        Elige un hilado base para ver sugerencias
       </p>
     )
   }

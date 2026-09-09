@@ -19,7 +19,7 @@ export default function PaletteBuilder({ selected, onRemove, onMove }: PaletteBu
   if (selected.length === 0) {
     return (
       <p className="text-center text-text-secondary text-[14px] py-[16px]">
-        Agregá hilados sugeridos para armar tu paleta
+        Agrega hilados sugeridos para armar tu paleta
       </p>
     )
   }
