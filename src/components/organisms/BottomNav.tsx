@@ -2,10 +2,20 @@ import {
   BooksIcon,
   DotsThreeCircleIcon,
   HouseIcon,
+  PaletteIcon,
   ShoppingCartSimpleIcon,
 } from '@phosphor-icons/react'
 
-export type BottomNavTab = 'inicio' | 'venta' | 'catalogo' | 'mas'
+// NOTE (deviation, task 3.7): the design_handoff hi-fi prototype fixes 4 tabs
+// (Inicio/Venta/Catálogo/Más — README.md "Tabs:" line). This change's own
+// design.md explicitly lists "Add paleta tab" as a BottomNav.tsx file
+// change, and "Más" has no built destination yet to route a 5th entry
+// through (its path is still the placeholder `#`), so a genuine 5th tab is
+// the faithful choice here rather than inventing a "Más" menu screen out of
+// scope for this slice. The bar height (and therefore each tab's tap target
+// height) is unchanged — only per-tab width shrinks, which stays well above
+// the 44px minimum on any phone-sized viewport.
+export type BottomNavTab = 'inicio' | 'venta' | 'catalogo' | 'paleta' | 'mas'
 
 interface BottomNavProps {
   active: BottomNavTab
@@ -16,6 +26,7 @@ const TABS: { id: BottomNavTab; label: string; path: string; icon: typeof HouseI
   { id: 'inicio', label: 'Inicio', path: '/dashboard', icon: HouseIcon },
   { id: 'venta', label: 'Venta', path: '/venta', icon: ShoppingCartSimpleIcon },
   { id: 'catalogo', label: 'Catálogo', path: '/catalogo', icon: BooksIcon },
+  { id: 'paleta', label: 'Paleta', path: '/paleta', icon: PaletteIcon },
   { id: 'mas', label: 'Más', path: '#', icon: DotsThreeCircleIcon },
 ]
 

@@ -249,3 +249,139 @@ The orchestrator should decide up front whether slice 3 stays under 800
 lines on its own or whether the slice-2 overage plus 7 new UI files
 warrants an explicit size exception or a further split — recommend
 flagging this to the user before slice 3 starts.
+
+## Slice 3 of 3 — `slice-3-ui` (Phase 3: UI components and screen; Phase 4/5 close-out)
+
+- **Branch**: `feat/paleta-3-ui` (stacked on `feat/paleta-2-core`).
+- **Status**: complete except task 4.3 (manual device verification, out of
+  scope for an apply-phase agent — left to the orchestrator/user). Tasks
+  3.1-3.7, 4.1, 4.2 (pulled forward, re-referenced from slice 1), 5.1, 5.2,
+  5.3 done. All automated gates green.
+- **Changed lines**: tracked `55 insertions + 21 deletions` (BottomNav,
+  router, docs, openspec artifacts) + untracked `1104 insertions` (10 new
+  files under `src/features/paleta/`) = **1159 insertions + 21 deletions =
+  1180 total** (attempt budget: 1600 — under budget, unlike slice 2).
+
+### Tasks completed
+
+- [x] **3.1** `src/features/paleta/SeedPicker.tsx` + test (64 + 77 lines,
+  5 tests). Presentational: renders whatever product list it's given (the
+  caller, `PaletaScreen`, is responsible for only passing colored products
+  via `fetchColoredProducts`) plus a local text-search filter (`SearchInput`
+  reuse, no debounce — filtering an already-fetched in-memory list needs
+  none).
+
+- [x] **3.2** `src/features/paleta/HarmonySelector.tsx` + test (43 + 41
+  lines, 4 tests). Chips mirroring `FilterChips`' exact visual/interaction
+  pattern (active/inactive styles, `aria-pressed`, no-op re-tap of the
+  active option).
+
+- [x] **3.3** `src/features/paleta/SuggestionGrid.tsx` + test (103 + 141
+  lines, 7 tests). Groups `SuggestedProduct[]` by `targetIndex` into one
+  section per theoretical target (swatch + "Opcion N" header from
+  `hslToHex(target)`). **Deviation** (not spec-mandated, a UX bound): caps
+  each section at `maxPerTarget = 5` suggestions closest-first, to keep the
+  screen scrollable rather than dumping the whole ranked catalog. Out-of-
+  stock suggestions render with the same `StockBadge` ("Agotado") as the
+  rest of the app and a disabled "Agregar" button — flagged, never hidden
+  (open-question resolution). Already-selected suggestions show "Agregado"
+  and stay disabled (idempotent add, matches `paletaStore.addToPalette`'s
+  own dedupe).
+
+- [x] **3.4** `src/features/paleta/PaletteBuilder.tsx` + test (77 + 83
+  lines, 5 tests). Selected-product list with per-row up/down/remove
+  buttons (D6 tap-to-move, no drag-and-drop); up disabled for the first
+  item, down disabled for the last (mirrors `paletaStore.moveSelected`'s own
+  boundary no-ops, so the UI and the store logic never disagree). Empty
+  state: "Agrega hilados sugeridos para armar tu paleta".
+
+- [x] **3.5** `src/features/paleta/PaletaScreen.tsx` + test (237 + 238
+  lines, 10 tests). Orchestrates all three steps on one scrollable screen
+  (no wizard navigation): fetches colored products on mount
+  (loading/error states), derives `seed`/`seedHsl`/`targets`/`suggestions`
+  via `useMemo` chains from `$colorPalette` + the fetched product list,
+  wires `SeedPicker`/`HarmonySelector`/`SuggestionGrid`/`PaletteBuilder` to
+  the store's actions directly (`setSeed`, `setRule`, `addToPalette`,
+  `removeFromPalette`, `moveSelected` all passed as-is — no wrapper
+  closures needed since the signatures already match each component's
+  prop types). Share button (visible only once the palette is non-empty)
+  calls `window.open(buildWhatsappShareUrl(selected), '_blank', 'noopener')`.
+  Encargo note + "Anotar encargo" section is gated to
+  `auth.rol === 'admin'` only (UX concealment matching
+  `pedidos_pendientes`' admin-only RLS — an empleado never even sees the
+  control, let alone hits a 403); on save, clears the note and shows a
+  success/error toast via the real `$ui`/`showToast` (not mocked in tests,
+  same convention as `SaleScreen.test.tsx`).
+
+- [x] **3.6** `/paleta` lazy route added to `src/lib/router.tsx`, wrapped in
+  `<RequireSession>` (same pattern as `/catalogo`, `/venta`). Header comment
+  block updated with the new route-map entry.
+
+- [x] **3.7** `BottomNav` tab added (**deviation, documented inline in both
+  `tasks.md` and a code comment in `BottomNav.tsx`**): the design_handoff
+  hi-fi prototype fixes exactly 4 tabs (Inicio/Venta/Catalogo/Mas per
+  `README.md`'s "Tabs:" line), but this change's own `design.md` explicitly
+  lists "Add paleta tab" as a `BottomNav.tsx` file change, and "Mas" has no
+  built destination yet (`path: '#'`, no screen) to route a 5th entry
+  through. Building an out-of-scope "Mas" menu screen just to avoid a 5th
+  tab would have been a bigger deviation than adding one. Bar height (and
+  therefore tap-target height) is unchanged; only per-tab width shrinks,
+  which stays well above the 44px minimum on any phone-sized viewport.
+  `BottomNav.test.tsx` updated: "should_render_four_tabs" to
+  "should_render_five_tabs" (+ a paleta assertion), plus one new
+  navigation test for the `/paleta` tab.
+
+### Gates (all green)
+
+- `pnpm lint` — clean (one real finding fixed along the way: an
+  `exhaustive-deps` warning on `seedHsl`, resolved by wrapping it in its own
+  `useMemo` instead of a plain conditional).
+- `pnpm format:check` — 5 files needed `pnpm format` (whitespace/line-wrap
+  only); re-ran clean after.
+- `pnpm typecheck` — clean (one real finding fixed: the test file's mocked
+  `$auth` atom only carried `{ rol }`, which doesn't satisfy the real
+  `AuthState` shape once `.set()` is called to switch roles mid-test; fixed
+  with a `setRol()` test helper that always sets the full `AuthState`
+  shape).
+- `pnpm test` — 359 passed | 7 skipped (baseline 327 passed | 7 skipped;
+  +32 new tests: 4 HarmonySelector + 5 SeedPicker + 7 SuggestionGrid +
+  5 PaletteBuilder + 10 PaletaScreen + 1 new BottomNav). The 7 skips remain
+  the local-only RLS battery, untouched.
+- `pnpm build` — succeeds; PWA precache now 37 entries (was 36 — the new
+  `PaletaScreen` lazy chunk), 670.46 KiB. The pre-existing >500 kB main
+  chunk warning is unrelated to this slice (same warning existed before).
+
+### Bookkeeping
+
+- `tasks.md`: 3.1-3.7, 4.1, 4.2, 5.1, 5.2, 5.3 marked `[x]` with deviation
+  notes inline; 4.3 left unchecked with a note that it's the
+  orchestrator's/user's job.
+- `design.md`: both Open Questions resolved (`[x]`), each citing the exact
+  slice-2 function and slice-3 component that encodes the decision.
+- `docs/product-definition.md`: section 8 refined for accuracy (tap-to-move
+  not drag-and-drop; out-of-stock suggestions shown disabled not filtered
+  to "en stock"; added the admin-only encargo note and the WhatsApp share
+  bullet). The section itself and the v2+ portal/community bullets already
+  existed from an earlier phase — this was a boy-scout accuracy pass, not a
+  net-new section.
+- `state.yaml`: `apply_progress.slices_done` now includes `slice-3-ui`,
+  `tasks_done` includes every task through 5.3, `tasks_remaining: ["4.3"]`,
+  `next: verify`. `apply` phase state stays `in_progress` (not flipped to
+  `completed`) precisely because 4.3 is still open — the orchestrator owns
+  that transition.
+- Engram `mem_save` was again NOT available as a callable tool in this
+  execution context — this file remains the persisted record, consistent
+  with the declared `openspec` artifact store.
+
+### What task 4.3 (manual verification) should focus on
+
+Not performed by this agent. When run, focus on: (1) the full
+seed-rule-suggestions-add-to-palette-reorder-share-encargo flow on a real
+phone-sized viewport; (2) whether 5 tabs in `BottomNav` still feel
+comfortable to tap on the smallest supported screen width — this was
+reasoned about but never visually confirmed on a device; (3) whether the
+WhatsApp `wa.me` link actually opens the installed WhatsApp app on a real
+phone (jsdom only proves `window.open` was called with the right URL,
+never that the target app handles it); (4) whether an admin's saved
+`pedidos_pendientes` row round-trips correctly against the real (not
+mocked) Supabase RPC/table from slice 1.
