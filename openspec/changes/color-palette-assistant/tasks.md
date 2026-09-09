@@ -10,10 +10,10 @@
 
 ## Phase 2: Core palette logic — utils, store, API
 
-- [ ] 2.1 Write failing tests for `src/features/paleta/paletaUtils.ts` (hex↔hsl, Euclidean distance, target generation for analogous/complementary/triadic, WhatsApp formatter).
-- [ ] 2.2 Implement `src/features/paleta/paletaUtils.ts` to make tests pass.
-- [ ] 2.3 Create `src/features/paleta/paletaStore.ts` with `$colorPalette` nanostore (seed, rule, selected, note, add/remove/reorder/clear actions) and write store tests.
-- [ ] 2.4 Create `src/features/paleta/paletaApi.ts`: fetch colored products, save `pedidos_pendientes`; mock `@/lib/supabase` in tests.
+- [x] 2.1 Write failing tests for `src/features/paleta/paletaUtils.ts` (hex↔hsl, Euclidean distance, target generation for analogous/complementary/triadic, WhatsApp formatter).
+- [x] 2.2 Implement `src/features/paleta/paletaUtils.ts` to make tests pass (**deviation**: added `hslToHex` and `rotateHue` as exported helpers not named in design's interface list — needed for round-trip testing and to keep target generation readable; also added `stockStatus` to `SuggestedProduct`, reusing `resolveStockStatus` from `catalogoUtils`, to satisfy REQ-CPA-5 and the open-question resolution that out-of-stock suggestions are returned flagged, not hidden).
+- [x] 2.3 Create `src/features/paleta/paletaStore.ts` with `$colorPalette` nanostore (seed, rule, selected, note, add/remove/reorder/clear actions) and write store tests.
+- [x] 2.4 Create `src/features/paleta/paletaApi.ts`: fetch colored products, save `pedidos_pendientes`; mock `@/lib/supabase` in tests.
 
 ## Phase 3: UI components and screen
 
