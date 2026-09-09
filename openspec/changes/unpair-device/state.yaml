@@ -1,0 +1,16 @@
+change:
+  name: unpair-device
+  status: tasks
+  created_at: "2026-09-09T00:00:00Z"
+  updated_at: "2026-09-09T00:20:00Z"
+  domain: auth
+  depends_on: [auth-pin]
+  phase_states:
+    explore: completed
+    proposal: completed
+    specs: completed
+    design: completed
+    tasks: completed
+    apply: pending
+    verify: pending
+    archive: pending
