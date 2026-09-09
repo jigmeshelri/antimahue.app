@@ -70,6 +70,8 @@ export default function ProductFormScreen({ mode }: ProductFormScreenProps) {
   const navigate = useNavigate()
   const [form, setForm] = useState<FormState>(emptyForm())
   const [loading, setLoading] = useState(mode === 'edit')
+  // Stock the product had when loaded; edit submits (new − original) as a delta.
+  const [originalStock, setOriginalStock] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -83,6 +85,7 @@ export default function ProductFormScreen({ mode }: ProductFormScreenProps) {
         if (cancelled) return
         if (product) {
           setForm(formFromProduct(product))
+          setOriginalStock(product.stock)
         } else {
           setError('Producto no encontrado')
         }
@@ -138,13 +141,18 @@ export default function ProductFormScreen({ mode }: ProductFormScreenProps) {
       }
 
       if (mode === 'edit' && id) {
-        const patch: Partial<typeof payload> = {}
-        for (const [key, value] of Object.entries(payload)) {
+        // `stock` never travels in the patch: actualizar_producto rejects it
+        // and only accepts a signed delta so the ledger stays consistent.
+        const { stock: newStock, ...editable } = payload
+        const patch: Partial<typeof editable> = {}
+        for (const [key, value] of Object.entries(editable)) {
           if (value !== null || key === 'precio_venta' || key === 'nombre') {
-            patch[key as keyof typeof payload] = value as never
+            patch[key as keyof typeof editable] = value as never
           }
         }
-        await updateProduct(id, patch)
+        const stockDelta = newStock - originalStock
+        if (stockDelta === 0) await updateProduct(id, patch)
+        else await updateProduct(id, patch, stockDelta)
         navigate(`/catalogo/${id}`)
       } else {
         const newId = await createProduct(payload)
@@ -287,7 +295,7 @@ export default function ProductFormScreen({ mode }: ProductFormScreenProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-[12px]">
-          <Field label="Stock inicial">
+          <Field label={mode === 'edit' ? 'Stock' : 'Stock inicial'}>
             <input
               type="number"
               min={0}
