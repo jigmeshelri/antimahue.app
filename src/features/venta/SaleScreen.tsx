@@ -210,7 +210,7 @@ export default function SaleScreen() {
             <p className="text-text-secondary text-[14px] text-center">
               Tu carrito está vacío.
               <br />
-              Buscá un producto o escaneá su código.
+              Busca un producto o escanea su código.
             </p>
             <button
               type="button"

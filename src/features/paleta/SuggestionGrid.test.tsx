@@ -43,7 +43,7 @@ function makeSuggestion(overrides: Partial<SuggestedProduct> = {}): SuggestedPro
 describe('SuggestionGrid', () => {
   it('should_show_a_prompt_when_there_are_no_targets_yet', () => {
     render(<SuggestionGrid targets={[]} suggestions={[]} selectedIds={new Set()} onAdd={vi.fn()} />)
-    expect(screen.getByText('Elegí un hilado base para ver sugerencias')).toBeInTheDocument()
+    expect(screen.getByText('Elige un hilado base para ver sugerencias')).toBeInTheDocument()
   })
 
   it('should_render_one_section_per_target', () => {

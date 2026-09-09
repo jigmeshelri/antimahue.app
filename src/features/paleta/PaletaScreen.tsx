@@ -151,13 +151,13 @@ export default function PaletaScreen() {
           <>
             <section className="space-y-[10px]">
               <h2 className="text-[14px] font-semibold text-text-primary">
-                1. Elegí un hilado base
+                1. Elige un hilado base
               </h2>
               <SeedPicker products={products} seedId={palette.seedId} onSelect={setSeed} />
             </section>
 
             <section className="space-y-[10px]">
-              <h2 className="text-[14px] font-semibold text-text-primary">2. Elegí una armonía</h2>
+              <h2 className="text-[14px] font-semibold text-text-primary">2. Elige una armonía</h2>
               <HarmonySelector value={palette.rule} onChange={setRule} />
             </section>
 
@@ -208,7 +208,7 @@ export default function PaletaScreen() {
             {isAdmin ? (
               <section className="space-y-[10px]">
                 <h2 className="text-[14px] font-semibold text-text-primary">
-                  ¿Falta un color? Anotá el encargo
+                  ¿Falta un color? Anota el encargo
                 </h2>
                 <textarea
                   value={palette.note}

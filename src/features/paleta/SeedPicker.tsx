@@ -17,11 +17,29 @@ interface SeedPickerProps {
   onSelect: (productId: string) => void
 }
 
+/**
+ * Case- and accent-insensitive comparison key: "Algodón" and "algodon"
+ * search the same, and the color name counts as much as the product name
+ * because Angélica thinks in colors ("rojo fuego"), not in SKUs.
+ */
+function normalizeForSearch(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
 export default function SeedPicker({ products, seedId, onSelect }: SeedPickerProps) {
   const [search, setSearch] = useState('')
 
-  const filtered = search.trim()
-    ? products.filter((product) => product.nombre.toLowerCase().includes(search.toLowerCase()))
+  const query = normalizeForSearch(search)
+  const filtered = query
+    ? products.filter((product) =>
+        [product.nombre, product.color_nombre].some(
+          (field) => field != null && normalizeForSearch(field).includes(query)
+        )
+      )
     : products
 
   return (
@@ -30,7 +48,9 @@ export default function SeedPicker({ products, seedId, onSelect }: SeedPickerPro
 
       {filtered.length === 0 ? (
         <p className="text-center text-text-secondary text-[14px] py-[16px]">
-          No hay hilados con color registrado
+          {products.length === 0
+            ? 'No hay hilados con color registrado'
+            : `Sin resultados para «${search.trim()}»`}
         </p>
       ) : (
         <div className="flex gap-[10px] overflow-x-auto pb-[4px] scrollbar-hide">

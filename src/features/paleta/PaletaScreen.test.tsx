@@ -166,12 +166,12 @@ describe('PaletaScreen', () => {
     await user.click(await screen.findByRole('button', { name: 'Agregar' }))
 
     expect(
-      screen.queryByText('Agregá hilados sugeridos para armar tu paleta')
+      screen.queryByText('Agrega hilados sugeridos para armar tu paleta')
     ).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Quitar Lana Complementaria' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Quitar Lana Complementaria' }))
-    expect(screen.getByText('Agregá hilados sugeridos para armar tu paleta')).toBeInTheDocument()
+    expect(screen.getByText('Agrega hilados sugeridos para armar tu paleta')).toBeInTheDocument()
   })
 
   it('should_open_a_whatsapp_share_link_with_the_palette', async () => {
@@ -232,7 +232,7 @@ describe('PaletaScreen', () => {
     renderScreen()
 
     await waitFor(() => expect(mocks.fetchColoredProducts).toHaveBeenCalled())
-    expect(screen.queryByText('¿Falta un color? Anotá el encargo')).not.toBeInTheDocument()
+    expect(screen.queryByText('¿Falta un color? Anota el encargo')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Anotar encargo' })).not.toBeInTheDocument()
   })
 })
