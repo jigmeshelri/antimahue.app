@@ -28,6 +28,4 @@ project:
     path: openspec/
   state:
     initialized: true
-    active_changes:
-      - color-palette-assistant
-      - unpair-device
+    active_changes: []
