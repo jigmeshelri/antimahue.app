@@ -70,6 +70,34 @@ describe('SeedPicker', () => {
     expect(screen.getByText('Algodón Azul')).toBeInTheDocument()
   })
 
+  it('should_match_search_text_against_the_color_name', async () => {
+    const user = userEvent.setup()
+    const products = [
+      makeProduct({ id: 'p1', nombre: '24/7', color_nombre: 'Rojo Fuego' }),
+      makeProduct({ id: 'p2', nombre: 'Algodón', color_nombre: 'Azul Mar' }),
+    ]
+    render(<SeedPicker products={products} seedId={null} onSelect={vi.fn()} />)
+    await user.type(screen.getByPlaceholderText('Buscar ovillo…'), 'rojo')
+    expect(screen.getByText('24/7')).toBeInTheDocument()
+    expect(screen.queryByText('Algodón')).not.toBeInTheDocument()
+  })
+
+  it('should_ignore_accents_when_searching', async () => {
+    const user = userEvent.setup()
+    const products = [makeProduct({ id: 'p1', nombre: 'Algodón Azul', color_nombre: 'Añil' })]
+    render(<SeedPicker products={products} seedId={null} onSelect={vi.fn()} />)
+    await user.type(screen.getByPlaceholderText('Buscar ovillo…'), 'algodon')
+    expect(screen.getByText('Algodón Azul')).toBeInTheDocument()
+  })
+
+  it('should_show_a_no_results_message_when_the_search_matches_nothing', async () => {
+    const user = userEvent.setup()
+    render(<SeedPicker products={[makeProduct()]} seedId={null} onSelect={vi.fn()} />)
+    await user.type(screen.getByPlaceholderText('Buscar ovillo…'), 'verde')
+    expect(screen.getByText('Sin resultados para «verde»')).toBeInTheDocument()
+    expect(screen.queryByText('No hay hilados con color registrado')).not.toBeInTheDocument()
+  })
+
   it('should_show_an_empty_message_when_no_product_has_a_registered_color', () => {
     render(<SeedPicker products={[]} seedId={null} onSelect={vi.fn()} />)
     expect(screen.getByText('No hay hilados con color registrado')).toBeInTheDocument()
